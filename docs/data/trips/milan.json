@@ -1,0 +1,811 @@
+{
+  "id": "milan-dic-2026",
+  "name": "Milán",
+  "country": "Italia",
+  "subtitle": "24–27 diciembre 2026 · Andreola Central Hotel, Centro Milán",
+  "dateStart": "2026-12-24T09:00:00+01:00",
+  "dateEnd": "2026-12-27T19:00:00+01:00",
+  "coords": {
+    "lat": 45.4642,
+    "lon": 9.19
+  },
+  "travelers": [
+    {
+      "id": "juanjo",
+      "name": "Juanjo",
+      "initial": "JJ",
+      "color": "#3E6E92"
+    },
+    {
+      "id": "monica",
+      "name": "Mónica",
+      "initial": "M",
+      "color": "#A6472F"
+    },
+    {
+      "id": "diego",
+      "name": "Diego",
+      "initial": "D",
+      "color": "#3F6B52"
+    }
+  ],
+  "facts": {
+    "destino": "Milán",
+    "duracion": "4 días · 3 noches",
+    "alojamiento": "Hotel Andreola Central · media pensión",
+    "presupuesto": "2.040 € – 2.240 €"
+  },
+  "excursions": [
+    {
+      "id": "exc-freetour",
+      "name": "Free tour Milán",
+      "provider": "Civitatis",
+      "when": "25 dic · mañana",
+      "price": "Gratis (propina recomendada)",
+      "bookingUrl": "https://www.civitatis.com/es/milan/"
+    },
+    {
+      "id": "exc-alpes",
+      "name": "Excursión Alpes · St. Moritz en tren",
+      "provider": "Civitatis",
+      "when": "26 dic · todo el día",
+      "price": "Ver ficha",
+      "bookingUrl": "https://www.civitatis.com/es/milan/"
+    }
+  ],
+  "hotel": {
+    "name": "Hotel Andreola Central",
+    "address": "Via Domenico Scarlatti, 24, 20124 Milano MI, Italia",
+    "phone": "+39 02 6698 1610",
+    "checkIn": "24 dic · 15:00",
+    "checkOut": "27 dic · 11:00",
+    "mapsUrl": "https://www.google.com/maps/search/?api=1&query=Andreola+Central+Hotel+Milano"
+  },
+  "reservations": [
+    {
+      "status": "pending",
+      "strong": "Hotel Andreola Central",
+      "rest": "— 3 noches, media pensión, 960 € total"
+    },
+    {
+      "status": "pending",
+      "strong": "Free tour Milán",
+      "rest": "— 24 dic, 2h 45min, gratuito"
+    },
+    {
+      "status": "pending",
+      "strong": "Excursión Alpes · St. Moritz en tren",
+      "rest": "— 26 dic mañana, 110,26 €/persona"
+    },
+    {
+      "status": "pending",
+      "strong": "Turismo Milán",
+      "rest": "— 27 dic, Duomo · Galleria · Castello · Navigli"
+    },
+    {
+      "status": "pending",
+      "strong": "Vuelos Madrid ↔ Milán",
+      "rest": "— salida 7–9h del 24, regreso 19h del 27, sin maletas facturadas"
+    }
+  ],
+  "gettingAround": [
+    {
+      "title": "Malpensa → Hotel",
+      "mapsUrl": "https://www.google.com/maps/dir/?api=1&origin=Malpensa+Airport+Milan&destination=Andreola+Central+Hotel+Milano&travelmode=transit",
+      "destLat": 45.4841,
+      "destLon": 9.1859,
+      "destName": "Andreola Central Hotel",
+      "steps": [
+        {
+          "mode": "Tren",
+          "detail": "Malpensa Express → Milano Centrale",
+          "meta": "51 min · 15 €/persona"
+        },
+        {
+          "mode": "Metro",
+          "detail": "Línea M2 (verde) → Lima",
+          "meta": "10 min · 1,50 €"
+        }
+      ],
+      "tip": "Evita taxi/Uber el 24: es festivo, hay tráfico y cuesta ~114 €."
+    },
+    {
+      "title": "Hotel → Duomo",
+      "mapsUrl": "https://www.google.com/maps/dir/?api=1&origin=Andreola+Central+Hotel+Milano&destination=Duomo+di+Milano&travelmode=transit",
+      "destLat": 45.4642,
+      "destLon": 9.19,
+      "destName": "Duomo di Milano",
+      "steps": [
+        {
+          "mode": "Metro",
+          "detail": "Línea M1 (roja): Lima → Duomo",
+          "meta": "14 min · 1,50 €"
+        }
+      ],
+      "tip": "A pie por el centro son 25–30 min si hace buen tiempo."
+    }
+  ],
+  "days": [
+    {
+      "id": "d24",
+      "date": "2026-12-24",
+      "weekday": "Diciembre",
+      "daynum": "24",
+      "title": "Jueves — Llegada",
+      "flag": "Free tour",
+      "items": [
+        {
+          "id": "d24-1",
+          "time": "07–09h",
+          "desc": "Vuelo Madrid → Milán",
+          "note": "Horario objetivo, vuelo pendiente de reservar"
+        },
+        {
+          "id": "d24-2",
+          "time": "11:00",
+          "desc": "Free tour por el centro de Milán",
+          "note": "2h 45min · gratuito"
+        },
+        {
+          "id": "d24-3",
+          "time": "15:00",
+          "desc": "Check-in Andreola Central Hotel",
+          "note": "Vía D. Scarlatti 24"
+        },
+        {
+          "id": "d24-4",
+          "time": "20:00",
+          "desc": "Cena en osteria milanesa",
+          "note": "Media pensión incluida"
+        }
+      ]
+    },
+    {
+      "id": "d25",
+      "date": "2026-12-25",
+      "weekday": "Diciembre",
+      "daynum": "25",
+      "title": "Viernes — Navidad",
+      "flag": "Día libre",
+      "items": [
+        {
+          "id": "d25-1",
+          "time": "10:00",
+          "desc": "Desayuno tranquilo en el hotel",
+          "note": "Media pensión"
+        },
+        {
+          "id": "d25-2",
+          "time": "12:00",
+          "desc": "Paseo Duomo exterior + Galleria V. E. II",
+          "note": "Ambiente navideño, sin prisas"
+        },
+        {
+          "id": "d25-3",
+          "time": "14:30",
+          "desc": "Descanso en familia",
+          "note": "Muchos comercios cierran el día de Navidad"
+        },
+        {
+          "id": "d25-4",
+          "time": "20:00",
+          "desc": "Cena de Navidad en el hotel",
+          "note": "Media pensión incluida"
+        }
+      ]
+    },
+    {
+      "id": "d26",
+      "date": "2026-12-26",
+      "weekday": "Diciembre",
+      "daynum": "26",
+      "title": "Sábado — Alpes",
+      "flag": "St. Moritz",
+      "items": [
+        {
+          "id": "d26-1",
+          "time": "06:20",
+          "desc": "Milano Centrale → Tirano (tren regional Trenitalia)",
+          "note": "≈2h30min · café y picnic en Tirano al llegar (08:50)"
+        },
+        {
+          "id": "d26-2",
+          "time": "09:30",
+          "desc": "Tirano → St. Moritz (tren regional RhB, línea Bernina)",
+          "note": "≈2h15min · asiento ventana lado derecho · viaducto de Brusio, Lago Bianco, Alp Grüm, Glaciar Palü"
+        },
+        {
+          "id": "d26-2b",
+          "time": "11:45–15:30",
+          "desc": "St. Moritz: paseo por el lago, centro histórico y comida",
+          "note": "12h 30min ida y vuelta en total · 110,26 €/persona"
+        },
+        {
+          "id": "d26-3",
+          "time": "~20:00",
+          "desc": "Regreso a Milán (RhB Tirano ⇄ Milano Centrale)",
+          "note": "Confirma horario exacto con el operador"
+        },
+        {
+          "id": "d26-4",
+          "time": "21:00",
+          "desc": "Cena ligera en el hotel",
+          "note": "Media pensión"
+        }
+      ]
+    },
+    {
+      "id": "d27",
+      "date": "2026-12-27",
+      "weekday": "Diciembre",
+      "daynum": "27",
+      "title": "Domingo — Vuelta",
+      "flag": "Turismo + vuelo",
+      "items": [
+        {
+          "id": "d27-1",
+          "time": "09:30",
+          "desc": "Duomo + terrazas, Galleria V. E. II",
+          "note": "Entrada terrazas ~15 €/persona"
+        },
+        {
+          "id": "d27-2",
+          "time": "12:00",
+          "desc": "Castello Sforzesco + Navigli",
+          "note": "Última mañana en Milán"
+        },
+        {
+          "id": "d27-3",
+          "time": "13:30",
+          "desc": "Almuerzo de despedida en osteria",
+          "note": ""
+        },
+        {
+          "id": "d27-4",
+          "time": "19:00",
+          "desc": "Vuelo Milán → Madrid",
+          "note": "Checkout y traslado a Malpensa antes"
+        }
+      ]
+    }
+  ],
+  "mapPins": [
+    {
+      "num": 1,
+      "x": 430,
+      "y": 150,
+      "lat": 45.4841,
+      "lon": 9.1859,
+      "color": "brass",
+      "name": "Andreola Central Hotel",
+      "note": "Vía D. Scarlatti 24 — punto de partida",
+      "query": "Andreola+Central+Hotel+Milano"
+    },
+    {
+      "num": 9,
+      "x": 480,
+      "y": 100,
+      "lat": 45.4859,
+      "lon": 9.2043,
+      "color": "pine",
+      "name": "Milano Centrale",
+      "note": "Llegada del Malpensa Express",
+      "query": "Milano+Centrale"
+    },
+    {
+      "num": 2,
+      "x": 300,
+      "y": 230,
+      "lat": 45.4642,
+      "lon": 9.19,
+      "color": "ice",
+      "name": "Duomo di Milano",
+      "note": "14 min en metro M1 desde el hotel",
+      "query": "Duomo+di+Milano"
+    },
+    {
+      "num": 3,
+      "x": 300,
+      "y": 205,
+      "lat": 45.4656,
+      "lon": 9.1896,
+      "color": "ice",
+      "name": "Galleria Vittorio Emanuele II",
+      "note": "Junto al Duomo",
+      "query": "Galleria+Vittorio+Emanuele+II+Milano"
+    },
+    {
+      "num": 4,
+      "x": 295,
+      "y": 175,
+      "lat": 45.4674,
+      "lon": 9.1899,
+      "color": "ice",
+      "name": "Teatro alla Scala",
+      "note": "Museo + posible ópera",
+      "query": "Teatro+alla+Scala+Milano"
+    },
+    {
+      "num": 5,
+      "x": 200,
+      "y": 190,
+      "lat": 45.4706,
+      "lon": 9.1795,
+      "color": "ice",
+      "name": "Castello Sforzesco",
+      "note": "+ Parco Sempione",
+      "query": "Castello+Sforzesco+Milano"
+    },
+    {
+      "num": 6,
+      "x": 230,
+      "y": 130,
+      "lat": 45.4719,
+      "lon": 9.1877,
+      "color": "ice",
+      "name": "Pinacoteca di Brera",
+      "note": "Barrio artístico",
+      "query": "Pinacoteca+di+Brera+Milano"
+    },
+    {
+      "num": 7,
+      "x": 120,
+      "y": 210,
+      "lat": 45.4652,
+      "lon": 9.1706,
+      "color": "ice",
+      "name": "Santa Maria delle Grazie",
+      "note": "La Última Cena — reserva obligatoria",
+      "query": "Santa+Maria+delle+Grazie+Milano"
+    },
+    {
+      "num": 8,
+      "x": 230,
+      "y": 330,
+      "lat": 45.4515,
+      "lon": 9.1739,
+      "color": "ice",
+      "name": "Navigli",
+      "note": "Canales, cena tranquila",
+      "query": "Navigli+Milano"
+    }
+  ],
+  "route": {
+    "from": "Milano Centrale",
+    "to": "St. Moritz",
+    "duration": "12h 30min",
+    "price": "110,26 €/pers.",
+    "departure": "~07:30",
+    "warn": "Ida y vuelta en el día, incluyendo tiempo en St. Moritz. Confirma con el operador la hora exacta de salida, el punto de encuentro y las paradas intermedias antes del 26 de diciembre."
+  },
+  "packing": [
+    {
+      "id": "p-dni",
+      "cat": "Documentos",
+      "label": "DNI de los tres, en vigor"
+    },
+    {
+      "id": "p-tse",
+      "cat": "Documentos",
+      "label": "Tarjeta Sanitaria Europea"
+    },
+    {
+      "id": "p-seguro",
+      "cat": "Documentos",
+      "label": "Póliza del seguro de viaje"
+    },
+    {
+      "id": "p-reservas",
+      "cat": "Documentos",
+      "label": "Reservas de vuelo y hotel impresas"
+    },
+    {
+      "id": "r-abrigo",
+      "cat": "Ropa de abrigo",
+      "label": "Abrigo grueso (no solo cazadora)"
+    },
+    {
+      "id": "r-jersey",
+      "cat": "Ropa de abrigo",
+      "label": "Jerséis térmicos (varios)"
+    },
+    {
+      "id": "r-gorro",
+      "cat": "Ropa de abrigo",
+      "label": "Gorro, guantes y bufanda"
+    },
+    {
+      "id": "r-calcetin",
+      "cat": "Ropa de abrigo",
+      "label": "Calcetines gruesos"
+    },
+    {
+      "id": "r-pijama",
+      "cat": "Ropa de abrigo",
+      "label": "Pijama cálido"
+    },
+    {
+      "id": "c-botas",
+      "cat": "Calzado",
+      "label": "Botas impermeables"
+    },
+    {
+      "id": "c-zapatillas",
+      "cat": "Calzado",
+      "label": "Zapatillas cómodas para pasear"
+    },
+    {
+      "id": "e-cargador",
+      "cat": "Electrónica",
+      "label": "Cargadores + adaptador Schuko"
+    },
+    {
+      "id": "e-powerbank",
+      "cat": "Electrónica",
+      "label": "Power bank"
+    },
+    {
+      "id": "e-camara",
+      "cat": "Electrónica",
+      "label": "Cámara o móvil con espacio libre"
+    },
+    {
+      "id": "s-botiquin",
+      "cat": "Salud",
+      "label": "Botiquín básico (ibuprofeno, tiritas)"
+    },
+    {
+      "id": "s-labial",
+      "cat": "Salud",
+      "label": "Protector labial y crema de manos"
+    },
+    {
+      "id": "s-medicacion",
+      "cat": "Salud",
+      "label": "Medicación personal necesaria"
+    },
+    {
+      "id": "d-mochila",
+      "cat": "Especial Diego",
+      "label": "Mochila pequeña con candado"
+    },
+    {
+      "id": "d-entretenimiento",
+      "cat": "Especial Diego",
+      "label": "Libro o tablet para trayectos largos"
+    },
+    {
+      "id": "d-snacks",
+      "cat": "Especial Diego",
+      "label": "Snacks favoritos"
+    }
+  ],
+  "documents": {
+    "diego": [
+      {
+        "id": "diego-dni",
+        "label": "DNI o pasaporte en vigor"
+      },
+      {
+        "id": "diego-tse",
+        "label": "Tarjeta Sanitaria Europea propia"
+      },
+      {
+        "id": "diego-libro",
+        "label": "Copia del libro de familia / certificado de nacimiento"
+      },
+      {
+        "id": "diego-seguro",
+        "label": "Datos de contacto del seguro de viaje"
+      },
+      {
+        "id": "diego-emergencia",
+        "label": "Tarjeta con alergias y contacto de emergencia"
+      }
+    ],
+    "monica": [
+      {
+        "id": "monica-dni",
+        "label": "DNI o pasaporte en vigor"
+      },
+      {
+        "id": "monica-tse",
+        "label": "Tarjeta Sanitaria Europea"
+      },
+      {
+        "id": "monica-seguro",
+        "label": "Número de póliza del seguro de viaje"
+      },
+      {
+        "id": "monica-tarjeta",
+        "label": "Tarjeta de crédito / débito para el viaje"
+      },
+      {
+        "id": "monica-reservas",
+        "label": "Confirmaciones de vuelo y hotel"
+      }
+    ],
+    "juanjo": [
+      {
+        "id": "juanjo-dni",
+        "label": "DNI o pasaporte en vigor"
+      },
+      {
+        "id": "juanjo-tse",
+        "label": "Tarjeta Sanitaria Europea"
+      },
+      {
+        "id": "juanjo-seguro",
+        "label": "Número de póliza del seguro de viaje"
+      },
+      {
+        "id": "juanjo-efectivo",
+        "label": "Efectivo repartido + tarjetas de respaldo"
+      },
+      {
+        "id": "juanjo-backup",
+        "label": "Copia digital de la documentación familiar"
+      }
+    ]
+  },
+  "budgetRows": [
+    {
+      "label": "Hotel + media pensión",
+      "note": "Andreola Central · 320 €/noche × 3",
+      "value": "960 €",
+      "pct": 44.8,
+      "color": "brass"
+    },
+    {
+      "label": "Excursión Alpes · St. Moritz",
+      "note": "110,26 € × 3 personas",
+      "value": "330,78 €",
+      "pct": 15.4,
+      "color": "ice"
+    },
+    {
+      "label": "Turismo Milán 27 dic",
+      "note": "Entradas opcionales (terrazas Duomo, etc.)",
+      "value": "~50 €",
+      "pct": 2.3,
+      "color": "pine"
+    },
+    {
+      "label": "Comidas fuera + transporte local",
+      "note": "Metro, almuerzos, extras",
+      "value": "~100 €",
+      "pct": 4.7,
+      "color": "rust"
+    },
+    {
+      "label": "Vuelos Madrid ↔ Milán",
+      "note": "Ryanair / Skyscanner · sin facturar maleta",
+      "value": "600–800 €",
+      "pct": 32.8,
+      "color": "est"
+    }
+  ],
+  "budgetCeiling": 2240,
+  "guideMilan": [
+    {
+      "name": "Duomo di Milano",
+      "rating": "9/10",
+      "desc": "Catedral gótica, 6 siglos de construcción. Sube a la azotea en elevador para ver los Alpes en días claros.",
+      "price": "15 € azotea",
+      "time": "2–3h",
+      "lat": 45.4642,
+      "lon": 9.19
+    },
+    {
+      "name": "La Última Cena",
+      "rating": "10/10",
+      "desc": "Mural de Leonardo da Vinci en Santa Maria delle Grazie. Entradas limitadas: se agotan semanas antes.",
+      "price": "12 €",
+      "time": "45min",
+      "lat": 45.4655,
+      "lon": 9.1706
+    },
+    {
+      "name": "Galleria V. E. II",
+      "rating": "8/10",
+      "desc": "El centro comercial techado más antiguo de Italia. Café histórico en Marchesi, foto bajo la bóveda.",
+      "price": "Gratis",
+      "time": "45min",
+      "lat": 45.4656,
+      "lon": 9.1896
+    },
+    {
+      "name": "Castello Sforzesco",
+      "rating": "7/10",
+      "desc": "Fortaleza renacentista con el Museo Egipcio dentro — momias, siempre gana con niños. Parco Sempione al lado.",
+      "price": "Gratis exterior",
+      "time": "1–3h",
+      "lat": 45.4706,
+      "lon": 9.1794
+    },
+    {
+      "name": "Pinacoteca di Brera",
+      "rating": "8/10",
+      "desc": "Caravaggio, Rafael, Mantegna. 36 salas — entra 1h y elige 5 obras clave si Diego se cansa.",
+      "price": "12–15 €",
+      "time": "1,5–2h",
+      "lat": 45.4719,
+      "lon": 9.1877
+    },
+    {
+      "name": "Navigli",
+      "rating": "8/10",
+      "desc": "Canales del siglo XVI, ambiente relajado. Mejor sitio para cenar que el centro turístico.",
+      "price": "Gratis",
+      "time": "1–2h",
+      "lat": 45.4515,
+      "lon": 9.1739
+    }
+  ],
+  "guideAlps": [
+    {
+      "name": "Teleférico Piz Nair",
+      "rating": "10/10",
+      "desc": "Sube a 3.056 m. Vistas 360° a los Alpes suizos, italianos y franceses en un día claro. Restaurante en la cumbre.",
+      "price": "CHF 45–60",
+      "time": "3–4h",
+      "lat": 46.493,
+      "lon": 9.846
+    },
+    {
+      "name": "Trineo con caballos",
+      "rating": "9/10",
+      "desc": "Paseo tradicional por bosques nevados. Silencioso, mágico — el punto álgido del día para Diego.",
+      "price": "CHF 150–300",
+      "time": "60min",
+      "lat": 46.4908,
+      "lon": 9.8355
+    },
+    {
+      "name": "Lago St. Moritz",
+      "rating": "7/10",
+      "desc": "Patinaje sobre hielo natural con los Alpes de fondo, si el lago está helado. Alquiler de patines en el sitio.",
+      "price": "CHF 15–20",
+      "time": "1–3h",
+      "lat": 46.4908,
+      "lon": 9.8355
+    }
+  ],
+  "restaurants": [
+    {
+      "name": "Trattoria Madonnina",
+      "zone": "Navigli",
+      "lat": 45.4515,
+      "lon": 9.1739,
+      "desc": "Clásicos milaneses (risotto, cotoletta) en un ambiente familiar sin postureo.",
+      "price": "€€"
+    },
+    {
+      "name": "Luini",
+      "zone": "Junto al Duomo",
+      "lat": 45.4642,
+      "lon": 9.19,
+      "desc": "Panzerotti para llevar — parada rápida entre visitas, siempre hay cola pero merece la pena.",
+      "price": "€"
+    },
+    {
+      "name": "Ristorante Al Merluzzo Felice",
+      "zone": "Isola",
+      "lat": 45.487,
+      "lon": 9.1905,
+      "desc": "Pescado fresco, buena opción si Diego se cansa de pasta.",
+      "price": "€€€"
+    },
+    {
+      "name": "Pavé",
+      "zone": "Centro / Brera",
+      "lat": 45.4719,
+      "lon": 9.1877,
+      "desc": "Bollería y desayuno cuidado, mesas grandes — bien para desayunar en familia antes de salir.",
+      "price": "€€"
+    }
+  ],
+  "phrases": [
+    {
+      "it": "Buongiorno / Buonasera",
+      "es": "Buenos días / Buenas tardes"
+    },
+    {
+      "it": "Grazie mille",
+      "es": "Muchas gracias"
+    },
+    {
+      "it": "Quanto costa?",
+      "es": "¿Cuánto cuesta?"
+    },
+    {
+      "it": "Dov'è la metro?",
+      "es": "¿Dónde está el metro?"
+    },
+    {
+      "it": "Un tavolo per tre, per favore",
+      "es": "Una mesa para tres, por favor"
+    },
+    {
+      "it": "Mio figlio ha 11 anni",
+      "es": "Mi hijo tiene 11 años"
+    },
+    {
+      "it": "Ho bisogno di un medico",
+      "es": "Necesito un médico"
+    },
+    {
+      "it": "Dov'è il bagno?",
+      "es": "¿Dónde está el baño?"
+    }
+  ],
+  "offlineNotes": [
+    {
+      "title": "Wifi del hotel",
+      "text": "Andreola Central ofrece wifi gratuito en habitaciones y zonas comunes — pide la clave en el check-in."
+    },
+    {
+      "title": "Datos móviles en Italia",
+      "text": "Italia está en la UE: la tarifa española de datos aplica sin roaming adicional (Reglamento Roam-like-at-Home)."
+    },
+    {
+      "title": "VPN TGD en movilidad",
+      "text": "Activa el perfil VPN TGD antes de salir de casa (WireGuard) para tener acceso seguro a la red familiar tanto en el wifi del hotel como en datos móviles — útil sobre todo en la excursión a Suiza, fuera de la UE."
+    },
+    {
+      "title": "St. Moritz (Suiza)",
+      "text": "Suiza no está en la UE: confirma con tu operador si el roaming aplica o activa la VPN + datos con moderación."
+    }
+  ],
+  "security": {
+    "risk": [
+      {
+        "zone": "Milano Centrale",
+        "level": "high",
+        "when": "Entradas y salidas, todo el día"
+      },
+      {
+        "zone": "Duomo y Galleria V. E. II",
+        "level": "high",
+        "when": "Cualquier hora, más en diciembre"
+      },
+      {
+        "zone": "Metro M1 / M2 / M3",
+        "level": "mid",
+        "when": "Horas punta 8–10h y 17–19h"
+      },
+      {
+        "zone": "Navigli",
+        "level": "mid",
+        "when": "Después de medianoche"
+      }
+    ],
+    "do": [
+      "Bolsillos delanteros y mochila girada al pecho en el metro",
+      "Dinero repartido en 3–4 sitios distintos",
+      "Diego siempre a la vista en zonas concurridas",
+      "Copia del pasaporte/DNI en un bolsillo aparte"
+    ],
+    "dont": [
+      "Mochila en la espalda entre multitudes",
+      "Enseñar dinero o joyas de valor",
+      "Dejar bolsas sin vigilancia, ni un segundo",
+      "Confiar en desconocidos que se acercan de repente"
+    ],
+    "contacts": [
+      {
+        "label": "Emergencias Italia",
+        "value": "112"
+      },
+      {
+        "label": "Ambulancia",
+        "value": "118"
+      },
+      {
+        "label": "Consulado España Milán (24h)",
+        "value": "+39 335 26 59 59"
+      }
+    ],
+    "note": "Consulado General de España en Milán — Via F. Turati 29: cita previa +39 02 3675 7720 (L–V, 9–15h). Teléfono de emergencia consular fuera de horario: +39 335 26 59 59."
+  }
+}

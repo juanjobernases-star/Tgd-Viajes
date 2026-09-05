@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Andanzas</title>
+<style>
+:root{
+  --blue:#007AFF; --blue-hover:#0A84FF; --green:#34C759; --red:#FF3B30; --orange:#FF9500;
+  --purple:#AF52DE; --teal:#30B0C7; --bg:#F2F2F7; --card:#fff;
+  --text:#000; --text2:rgba(60,60,67,0.6); --text3:rgba(60,60,67,0.3);
+  --border:rgba(60,60,67,0.12);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:#000;}
+body{
+  font-family:-apple-system,"SF Pro Text",system-ui,sans-serif;
+  color:var(--text);
+}
+input,select,textarea,button{font-family:inherit;}
+a{color:inherit;text-decoration:none;}
+button{cursor:pointer;border:none;background:none;font-family:inherit;}
+.hidden{display:none !important;}
+
+#frame-wrap{
+  min-height:100vh;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  background:#000;
+  padding:0;
+}
+#app-frame{
+  width:430px;
+  max-width:100vw;
+  height:932px;
+  max-height:100vh;
+  background:var(--bg);
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+@media (min-width:500px){
+  #frame-wrap{ padding:24px 0; align-items:center; }
+  #app-frame{ border-radius:44px; box-shadow:0 30px 80px rgba(0,0,0,0.5); border:8px solid #111; }
+}
+
+/* ===== Header ===== */
+#app-header{
+  position:sticky; top:0; z-index:50;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;
+  background:rgba(242,242,247,0.82);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+}
+#app-header .hdr-left{display:flex;align-items:center;gap:8px;min-width:0;}
+#app-header .hdr-title{font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#app-header button.hdr-btn{font-size:15px;color:var(--blue);padding:4px 6px;font-weight:400;white-space:nowrap;}
+#app-header button.back-btn{font-size:22px;color:var(--blue);padding:0 4px 0 0;line-height:1;}
+
+/* ===== Scroll area ===== */
+#app-body{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  padding-bottom:100px;
+}
+.section{padding:16px; animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ===== Tab bar ===== */
+#tabbar{
+  position:absolute; left:0; right:0; bottom:0; z-index:50;
+  display:flex;
+  background:rgba(242,242,247,0.82);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border-top:1px solid var(--border);
+  padding:6px 0 calc(env(safe-area-inset-bottom,0px) + 4px);
+}
+#tabbar button{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+  font-size:10px; color:var(--text2); padding:4px 0;
+}
+#tabbar button .ico{font-size:22px; line-height:1;}
+#tabbar button.active{color:var(--blue);}
+
+/* ===== Cards ===== */
+.card{
+  background:var(--card); border-radius:16px; padding:16px;
+  box-shadow:0 1px 2px rgba(0,0,0,0.04); margin-bottom:12px;
+}
+.card h3{margin:0 0 8px; font-size:15px; font-weight:600;}
+.section-title{font-size:22px; font-weight:700; margin:4px 0 14px;}
+.subtle{color:var(--text2); font-size:13px;}
+.tiny{color:var(--text3); font-size:11px;}
+
+/* banners */
+.banner{
+  border-radius:16px; padding:18px; margin-bottom:14px; color:#fff;
+  background:linear-gradient(135deg,#0A84FF,#007AFF 60%,#5AC8FA);
+  box-shadow:0 4px 16px rgba(0,122,255,0.25);
+}
+.banner .lbl{font-size:11px; text-transform:uppercase; letter-spacing:0.04em; opacity:0.85; font-weight:600;}
+.banner .main{font-size:18px; font-weight:700; margin-top:4px;}
+.banner .sub{font-size:13px; opacity:0.9; margin-top:3px;}
+
+/* facts grid */
+.facts-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;}
+.fact-card{background:var(--card); border-radius:16px; padding:14px; box-shadow:0 1px 2px rgba(0,0,0,0.04);}
+.fact-card .flbl{font-size:11px; color:var(--text2); text-transform:uppercase; font-weight:600; letter-spacing:0.03em;}
+.fact-card .fval{font-size:14px; font-weight:600; margin-top:4px; line-height:1.3;}
+
+/* travelers */
+.travelers-row{display:flex; gap:10px; margin-bottom:16px;}
+.trav-chip{display:flex; flex-direction:column; align-items:center; gap:4px;}
+.trav-circle{
+  width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  color:#fff; font-weight:700; font-size:15px;
+}
+.trav-chip .tname{font-size:11px; color:var(--text2);}
+
+/* buttons */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  padding:10px 16px; border-radius:12px; font-size:15px; font-weight:600;
+}
+.btn-primary{background:var(--blue); color:#fff;}
+.btn-primary:active{background:var(--blue-hover);}
+.btn-secondary{background:rgba(0,122,255,0.1); color:var(--blue);}
+.btn-ghost{background:rgba(120,120,128,0.12); color:var(--text);}
+.btn-danger{background:rgba(255,59,48,0.1); color:var(--red);}
+.btn-sm{padding:6px 12px; font-size:13px; border-radius:10px;}
+.btn-block{width:100%;}
+.btn-pill{border-radius:100px;}
+
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=time],input[type=date],input[type=url],textarea,select{
+  width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
+  background:#F9F9FB; font-size:15px; color:var(--text);
+}
+label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bottom:4px; display:block;}
+.field{margin-bottom:12px;}
+
+/* list rows */
+.row{display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border);}
+.row:last-child{border-bottom:none;}
+
+/* ===== Auth ===== */
+#auth-screen{
+  position:absolute; inset:0; z-index:100; background:linear-gradient(180deg,#EAF2FF,#F2F2F7 40%);
+  display:flex; flex-direction:column; padding:40px 24px 24px; overflow-y:auto;
+}
+.auth-logo{font-size:40px; text-align:center; margin-bottom:4px;}
+.auth-title{font-size:26px; font-weight:700; text-align:center; margin-bottom:4px;}
+.auth-sub{font-size:14px; color:var(--text2); text-align:center; margin-bottom:24px;}
+.auth-toggle{display:flex; background:rgba(120,120,128,0.16); border-radius:10px; padding:3px; margin-bottom:20px;}
+.auth-toggle button{flex:1; padding:8px; border-radius:8px; font-size:14px; font-weight:600; color:var(--text2);}
+.auth-toggle button.active{background:#fff; color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+.interest-chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;}
+.interest-chip{
+  padding:8px 14px; border-radius:100px; font-size:13px; font-weight:600;
+  background:rgba(120,120,128,0.12); color:var(--text2); border:1.5px solid transparent;
+}
+.interest-chip.selected{background:rgba(0,122,255,0.12); color:var(--blue); border-color:var(--blue);}
+.auth-error{color:var(--red); font-size:13px; margin-bottom:8px; min-height:16px;}
+.auth-demo{margin-top:20px; padding:12px; background:rgba(0,122,255,0.06); border-radius:12px; font-size:12px; color:var(--text2); line-height:1.5;}
+
+/* Traveler details for flights/passengers */
+.dark-card{
+  border-radius:18px; padding:18px; margin-bottom:14px; color:#fff;
+  background:linear-gradient(135deg,#1c1c1e,#2c2c2e);
+}
+.route-codes{display:flex; align-items:center; justify-content:space-between; font-size:28px; font-weight:700; margin:6px 0 4px;}
+.route-progress{position:relative; height:2px; background:rgba(255,255,255,0.25); margin:14px 0 4px; border-radius:2px;}
+.route-progress .plane{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:16px;}
+.route-labels{display:flex; justify-content:space-between; font-size:11px; color:rgba(255,255,255,0.6);}
+.dark-card .field-label{color:rgba(255,255,255,0.6);}
+.dark-card input,.dark-card select{background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); color:#fff;}
+.dark-card input::placeholder{color:rgba(255,255,255,0.4);}
+
+/* day cards - calendario */
+.hscroll{display:flex; gap:12px; overflow-x:auto; padding-bottom:8px; margin:0 -16px 8px; padding-left:16px; padding-right:16px; scroll-snap-type:x mandatory;}
+.hscroll::-webkit-scrollbar{display:none;}
+.day-card{
+  min-width:280px; scroll-snap-align:start; background:var(--card); border-radius:16px; padding:16px;
+  box-shadow:0 1px 2px rgba(0,0,0,0.04); flex-shrink:0;
+}
+.day-card .dhead{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;}
+.day-card .dtitle{font-size:16px; font-weight:700;}
+.day-card .ddate{font-size:12px; color:var(--text2);}
+.flag-badge{background:rgba(255,149,0,0.12); color:var(--orange); font-size:11px; font-weight:600; padding:3px 8px; border-radius:100px;}
+.item-row{padding:10px 0; border-bottom:1px solid var(--border); display:flex; gap:10px; align-items:flex-start;}
+.item-row:last-child{border-bottom:none;}
+.item-check{
+  width:22px; height:22px; border-radius:50%; border:1.5px solid var(--text3); flex-shrink:0; margin-top:1px;
+  display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff;
+}
+.item-check.checked{background:var(--green); border-color:var(--green);}
+.item-body{flex:1; min-width:0;}
+.item-time{font-size:11px; color:var(--blue); font-weight:700;}
+.item-desc{font-size:14px; font-weight:500; margin-top:1px;}
+.item-desc.checked-text{text-decoration:line-through; color:var(--text2);}
+.item-note{font-size:12px; color:var(--text2); margin-top:2px;}
+.item-actions{display:flex; gap:6px; flex-shrink:0;}
+.icon-btn{font-size:14px; color:var(--text2); padding:2px 4px;}
+.icon-btn.danger{color:var(--red);}
+
+.view-toggle{display:flex; background:rgba(120,120,128,0.16); border-radius:10px; padding:3px; margin-bottom:14px;}
+.view-toggle button{flex:1; padding:7px; border-radius:8px; font-size:13px; font-weight:600; color:var(--text2);}
+.view-toggle button.active{background:#fff; color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+
+.month-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:16px;}
+.month-grid .dow{font-size:10px; color:var(--text2); text-align:center; font-weight:600; padding-bottom:4px;}
+.month-cell{aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:10px; font-size:13px; color:var(--text3);}
+.month-cell.tripday{background:rgba(0,122,255,0.12); color:var(--blue); font-weight:700; cursor:pointer;}
+.month-cell.tripday.selected{background:var(--blue); color:#fff;}
+
+/* guide cards */
+.guide-card{
+  min-width:220px; scroll-snap-align:start; background:var(--card); border-radius:16px; overflow:hidden;
+  box-shadow:0 1px 2px rgba(0,0,0,0.04); flex-shrink:0; padding:14px; position:relative;
+}
+.guide-card .gtitle{font-size:15px; font-weight:700; margin-bottom:2px; padding-right:50px;}
+.foryou-badge{position:absolute; top:12px; right:12px; background:var(--orange); color:#fff; font-size:10px; font-weight:700; padding:3px 7px; border-radius:100px;}
+.visited-badge{position:absolute; top:12px; right:12px; background:var(--green); color:#fff; font-size:14px; width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.rating-badge{display:inline-block; background:rgba(255,149,0,0.12); color:var(--orange); font-size:11px; font-weight:700; padding:2px 6px; border-radius:6px; margin-bottom:6px;}
+.guide-meta{display:flex; gap:10px; margin-top:8px; font-size:11px; color:var(--text2); flex-wrap:wrap;}
+
+.rest-card{display:flex; justify-content:space-between; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--border);}
+.rest-card:last-child{border-bottom:none;}
+
+/* map */
+.map-svg-wrap{background:var(--card); border-radius:16px; padding:8px; margin-bottom:12px; box-shadow:0 1px 2px rgba(0,0,0,0.04);}
+.pin-legend-item{display:flex; gap:10px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--border);}
+.pin-legend-item:last-child{border-bottom:none;}
+.pin-num{width:26px; height:26px; border-radius:50%; background:var(--blue); color:#fff; font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+
+/* budget bar */
+.budget-bar{display:flex; height:14px; border-radius:100px; overflow:hidden; margin:12px 0;}
+.budget-row{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border);}
+.budget-row:last-child{border-bottom:none;}
+.swatch{width:12px; height:12px; border-radius:4px; flex-shrink:0;}
+
+/* expenses */
+.badge{font-size:10px; font-weight:600; padding:3px 7px; border-radius:100px; display:inline-block; margin-right:4px;}
+.badge-cat{background:rgba(175,82,222,0.12); color:var(--purple);}
+.badge-method{background:rgba(48,176,199,0.12); color:var(--teal);}
+.badge-payer{background:rgba(52,199,89,0.12); color:var(--green);}
+.expense-item{padding:10px 0; border-bottom:1px solid var(--border);}
+.expense-item:last-child{border-bottom:none;}
+.expense-top{display:flex; justify-content:space-between; align-items:center;}
+.expense-amount{font-size:16px; font-weight:700;}
+
+/* packing */
+.pack-cat-title{font-size:13px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:0.03em; margin:16px 0 8px;}
+.pack-cat-title:first-child{margin-top:0;}
+.check-row{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border);}
+.check-row:last-child{border-bottom:none;}
+.check-row label{flex:1; font-size:14px;}
+.check-row label.checked{text-decoration:line-through; color:var(--text2);}
+.check-row input[type=checkbox]{width:22px; height:22px; accent-color:var(--green); flex-shrink:0;}
+
+/* pills selector */
+.pill-row{display:flex; gap:8px; overflow-x:auto; margin-bottom:14px; padding-bottom:2px;}
+.pill-row::-webkit-scrollbar{display:none;}
+.pill-btn{padding:8px 16px; border-radius:100px; background:rgba(120,120,128,0.12); color:var(--text); font-size:13px; font-weight:600; white-space:nowrap; flex-shrink:0;}
+.pill-btn.active{background:var(--blue); color:#fff;}
+
+/* security */
+.risk-card{display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);}
+.risk-card:last-child{border-bottom:none;}
+.level-badge{font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px;}
+.level-high{background:rgba(255,59,48,0.12); color:var(--red);}
+.level-mid{background:rgba(0,122,255,0.12); color:var(--blue);}
+.do-item,.dont-item{display:flex; gap:8px; padding:8px 0; font-size:14px; align-items:flex-start;}
+.do-item .ico{color:var(--green); font-weight:700;}
+.dont-item .ico{color:var(--red); font-weight:700;}
+.contact-row{display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);}
+.contact-row:last-child{border-bottom:none;}
+.contact-num{font-size:20px; font-weight:700; color:var(--blue);}
+
+/* weather */
+.weather-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px;}
+.weather-card{background:var(--card); border-radius:16px; padding:14px; text-align:center; box-shadow:0 1px 2px rgba(0,0,0,0.04);}
+.weather-card .wico{font-size:32px;}
+.weather-card .wtemp{font-size:15px; font-weight:700; margin-top:4px;}
+
+/* phrases */
+.phrase-row{padding:12px 0; border-bottom:1px solid var(--border);}
+.phrase-row:last-child{border-bottom:none;}
+.phrase-it{font-size:15px; font-weight:600;}
+.phrase-es{font-size:13px; color:var(--text2); margin-top:2px;}
+
+/* ===== Bottom sheets / modals ===== */
+.sheet-overlay{
+  position:absolute; inset:0; background:rgba(0,0,0,0.35); z-index:200;
+  display:flex; align-items:flex-end; opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.sheet-overlay.open{opacity:1; pointer-events:auto;}
+.sheet{
+  background:var(--bg); width:100%; border-radius:20px 20px 0 0; padding:8px 16px calc(env(safe-area-inset-bottom,0px) + 20px);
+  max-height:80%; overflow-y:auto; transform:translateY(100%); transition:transform .25s ease;
+}
+.sheet-overlay.open .sheet{transform:translateY(0);}
+.sheet-handle{width:36px; height:5px; background:var(--text3); border-radius:3px; margin:6px auto 14px;}
+.sheet-title{font-size:17px; font-weight:700; margin-bottom:14px; text-align:center;}
+.sheet-actions{display:flex; gap:10px; margin-top:16px;}
+.sheet-actions .btn{flex:1;}
+.more-item{display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid var(--border);}
+.more-item:last-child{border-bottom:none;}
+.more-icon{width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:15px; flex-shrink:0;}
+.more-label{font-size:15px; font-weight:500; flex:1;}
+.more-chevron{color:var(--text3); font-size:16px;}
+
+.alert-overlay{
+  position:absolute; inset:0; background:rgba(0,0,0,0.35); z-index:300;
+  display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .15s;
+}
+.alert-overlay.open{opacity:1; pointer-events:auto;}
+.alert-box{background:#F9F9F9; width:270px; border-radius:14px; overflow:hidden; text-align:center;}
+.alert-box .abody{padding:18px 16px 14px;}
+.alert-box .atitle{font-size:16px; font-weight:600;}
+.alert-box .amsg{font-size:13px; color:var(--text2); margin-top:6px;}
+.alert-box .abtns{display:flex; border-top:1px solid var(--border);}
+.alert-box .abtns button{flex:1; padding:12px; font-size:16px; color:var(--blue); border-right:1px solid var(--border);}
+.alert-box .abtns button:last-child{border-right:none; font-weight:600; color:var(--red);}
+
+#toast{
+  position:absolute; left:50%; bottom:100px; transform:translateX(-50%) translateY(20px);
+  background:rgba(30,30,32,0.92); color:#fff; padding:10px 18px; border-radius:100px; font-size:13px; font-weight:500;
+  z-index:400; opacity:0; pointer-events:none; transition:all .25s ease; white-space:nowrap;
+}
+#toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+.warn-box{background:rgba(255,149,0,0.1); color:#8a5300; border-radius:12px; padding:10px 12px; font-size:12px; margin-top:10px;}
+.notice-box{background:rgba(0,122,255,0.08); color:#004a99; border-radius:12px; padding:12px; font-size:12px; margin-bottom:14px; line-height:1.5;}
+.empty-note{color:var(--text3); font-size:13px; text-align:center; padding:20px 0;}
+</style>
+</head>
+<body>
+<div id="frame-wrap">
+<div id="app-frame">
+
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen">
+    <div class="auth-logo">🧭</div>
+    <div class="auth-title">Andanzas</div>
+    <div class="auth-sub">Vuestro viaje en familia, en un solo sitio</div>
+
+    <div class="auth-toggle">
+      <button id="tab-login" class="active" type="button">Entrar</button>
+      <button id="tab-register" type="button">Crear cuenta</button>
+    </div>
+
+    <div class="auth-error" id="auth-error"></div>
+
+    <form id="login-form">
+      <div class="field">
+        <label class="field-label">Email</label>
+        <input type="email" id="login-email" placeholder="tu@email.com" autocomplete="username">
+      </div>
+      <div class="field">
+        <label class="field-label">Contraseña</label>
+        <input type="password" id="login-password" placeholder="••••" autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+    </form>
+
+    <form id="register-form" class="hidden">
+      <div class="field">
+        <label class="field-label">Nombre</label>
+        <input type="text" id="reg-name" placeholder="Tu nombre">
+      </div>
+      <div class="field">
+        <label class="field-label">Email</label>
+        <input type="email" id="reg-email" placeholder="tu@email.com">
+      </div>
+      <div class="field">
+        <label class="field-label">Contraseña</label>
+        <input type="password" id="reg-password" placeholder="••••">
+      </div>
+      <div class="field">
+        <label class="field-label">Intereses</label>
+        <div class="interest-chips" id="reg-interests">
+          <button type="button" class="interest-chip" data-val="arte">Arte</button>
+          <button type="button" class="interest-chip" data-val="comida">Comida</button>
+          <button type="button" class="interest-chip" data-val="aventura">Aventura</button>
+          <button type="button" class="interest-chip" data-val="compras">Compras</button>
+          <button type="button" class="interest-chip" data-val="tranquilo">Tranquilo</button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Crear cuenta</button>
+    </form>
+
+    <div class="auth-demo">
+      <strong>Cuentas demo</strong> (contraseña 1234):<br>
+      monica@family.trip · diego@family.trip · familia@family.trip
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <div id="app-header">
+    <div class="hdr-left">
+      <button id="back-btn" class="back-btn hidden" type="button">‹</button>
+      <div class="hdr-title" id="hdr-title">Resumen</div>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <button class="hdr-btn" id="new-trip-btn" type="button">+ Viaje</button>
+      <button class="hdr-btn" id="logout-btn" type="button">Salir</button>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div id="app-body">
+
+    <!-- RESUMEN -->
+    <section class="section" id="sec-resumen">
+      <div id="next-plan-banner"></div>
+      <div class="facts-grid" id="facts-grid"></div>
+      <div class="travelers-row" id="travelers-row"></div>
+
+      <h3 style="margin:0 0 8px;">Vuelos</h3>
+      <div id="flight-summary-cards"></div>
+
+      <h3 style="margin:16px 0 8px;">Alojamiento</h3>
+      <div id="hotel-card"></div>
+
+      <h3 style="margin:16px 0 8px;">Excursiones</h3>
+      <div id="excursion-cards"></div>
+
+      <h3 style="margin:16px 0 8px;">Estado de reservas</h3>
+      <div class="card" id="reservations-card"></div>
+
+      <h3 style="margin:16px 0 8px;">Cómo llegar</h3>
+      <div id="routes-list"></div>
+      <div class="tiny" style="margin:6px 0 14px;">Consejo: guarda los mapas offline antes de salir de casa por si falla la cobertura.</div>
+
+      <h3 style="margin:0 0 8px; display:flex; justify-content:space-between; align-items:center;">
+        Rutas propias
+        <button class="btn btn-secondary btn-sm" id="add-route-btn" type="button">+ Añadir</button>
+      </h3>
+      <div id="custom-routes-list"></div>
+    </section>
+
+    <!-- CALENDARIO -->
+    <section class="section hidden" id="sec-calendario">
+      <div class="view-toggle">
+        <button id="view-cards-btn" class="active" type="button">Tarjetas</button>
+        <button id="view-month-btn" type="button">Mes</button>
+      </div>
+      <div id="calendar-cards-view">
+        <div class="hscroll" id="days-hscroll"></div>
+      </div>
+      <div id="calendar-month-view" class="hidden">
+        <div class="card">
+          <div class="month-grid" id="month-grid"></div>
+        </div>
+        <div id="month-day-detail"></div>
+      </div>
+    </section>
+
+    <!-- VUELO -->
+    <section class="section hidden" id="sec-vuelo">
+      <div id="flights-detail"></div>
+      <h3 style="margin:16px 0 8px;">Pasajeros</h3>
+      <div id="passenger-cards"></div>
+    </section>
+
+    <!-- GUIA -->
+    <section class="section hidden" id="sec-guia">
+      <div id="guide-banner"></div>
+      <button class="btn btn-secondary btn-block" id="near-me-btn" type="button" style="margin-bottom:14px;">📍 Cerca de mí</button>
+      <div id="geo-status" class="tiny" style="margin-bottom:10px;"></div>
+
+      <h3 style="margin:0 0 8px;">Milán</h3>
+      <div class="hscroll" id="guide-milan-hscroll"></div>
+
+      <h3 style="margin:16px 0 8px;">Alpes · St. Moritz</h3>
+      <div class="hscroll" id="guide-alps-hscroll"></div>
+
+      <h3 style="margin:16px 0 8px;">Restaurantes</h3>
+      <div class="card" id="restaurants-list"></div>
+    </section>
+
+    <!-- GASTOS -->
+    <section class="section hidden" id="sec-gastos">
+      <div class="facts-grid" id="expense-summary-grid"></div>
+      <div class="card" id="expense-split-card"></div>
+      <div class="card">
+        <h3>Añadir gasto</h3>
+        <form id="expense-form">
+          <div class="field"><label class="field-label">Importe (€)</label><input type="number" step="0.01" id="exp-amount" required></div>
+          <div class="field"><label class="field-label">Descripción</label><input type="text" id="exp-desc" required></div>
+          <div class="field"><label class="field-label">Categoría</label>
+            <select id="exp-cat">
+              <option>Comida</option><option>Transporte</option><option>Alojamiento</option>
+              <option>Actividades</option><option>Compras</option><option>Otros</option>
+            </select>
+          </div>
+          <div class="field"><label class="field-label">Método</label>
+            <select id="exp-method"><option>Tarjeta</option><option>Efectivo</option></select>
+          </div>
+          <div class="field"><label class="field-label">Pagador</label>
+            <select id="exp-payer"><option>Juanjo</option><option>Mónica</option><option>Diego</option></select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Añadir gasto</button>
+        </form>
+      </div>
+      <h3 style="margin:16px 0 8px;">Historial</h3>
+      <div class="card" id="expense-list"></div>
+      <div class="card">
+        <h3>Hoja de cálculo (opcional)</h3>
+        <div class="field"><input type="url" id="numbers-url-input" placeholder="https://..."></div>
+        <button class="btn btn-secondary btn-block" id="numbers-url-save">Guardar enlace</button>
+        <div id="numbers-url-link" style="margin-top:10px;"></div>
+      </div>
+    </section>
+
+    <!-- MAPAS -->
+    <section class="section hidden" id="sec-mapas">
+      <div class="map-svg-wrap" id="map-svg-wrap"></div>
+      <div class="card" id="pin-legend"></div>
+      <h3 style="margin:16px 0 8px;">Ruta a los Alpes</h3>
+      <div class="card" id="alps-route-card"></div>
+    </section>
+
+    <!-- DOCUMENTACION -->
+    <section class="section hidden" id="sec-documentacion">
+      <div class="notice-box">La gestión de documentos requiere conexión al servidor privado (LAN/VPN). Aquí puedes consultar la lista de documentos recomendados por viajero.</div>
+      <div class="pill-row" id="doc-traveler-pills"></div>
+      <div class="card" id="doc-checklist"></div>
+    </section>
+
+    <!-- EQUIPAJE -->
+    <section class="section hidden" id="sec-equipaje">
+      <div class="card" style="text-align:center;">
+        <div style="font-size:22px; font-weight:700;" id="packing-counter">0 / 0 listos</div>
+        <div class="subtle">Equipaje preparado</div>
+      </div>
+      <div class="card" id="packing-list"></div>
+    </section>
+
+    <!-- PRESUPUESTO -->
+    <section class="section hidden" id="sec-presupuesto">
+      <div class="card" style="text-align:center;">
+        <div class="subtle">Presupuesto total estimado</div>
+        <div style="font-size:28px; font-weight:700; margin-top:4px;" id="budget-total"></div>
+        <div class="budget-bar" id="budget-bar"></div>
+      </div>
+      <div class="card" id="budget-breakdown"></div>
+    </section>
+
+    <!-- CLIMA -->
+    <section class="section hidden" id="sec-clima">
+      <div id="weather-content"></div>
+    </section>
+
+    <!-- FRASES -->
+    <section class="section hidden" id="sec-frases">
+      <div class="card" id="phrases-list"></div>
+    </section>
+
+    <!-- OFFLINE -->
+    <section class="section hidden" id="sec-offline">
+      <div id="offline-list"></div>
+    </section>
+
+    <!-- SEGURIDAD -->
+    <section class="section hidden" id="sec-seguridad">
+      <h3 style="margin:0 0 8px;">Zonas de riesgo</h3>
+      <div class="card" id="risk-list"></div>
+      <h3 style="margin:16px 0 8px;">Haz esto</h3>
+      <div class="card" id="do-list"></div>
+      <h3 style="margin:16px 0 8px;">Evita esto</h3>
+      <div class="card" id="dont-list"></div>
+      <h3 style="margin:16px 0 8px;">Contactos de emergencia</h3>
+      <div class="card" id="contacts-list"></div>
+      <div class="notice-box" id="consulate-note"></div>
+    </section>
+
+  </div>
+
+  <!-- TAB BAR -->
+  <div id="tabbar">
+    <button class="tab-btn active" data-tab="resumen" type="button"><span class="ico">🏠</span>Resumen</button>
+    <button class="tab-btn" data-tab="calendario" type="button"><span class="ico">📅</span>Calendario</button>
+    <button class="tab-btn" data-tab="vuelo" type="button"><span class="ico">✈️</span>Vuelo</button>
+    <button class="tab-btn" data-tab="guia" type="button"><span class="ico">🗺️</span>Guía</button>
+    <button class="tab-btn" data-tab="mas" type="button"><span class="ico">⋯</span>Más</button>
+  </div>
+
+  <!-- MORE SHEET -->
+  <div class="sheet-overlay" id="more-sheet-overlay">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Más secciones</div>
+      <div id="more-sheet-list"></div>
+    </div>
+  </div>
+
+  <!-- ADD EVENT SHEET -->
+  <div class="sheet-overlay" id="add-event-overlay">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Añadir plan</div>
+      <div class="field"><label class="field-label">Título</label><input type="text" id="new-event-title"></div>
+      <div class="field"><label class="field-label">Hora</label><input type="time" id="new-event-time"></div>
+      <div class="field"><label class="field-label">Nota (opcional)</label><input type="text" id="new-event-note"></div>
+      <div class="sheet-actions">
+        <button class="btn btn-ghost" id="add-event-cancel" type="button">Cancelar</button>
+        <button class="btn btn-primary" id="add-event-confirm" type="button">Añadir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD ROUTE SHEET -->
+  <div class="sheet-overlay" id="add-route-overlay">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Nueva ruta</div>
+      <div class="field"><label class="field-label">Título</label><input type="text" id="new-route-title" placeholder="Ej. Hotel → Estación"></div>
+      <div class="field"><label class="field-label">Detalle</label><input type="text" id="new-route-detail" placeholder="Ej. Metro línea M1, 10 min"></div>
+      <div class="field"><label class="field-label">Enlace de Maps (opcional)</label><input type="url" id="new-route-maps" placeholder="https://maps.google.com/..."></div>
+      <div class="sheet-actions">
+        <button class="btn btn-ghost" id="add-route-cancel" type="button">Cancelar</button>
+        <button class="btn btn-primary" id="add-route-confirm" type="button">Añadir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIRM DELETE ALERT -->
+  <div class="alert-overlay" id="confirm-alert-overlay">
+    <div class="alert-box">
+      <div class="abody">
+        <div class="atitle" id="confirm-alert-title">¿Eliminar?</div>
+        <div class="amsg" id="confirm-alert-msg">Esta acción no se puede deshacer.</div>
+      </div>
+      <div class="abtns">
+        <button id="confirm-alert-cancel" type="button">Cancelar</button>
+        <button id="confirm-alert-ok" type="button">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+</div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============ STORAGE HELPERS ============ */
+const LS_PREFIX = "andanzas_";
+function lsGet(key, fallback){
+  try{ const v = localStorage.getItem(LS_PREFIX+key); return v===null?fallback:JSON.parse(v); }
+  catch(e){ return fallback; }
+}
+function lsSet(key, val){ try{ localStorage.setItem(LS_PREFIX+key, JSON.stringify(val)); }catch(e){} }
+
+/* ============ STATE ============ */
+let TRIP = null;
+let CURRENT_USER = null; // email
+let CURRENT_PROFILE = null;
+let currentTab = "resumen";
+let tabHistory = [];
+let secondaryStack = []; // for back nav
+let geoPos = null;
+let geoError = null;
+let calendarView = "cards";
+let selectedMonthDay = null;
+let selectedDocTraveler = "diego";
+let pendingDeleteAction = null;
+let addRouteContext = null;
+let addEventDayId = null;
+
+const DEMO_ACCOUNTS = {
+  "monica@family.trip": {password:"1234", name:"Mónica", interests:["arte","tranquilo"]},
+  "diego@family.trip": {password:"1234", name:"Diego", interests:["aventura","comida"]},
+  "familia@family.trip": {password:"1234", name:"Familia", interests:["arte","comida","aventura","compras","tranquilo"]}
+};
+
+const SECTION_META = {
+  resumen: {label:"Resumen"},
+  calendario: {label:"Calendario"},
+  vuelo: {label:"Vuelo"},
+  guia: {label:"Guía"},
+  gastos: {label:"Gastos", letter:"G", color:"#34C759"},
+  mapas: {label:"Mapas", letter:"M", color:"#007AFF"},
+  documentacion: {label:"Documentación", letter:"D", color:"#AF52DE"},
+  equipaje: {label:"Equipaje", letter:"E", color:"#FF9500"},
+  presupuesto: {label:"Presupuesto", letter:"P", color:"#30B0C7"},
+  clima: {label:"Clima", letter:"C", color:"#5AC8FA"},
+  frases: {label:"Frases", letter:"F", color:"#FF3B30"},
+  offline: {label:"Offline", letter:"O", color:"#8E8E93"},
+  seguridad: {label:"Seguridad", letter:"S", color:"#FF3B30"}
+};
+const MAIN_TABS = ["resumen","calendario","vuelo","guia"];
+const MORE_SECTIONS = ["gastos","mapas","documentacion","equipaje","presupuesto","clima","frases","offline","seguridad"];
+
+/* ============ UTILS ============ */
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._tm);
+  toast._tm = setTimeout(()=>t.classList.remove("show"), 2500);
+}
+function haversine(lat1,lon1,lat2,lon2){
+  const R=6371, toRad=d=>d*Math.PI/180;
+  const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1);
+  const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function fmtDist(km){ return km<1 ? Math.round(km*1000)+" m" : km.toFixed(1)+" km"; }
+function escapeHtml(s){ return String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function uid(){ return "id"+Date.now()+Math.random().toString(36).slice(2,7); }
+function travelerByName(name){
+  return TRIP.travelers.find(t=>t.name.toLowerCase()===String(name).toLowerCase());
+}
+
+/* ============ AUTH ============ */
+function getProfiles(){ return lsGet("profiles", {}); }
+function saveProfiles(p){ lsSet("profiles", p); }
+
+function initAuthUI(){
+  document.getElementById("tab-login").addEventListener("click", ()=>{
+    document.getElementById("tab-login").classList.add("active");
+    document.getElementById("tab-register").classList.remove("active");
+    document.getElementById("login-form").classList.remove("hidden");
+    document.getElementById("register-form").classList.add("hidden");
+    document.getElementById("auth-error").textContent = "";
+  });
+  document.getElementById("tab-register").addEventListener("click", ()=>{
+    document.getElementById("tab-register").classList.add("active");
+    document.getElementById("tab-login").classList.remove("active");
+    document.getElementById("register-form").classList.remove("hidden");
+    document.getElementById("login-form").classList.add("hidden");
+    document.getElementById("auth-error").textContent = "";
+  });
+
+  const chips = document.querySelectorAll("#reg-interests .interest-chip");
+  chips.forEach(c=>c.addEventListener("click", ()=>c.classList.toggle("selected")));
+
+  document.getElementById("login-form").addEventListener("submit", e=>{
+    e.preventDefault();
+    const email = document.getElementById("login-email").value.trim().toLowerCase();
+    const pass = document.getElementById("login-password").value;
+    const err = document.getElementById("auth-error");
+    let user = DEMO_ACCOUNTS[email];
+    const profiles = getProfiles();
+    if(!user && profiles[email]) user = profiles[email];
+    if(!user || user.password !== pass){
+      err.textContent = "Email o contraseña incorrectos.";
+      return;
+    }
+    err.textContent = "";
+    loginAs(email, user);
+  });
+
+  document.getElementById("register-form").addEventListener("submit", e=>{
+    e.preventDefault();
+    const name = document.getElementById("reg-name").value.trim();
+    const email = document.getElementById("reg-email").value.trim().toLowerCase();
+    const pass = document.getElementById("reg-password").value;
+    const err = document.getElementById("auth-error");
+    if(!name || !email || !pass){
+      err.textContent = "Rellena todos los campos.";
+      return;
+    }
+    const interests = Array.from(document.querySelectorAll("#reg-interests .interest-chip.selected")).map(c=>c.dataset.val);
+    const profiles = getProfiles();
+    if(DEMO_ACCOUNTS[email] || profiles[email]){
+      err.textContent = "Ese email ya está registrado.";
+      return;
+    }
+    const user = {password:pass, name, interests};
+    profiles[email] = user;
+    saveProfiles(profiles);
+    err.textContent = "";
+    loginAs(email, user);
+  });
+}
+
+function loginAs(email, user){
+  CURRENT_USER = email;
+  CURRENT_PROFILE = user;
+  lsSet("session", email);
+  document.getElementById("auth-screen").classList.add("hidden");
+  toast("Bienvenido, "+user.name);
+  renderAll();
+}
+
+function logout(){
+  CURRENT_USER = null;
+  CURRENT_PROFILE = null;
+  lsSet("session", null);
+  document.getElementById("auth-screen").classList.remove("hidden");
+  document.getElementById("login-form").reset();
+  document.getElementById("auth-error").textContent = "";
+}
+
+function tryRestoreSession(){
+  const email = lsGet("session", null);
+  if(!email) return false;
+  let user = DEMO_ACCOUNTS[email] || getProfiles()[email];
+  if(!user) return false;
+  CURRENT_USER = email;
+  CURRENT_PROFILE = user;
+  document.getElementById("auth-screen").classList.add("hidden");
+  return true;
+}
+
+/* ============ CHECKINS (per-user checklist state for itinerary) ============ */
+function getCheckins(){ return lsGet("checkins_"+CURRENT_USER, {}); }
+function setCheckins(obj){ lsSet("checkins_"+CURRENT_USER, obj); }
+function isChecked(itemId){ return !!getCheckins()[itemId]; }
+function toggleChecked(itemId){
+  const c = getCheckins();
+  c[itemId] = !c[itemId];
+  setCheckins(c);
+}
+
+/* ============ ITINERARY OVERRIDES / EXTRA / REMOVED ============ */
+function getItemOverrides(){ return lsGet("itemOverrides", {}); }
+function setItemOverrides(o){ lsSet("itemOverrides", o); }
+function getRemoved(){ return lsGet("itineraryRemoved", []); }
+function setRemoved(arr){ lsSet("itineraryRemoved", arr); }
+function getExtraForDay(dayId){ return lsGet("itineraryExtra_"+dayId, []); }
+function setExtraForDay(dayId, arr){ lsSet("itineraryExtra_"+dayId, arr); }
+
+function getDayItems(day){
+  const removed = getRemoved();
+  const overrides = getItemOverrides();
+  let items = day.items.filter(it=>!removed.includes(it.id)).map(it=>{
+    const ov = overrides[it.id];
+    return ov ? Object.assign({}, it, ov) : it;
+  });
+  const extra = getExtraForDay(day.id);
+  items = items.concat(extra);
+  items.sort((a,b)=> (a.time||"").localeCompare(b.time||""));
+  return items;
+}
+
+/* ============ NAVIGATION ============ */
+function switchTab(tab, opts){
+  opts = opts || {};
+  currentTab = tab;
+  document.querySelectorAll(".section").forEach(s=>s.classList.add("hidden"));
+  const secEl = document.getElementById("sec-"+tab);
+  if(secEl) secEl.classList.remove("hidden");
+
+  document.querySelectorAll(".tab-btn").forEach(b=>{
+    b.classList.toggle("active", MAIN_TABS.includes(tab) && b.dataset.tab===tab);
+  });
+  if(!MAIN_TABS.includes(tab)){
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  }
+
+  document.getElementById("hdr-title").textContent = SECTION_META[tab] ? SECTION_META[tab].label : tab;
+
+  const backBtn = document.getElementById("back-btn");
+  if(!opts.fromBack){
+    if(MAIN_TABS.includes(tab)){
+      secondaryStack = [];
+    } else {
+      if(secondaryStack[secondaryStack.length-1] !== tab) secondaryStack.push(tab);
+    }
+  }
+  backBtn.classList.toggle("hidden", secondaryStack.length===0);
+
+  renderSection(tab);
+}
+
+document.getElementById("back-btn").addEventListener("click", ()=>{
+  secondaryStack.pop();
+  if(secondaryStack.length>0){
+    switchTab(secondaryStack[secondaryStack.length-1], {fromBack:true});
+  } else {
+    switchTab("resumen");
+  }
+});
+
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    const tab = btn.dataset.tab;
+    if(tab==="mas"){ openSheet("more-sheet-overlay"); return; }
+    switchTab(tab);
+  });
+});
+
+document.getElementById("logout-btn").addEventListener("click", logout);
+document.getElementById("new-trip-btn").addEventListener("click", ()=>toast("Próximamente"));
+
+/* ============ SHEETS / MODALS ============ */
+function openSheet(id){ document.getElementById(id).classList.add("open"); }
+function closeSheet(id){ document.getElementById(id).classList.remove("open"); }
+
+document.getElementById("more-sheet-overlay").addEventListener("click", e=>{
+  if(e.target.id==="more-sheet-overlay") closeSheet("more-sheet-overlay");
+});
+
+function renderMoreSheet(){
+  const wrap = document.getElementById("more-sheet-list");
+  wrap.innerHTML = MORE_SECTIONS.map(key=>{
+    const m = SECTION_META[key];
+    return `<div class="more-item" data-goto="${key}">
+      <div class="more-icon" style="background:${m.color}">${m.letter}</div>
+      <div class="more-label">${m.label}</div>
+      <div class="more-chevron">›</div>
+    </div>`;
+  }).join("");
+  wrap.querySelectorAll(".more-item").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      closeSheet("more-sheet-overlay");
+      switchTab(el.dataset.goto);
+    });
+  });
+}
+
+function confirmDelete(title, msg, onOk){
+  document.getElementById("confirm-alert-title").textContent = title;
+  document.getElementById("confirm-alert-msg").textContent = msg;
+  pendingDeleteAction = onOk;
+  document.getElementById("confirm-alert-overlay").classList.add("open");
+}
+document.getElementById("confirm-alert-cancel").addEventListener("click", ()=>{
+  document.getElementById("confirm-alert-overlay").classList.remove("open");
+  pendingDeleteAction = null;
+});
+document.getElementById("confirm-alert-ok").addEventListener("click", ()=>{
+  document.getElementById("confirm-alert-overlay").classList.remove("open");
+  if(pendingDeleteAction) pendingDeleteAction();
+  pendingDeleteAction = null;
+});
+
+/* ============ RENDER: RESUMEN ============ */
+function findNextEvent(){
+  const now = new Date();
+  for(const day of TRIP.days){
+    const items = getDayItems(day);
+    for(const it of items){
+      // rough parse of time HH:MM at start
+      const m = (it.time||"").match(/(\d{1,2}):(\d{2})/);
+      let dt = new Date(day.date+"T00:00:00");
+      if(m) dt.setHours(parseInt(m[1]), parseInt(m[2]));
+      if(dt >= now || true){ // fallback: just return first upcoming by date comparison loosely
+      }
+      if(dt >= now){
+        return {day, item:it};
+      }
+    }
+  }
+  // if trip passed or none found, return first item of first day
+  if(TRIP.days.length){
+    const items = getDayItems(TRIP.days[0]);
+    if(items.length) return {day:TRIP.days[0], item:items[0]};
+  }
+  return null;
+}
+
+function renderResumen(){
+  const next = findNextEvent();
+  const banner = document.getElementById("next-plan-banner");
+  if(next){
+    banner.innerHTML = `<div class="banner">
+      <div class="lbl">Próximo plan</div>
+      <div class="main">${escapeHtml(next.item.desc)}</div>
+      <div class="sub">${escapeHtml(next.day.title)} · ${escapeHtml(next.item.time||"")}</div>
+    </div>`;
+  } else {
+    banner.innerHTML = "";
+  }
+
+  const facts = TRIP.facts;
+  document.getElementById("facts-grid").innerHTML = `
+    <div class="fact-card"><div class="flbl">Destino</div><div class="fval">${escapeHtml(facts.destino)}</div></div>
+    <div class="fact-card"><div class="flbl">Duración</div><div class="fval">${escapeHtml(facts.duracion)}</div></div>
+    <div class="fact-card"><div class="flbl">Alojamiento</div><div class="fval">${escapeHtml(facts.alojamiento)}</div></div>
+    <div class="fact-card"><div class="flbl">Presupuesto</div><div class="fval">${escapeHtml(facts.presupuesto)}</div></div>
+  `;
+
+  document.getElementById("travelers-row").innerHTML = TRIP.travelers.map(t=>`
+    <div class="trav-chip">
+      <div class="trav-circle" style="background:${t.color}">${escapeHtml(t.initial)}</div>
+      <div class="tname">${escapeHtml(t.name)}</div>
+    </div>
+  `).join("");
+
+  // flight summary
+  const flights = getFlightsData();
+  document.getElementById("flight-summary-cards").innerHTML = `
+    <div class="card" id="flight-sum-out" style="cursor:pointer;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div><strong>MAD → MXP</strong><div class="subtle">24 dic · ${escapeHtml(flights.outbound.number||"Sin reservar")}</div></div>
+        <div style="font-size:20px;">✈️</div>
+      </div>
+    </div>
+    <div class="card" id="flight-sum-ret" style="cursor:pointer;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div><strong>MXP → MAD</strong><div class="subtle">27 dic · ${escapeHtml(flights.returnF.number||"Sin reservar")}</div></div>
+        <div style="font-size:20px;">✈️</div>
+      </div>
+    </div>
+  `;
+  document.getElementById("flight-sum-out").addEventListener("click", ()=>switchTab("vuelo"));
+  document.getElementById("flight-sum-ret").addEventListener("click", ()=>switchTab("vuelo"));
+
+  // hotel card
+  const h = TRIP.hotel;
+  const hotelConf = lsGet("hotelConfirmation", "");
+  document.getElementById("hotel-card").innerHTML = `
+    <div class="card">
+      <h3>${escapeHtml(h.name)}</h3>
+      <div class="subtle">${escapeHtml(h.address)}</div>
+      <div style="display:flex; gap:14px; margin-top:10px; font-size:13px;">
+        <div><strong>Check-in</strong><br>${escapeHtml(h.checkIn)}</div>
+        <div><strong>Check-out</strong><br>${escapeHtml(h.checkOut)}</div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <a href="${h.mapsUrl}" target="_blank" class="btn btn-secondary btn-sm">📍 Maps</a>
+        <a href="tel:${h.phone.replace(/\s/g,'')}" class="btn btn-secondary btn-sm">📞 Llamar</a>
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label class="field-label">Nº de confirmación</label>
+        <input type="text" id="hotel-conf-input" value="${escapeHtml(hotelConf)}" placeholder="Ej. ABC12345">
+      </div>
+    </div>
+  `;
+  document.getElementById("hotel-conf-input").addEventListener("change", e=>{
+    lsSet("hotelConfirmation", e.target.value);
+    toast("Confirmación guardada");
+  });
+
+  // excursions
+  const excConf = lsGet("excConfirmations", {});
+  document.getElementById("excursion-cards").innerHTML = TRIP.excursions.map(exc=>`
+    <div class="card">
+      <h3>${escapeHtml(exc.name)}</h3>
+      <div class="subtle">${escapeHtml(exc.provider)} · ${escapeHtml(exc.when)}</div>
+      <div class="subtle">${escapeHtml(exc.price)}</div>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <a href="${exc.bookingUrl}" target="_blank" class="btn btn-secondary btn-sm">Reservar</a>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label class="field-label">Nº de confirmación</label>
+        <input type="text" data-exc="${exc.id}" class="exc-conf-input" value="${escapeHtml(excConf[exc.id]||"")}" placeholder="Opcional">
+      </div>
+    </div>
+  `).join("");
+  document.querySelectorAll(".exc-conf-input").forEach(inp=>{
+    inp.addEventListener("change", e=>{
+      const c = lsGet("excConfirmations", {});
+      c[e.target.dataset.exc] = e.target.value;
+      lsSet("excConfirmations", c);
+      toast("Guardado");
+    });
+  });
+
+  // reservations
+  document.getElementById("reservations-card").innerHTML = TRIP.reservations.map(r=>`
+    <div class="row">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:${r.status==='pending'?'var(--orange)':'var(--green)'};display:inline-block;"></span>
+        <span><strong>${escapeHtml(r.strong)}</strong> ${escapeHtml(r.rest)}</span>
+      </div>
+    </div>
+  `).join("");
+
+  // routes
+  document.getElementById("routes-list").innerHTML = TRIP.gettingAround.map(route=>{
+    let distHtml = "";
+    if(geoPos && route.destLat){
+      const d = haversine(geoPos.lat, geoPos.lon, route.destLat, route.destLon);
+      distHtml = `<div class="tiny">${fmtDist(d)} desde tu posición</div>`;
+    }
+    const stepsHtml = route.steps.map(s=>`
+      <div class="row"><div><strong>${escapeHtml(s.mode)}</strong>: ${escapeHtml(s.detail)}</div><div class="tiny">${escapeHtml(s.meta)}</div></div>
+    `).join("");
+    return `<div class="card">
+      <h3>${escapeHtml(route.title)}</h3>
+      ${stepsHtml}
+      ${distHtml}
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <a href="${route.mapsUrl}" target="_blank" class="btn btn-secondary btn-sm">📍 Ver en Maps</a>
+        <a href="https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodeURIComponent(route.destName||route.title)}" target="_blank" class="btn btn-secondary btn-sm">🚗 Uber</a>
+      </div>
+      <div class="tiny" style="margin-top:8px;">${escapeHtml(route.tip||"")}</div>
+    </div>`;
+  }).join("");
+
+  // custom routes
+  renderCustomRoutes();
+}
+
+function renderCustomRoutes(){
+  const routes = lsGet("customRoutes", []);
+  const wrap = document.getElementById("custom-routes-list");
+  if(routes.length===0){
+    wrap.innerHTML = `<div class="empty-note">No hay rutas propias todavía.</div>`;
+    return;
+  }
+  wrap.innerHTML = routes.map(r=>`
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <h3 style="margin-bottom:2px;">${escapeHtml(r.title)}</h3>
+          <div class="subtle">${escapeHtml(r.detail)}</div>
+        </div>
+        <button class="icon-btn danger" data-del-route="${r.id}">×</button>
+      </div>
+      ${r.maps ? `<a href="${escapeHtml(r.maps)}" target="_blank" class="btn btn-secondary btn-sm" style="margin-top:8px;">📍 Maps</a>` : ""}
+    </div>
+  `).join("");
+  wrap.querySelectorAll("[data-del-route]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      confirmDelete("Eliminar ruta", "¿Seguro que quieres eliminar esta ruta?", ()=>{
+        let routes = lsGet("customRoutes", []);
+        routes = routes.filter(r=>r.id!==btn.dataset.delRoute);
+        lsSet("customRoutes", routes);
+        renderCustomRoutes();
+      });
+    });
+  });
+}
+
+document.getElementById("add-route-btn").addEventListener("click", ()=>{
+  document.getElementById("new-route-title").value = "";
+  document.getElementById("new-route-detail").value = "";
+  document.getElementById("new-route-maps").value = "";
+  openSheet("add-route-overlay");
+});
+document.getElementById("add-route-cancel").addEventListener("click", ()=>closeSheet("add-route-overlay"));
+document.getElementById("add-route-confirm").addEventListener("click", ()=>{
+  const title = document.getElementById("new-route-title").value.trim();
+  const detail = document.getElementById("new-route-detail").value.trim();
+  const maps = document.getElementById("new-route-maps").value.trim();
+  if(!title){ toast("Escribe un título"); return; }
+  const routes = lsGet("customRoutes", []);
+  routes.push({id:uid(), title, detail, maps});
+  lsSet("customRoutes", routes);
+  closeSheet("add-route-overlay");
+  renderCustomRoutes();
+  toast("Ruta añadida");
+});
+
+/* ============ RENDER: CALENDARIO ============ */
+document.getElementById("view-cards-btn").addEventListener("click", ()=>{
+  calendarView = "cards";
+  document.getElementById("view-cards-btn").classList.add("active");
+  document.getElementById("view-month-btn").classList.remove("active");
+  document.getElementById("calendar-cards-view").classList.remove("hidden");
+  document.getElementById("calendar-month-view").classList.add("hidden");
+});
+document.getElementById("view-month-btn").addEventListener("click", ()=>{
+  calendarView = "month";
+  document.getElementById("view-month-btn").classList.add("active");
+  document.getElementById("view-cards-btn").classList.remove("active");
+  document.getElementById("calendar-month-view").classList.remove("hidden");
+  document.getElementById("calendar-cards-view").classList.add("hidden");
+  renderMonthGrid();
+});
+
+function renderItemRow(day, item){
+  const checked = isChecked(item.id);
+  return `<div class="item-row" data-item-id="${item.id}" data-day-id="${day.id}">
+    <div class="item-check ${checked?'checked':''}" data-action="toggle-check">${checked?'✓':''}</div>
+    <div class="item-body">
+      <div class="item-time">${escapeHtml(item.time||"")}</div>
+      <div class="item-desc ${checked?'checked-text':''}" data-field="desc">${escapeHtml(item.desc)}</div>
+      ${item.note ? `<div class="item-note" data-field="note">${escapeHtml(item.note)}</div>` : ""}
+      ${item.mapsUrl ? `<a href="${item.mapsUrl}" target="_blank" class="tiny" style="color:var(--blue);">📍 Ver en Maps</a>` : ""}
+    </div>
+    <div class="item-actions">
+      <button class="icon-btn" data-action="edit-item">✎</button>
+      <button class="icon-btn danger" data-action="delete-item">×</button>
+    </div>
+  </div>`;
+}
+
+function renderDaysHscroll(){
+  const wrap = document.getElementById("days-hscroll");
+  wrap.innerHTML = TRIP.days.map(day=>{
+    const items = getDayItems(day);
+    return `<div class="day-card">
+      <div class="dhead">
+        <div>
+          <div class="dtitle">${escapeHtml(day.title)}</div>
+          <div class="ddate">${escapeHtml(day.daynum)} ${escapeHtml(day.weekday)}</div>
+        </div>
+        <div class="flag-badge">${escapeHtml(day.flag)}</div>
+      </div>
+      <div class="items-list" data-day-items="${day.id}">
+        ${items.map(it=>renderItemRow(day,it)).join("")}
+      </div>
+      <button class="btn btn-secondary btn-sm btn-block" style="margin-top:10px;" data-add-event="${day.id}">+ Añadir plan</button>
+    </div>`;
+  }).join("");
+  bindItemRowEvents(wrap);
+  wrap.querySelectorAll("[data-add-event]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      addEventDayId = btn.dataset.addEvent;
+      document.getElementById("new-event-title").value = "";
+      document.getElementById("new-event-time").value = "";
+      document.getElementById("new-event-note").value = "";
+      openSheet("add-event-overlay");
+    });
+  });
+}
+
+function bindItemRowEvents(container){
+  container.querySelectorAll(".item-row").forEach(row=>{
+    const itemId = row.dataset.itemId;
+    const dayId = row.dataset.dayId;
+    const day = TRIP.days.find(d=>d.id===dayId);
+    row.querySelector('[data-action="toggle-check"]').addEventListener("click", ()=>{
+      toggleChecked(itemId);
+      refreshCurrentCalendarView();
+    });
+    row.querySelector('[data-action="delete-item"]').addEventListener("click", ()=>{
+      confirmDelete("Eliminar plan", "¿Quieres eliminar este plan del día?", ()=>{
+        // if it's an extra item, remove from extra; else mark removed
+        const extra = getExtraForDay(dayId);
+        if(extra.find(e=>e.id===itemId)){
+          setExtraForDay(dayId, extra.filter(e=>e.id!==itemId));
+        } else {
+          const removed = getRemoved();
+          removed.push(itemId);
+          setRemoved(removed);
+        }
+        refreshCurrentCalendarView();
+      });
+    });
+    row.querySelector('[data-action="edit-item"]').addEventListener("click", ()=>{
+      startEditItem(row, dayId, itemId);
+    });
+  });
+}
+
+function startEditItem(row, dayId, itemId){
+  if(row.dataset.editing) return;
+  row.dataset.editing = "1";
+  const day = TRIP.days.find(d=>d.id===dayId);
+  const items = getDayItems(day);
+  const item = items.find(i=>i.id===itemId);
+  const body = row.querySelector(".item-body");
+  body.innerHTML = `
+    <input type="text" value="${escapeHtml(item.time||"")}" placeholder="Hora" style="margin-bottom:6px;" class="edit-time">
+    <input type="text" value="${escapeHtml(item.desc||"")}" placeholder="Descripción" style="margin-bottom:6px;" class="edit-desc">
+    <input type="text" value="${escapeHtml(item.note||"")}" placeholder="Nota" class="edit-note">
+    <div style="display:flex; gap:6px; margin-top:8px;">
+      <button class="btn btn-primary btn-sm" data-save-edit>Guardar</button>
+      <button class="btn btn-ghost btn-sm" data-cancel-edit>Cancelar</button>
+    </div>
+  `;
+  row.querySelector("[data-save-edit]").addEventListener("click", ()=>{
+    const time = row.querySelector(".edit-time").value;
+    const desc = row.querySelector(".edit-desc").value;
+    const note = row.querySelector(".edit-note").value;
+    const extra = getExtraForDay(dayId);
+    const exIdx = extra.findIndex(e=>e.id===itemId);
+    if(exIdx>=0){
+      extra[exIdx] = Object.assign({}, extra[exIdx], {time, desc, note});
+      setExtraForDay(dayId, extra);
+    } else {
+      const overrides = getItemOverrides();
+      overrides[itemId] = {time, desc, note};
+      setItemOverrides(overrides);
+    }
+    refreshCurrentCalendarView();
+  });
+  row.querySelector("[data-cancel-edit]").addEventListener("click", ()=>{
+    refreshCurrentCalendarView();
+  });
+}
+
+function refreshCurrentCalendarView(){
+  renderDaysHscroll();
+  if(calendarView==="month") renderMonthGrid();
+}
+
+document.getElementById("add-event-cancel").addEventListener("click", ()=>closeSheet("add-event-overlay"));
+document.getElementById("add-event-confirm").addEventListener("click", ()=>{
+  const title = document.getElementById("new-event-title").value.trim();
+  const time = document.getElementById("new-event-time").value;
+  const note = document.getElementById("new-event-note").value.trim();
+  if(!title){ toast("Escribe un título"); return; }
+  const extra = getExtraForDay(addEventDayId);
+  extra.push({id:uid(), time, desc:title, note});
+  setExtraForDay(addEventDayId, extra);
+  closeSheet("add-event-overlay");
+  refreshCurrentCalendarView();
+  toast("Plan añadido");
+});
+
+function renderMonthGrid(){
+  const wrap = document.getElementById("month-grid");
+  const dows = ["L","M","X","J","V","S","D"];
+  const tripDates = TRIP.days.map(d=>d.date);
+  const first = new Date(TRIP.days[0].date+"T00:00:00");
+  const year = first.getFullYear(), month = first.getMonth();
+  const firstOfMonth = new Date(year, month, 1);
+  let startDow = firstOfMonth.getDay(); // 0=Sun
+  startDow = startDow===0?6:startDow-1; // convert to Mon=0
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+
+  let html = dows.map(d=>`<div class="dow">${d}</div>`).join("");
+  for(let i=0;i<startDow;i++) html += `<div class="month-cell"></div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isTrip = tripDates.includes(dateStr);
+    const isSel = selectedMonthDay===dateStr;
+    html += `<div class="month-cell ${isTrip?'tripday':''} ${isSel?'selected':''}" data-date="${dateStr}">${d}</div>`;
+  }
+  wrap.innerHTML = html;
+  wrap.querySelectorAll(".month-cell.tripday").forEach(cell=>{
+    cell.addEventListener("click", ()=>{
+      selectedMonthDay = cell.dataset.date;
+      renderMonthGrid();
+      renderMonthDayDetail();
+    });
+  });
+  if(!selectedMonthDay && tripDates.length){
+    selectedMonthDay = tripDates[0];
+    renderMonthGrid();
+  }
+  renderMonthDayDetail();
+}
+
+function renderMonthDayDetail(){
+  const wrap = document.getElementById("month-day-detail");
+  if(!selectedMonthDay){ wrap.innerHTML=""; return; }
+  const day = TRIP.days.find(d=>d.date===selectedMonthDay);
+  if(!day){ wrap.innerHTML=""; return; }
+  const items = getDayItems(day);
+  wrap.innerHTML = `<div class="card">
+    <h3>${escapeHtml(day.title)}</h3>
+    <div data-day-items="${day.id}">${items.map(it=>renderItemRow(day,it)).join("")}</div>
+    <button class="btn btn-secondary btn-sm btn-block" style="margin-top:10px;" data-add-event="${day.id}">+ Añadir plan</button>
+  </div>`;
+  bindItemRowEvents(wrap);
+  wrap.querySelectorAll("[data-add-event]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      addEventDayId = btn.dataset.addEvent;
+      document.getElementById("new-event-title").value = "";
+      document.getElementById("new-event-time").value = "";
+      document.getElementById("new-event-note").value = "";
+      openSheet("add-event-overlay");
+    });
+  });
+}
+
+/* ============ RENDER: VUELO ============ */
+function getFlightsData(){
+  return lsGet("flights", {
+    outbound: {number:"", status:"", gate:"", delay:""},
+    returnF: {number:"", status:"", gate:"", delay:""}
+  });
+}
+function setFlightsData(d){ lsSet("flights", d); }
+
+function renderFlightCard(key, route, dateLabel){
+  const flights = getFlightsData();
+  const f = flights[key];
+  return `<div class="dark-card">
+    <div class="subtle" style="color:rgba(255,255,255,0.6);">${escapeHtml(dateLabel)}</div>
+    <div class="route-codes"><span>${route.from}</span><span>${route.to}</span></div>
+    <div class="route-progress"><span class="plane">✈️</span></div>
+    <div class="route-labels"><span>Salida</span><span>Llegada</span></div>
+    <div class="field" style="margin-top:16px;">
+      <label class="field-label">Nº de vuelo</label>
+      <input type="text" data-flight="${key}" data-field="number" value="${escapeHtml(f.number)}" placeholder="Ej. FR1234">
+    </div>
+    <div class="field">
+      <label class="field-label">Estado</label>
+      <input type="text" data-flight="${key}" data-field="status" value="${escapeHtml(f.status)}" placeholder="Ej. A tiempo">
+    </div>
+    <div style="display:flex; gap:10px;">
+      <div class="field" style="flex:1;">
+        <label class="field-label">Puerta</label>
+        <input type="text" data-flight="${key}" data-field="gate" value="${escapeHtml(f.gate)}" placeholder="Ej. B12">
+      </div>
+      <div class="field" style="flex:1;">
+        <label class="field-label">Retraso</label>
+        <input type="text" data-flight="${key}" data-field="delay" value="${escapeHtml(f.delay)}" placeholder="Ej. 0 min">
+      </div>
+    </div>
+    <button class="btn btn-secondary btn-block" data-save-flight="${key}">Actualizar</button>
+    <div class="tiny" style="margin-top:10px; color:rgba(255,255,255,0.5);">La consulta en vivo requiere el servidor privado (VPN). Introduce los datos manualmente.</div>
+  </div>`;
+}
+
+function renderVuelo(){
+  const wrap = document.getElementById("flights-detail");
+  wrap.innerHTML =
+    renderFlightCard("outbound", {from:"MAD", to:"MXP"}, "24 dic 2026 · Ida") +
+    renderFlightCard("returnF", {from:"MXP", to:"MAD"}, "27 dic 2026 · Vuelta");
+
+  wrap.querySelectorAll("[data-save-flight]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const key = btn.dataset.saveFlight;
+      const flights = getFlightsData();
+      wrap.querySelectorAll(`[data-flight="${key}"]`).forEach(inp=>{
+        flights[key][inp.dataset.field] = inp.value;
+      });
+      setFlightsData(flights);
+      toast("Vuelo actualizado");
+      renderResumen();
+    });
+  });
+
+  const passInfo = lsGet("passengerInfo", {});
+  document.getElementById("passenger-cards").innerHTML = TRIP.travelers.map(t=>{
+    const info = passInfo[t.id] || {seat:"", eticket:""};
+    return `<div class="card">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+        <div class="trav-circle" style="background:${t.color}; width:36px; height:36px; font-size:13px;">${escapeHtml(t.initial)}</div>
+        <strong>${escapeHtml(t.name)}</strong>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <div class="field" style="flex:1;">
+          <label class="field-label">Asiento</label>
+          <input type="text" data-pass="${t.id}" data-pfield="seat" value="${escapeHtml(info.seat)}" placeholder="Ej. 12A">
+        </div>
+        <div class="field" style="flex:1;">
+          <label class="field-label">E-ticket</label>
+          <input type="text" data-pass="${t.id}" data-pfield="eticket" value="${escapeHtml(info.eticket)}" placeholder="Ej. 0987654321">
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+  document.querySelectorAll("[data-pass]").forEach(inp=>{
+    inp.addEventListener("change", ()=>{
+      const passInfo = lsGet("passengerInfo", {});
+      const tid = inp.dataset.pass;
+      passInfo[tid] = passInfo[tid] || {};
+      passInfo[tid][inp.dataset.pfield] = inp.value;
+      lsSet("passengerInfo", passInfo);
+      toast("Guardado");
+    });
+  });
+}
+
+/* ============ RENDER: GUIA ============ */
+function userInterests(){ return CURRENT_PROFILE && CURRENT_PROFILE.interests ? CURRENT_PROFILE.interests : []; }
+
+const INTEREST_KEYWORDS = {
+  arte: ["mural","museo","pinacoteca","catedral","arte","galleria","castello"],
+  comida: ["comida","cena","desayuno","panzerotti","risotto","trattoria","ristorante","osteria"],
+  aventura: ["teleférico","trineo","tren","alpes","glaciar","hielo","patinaje"],
+  compras: ["galleria","comercial","tienda","compras"],
+  tranquilo: ["paseo","lago","tranquilo","relajado","canales","parco"]
+};
+function matchesInterest(text, interest){
+  const kws = INTEREST_KEYWORDS[interest] || [];
+  const low = text.toLowerCase();
+  return kws.some(k=>low.includes(k));
+}
+function itemMatchesUserInterests(item){
+  const interests = userInterests();
+  const text = (item.name||"")+" "+(item.desc||"");
+  return interests.some(i=>matchesInterest(text,i));
+}
+
+function renderGuideBanner(){
+  const interests = userInterests();
+  const banner = document.getElementById("guide-banner");
+  if(interests.length===0){
+    banner.innerHTML = "";
+    return;
+  }
+  const labels = {arte:"arte",comida:"comida",aventura:"aventura",compras:"compras",tranquilo:"planes tranquilos"};
+  const txt = interests.map(i=>labels[i]||i).join(", ");
+  banner.innerHTML = `<div class="banner">
+    <div class="lbl">Para ti</div>
+    <div class="main">Recomendaciones según tus intereses</div>
+    <div class="sub">Como te interesa ${txt}, hemos marcado con ★ los planes que más te van a gustar.</div>
+  </div>`;
+}
+
+function distanceLabel(lat, lon){
+  if(!geoPos) return "";
+  const d = haversine(geoPos.lat, geoPos.lon, lat, lon);
+  return `<span>📍 ${fmtDist(d)}</span>`;
+}
+
+function renderGuideCard(item, keyPrefix){
+  const visited = isChecked(keyPrefix+"-"+item.name);
+  const forYou = itemMatchesUserInterests(item);
+  return `<div class="guide-card">
+    ${forYou ? '<div class="foryou-badge">★ Para ti</div>' : ""}
+    ${visited ? '<div class="visited-badge">✓</div>' : ""}
+    <div class="rating-badge">${escapeHtml(item.rating)}</div>
+    <div class="gtitle">${escapeHtml(item.name)}</div>
+    <div class="subtle" style="font-size:12px; line-height:1.4;">${escapeHtml(item.desc)}</div>
+    <div class="guide-meta">
+      <span>💶 ${escapeHtml(item.price)}</span>
+      <span>⏱ ${escapeHtml(item.time)}</span>
+      ${distanceLabel(item.lat,item.lon)}
+    </div>
+    <button class="btn btn-ghost btn-sm btn-block" style="margin-top:10px;" data-visit="${keyPrefix}-${item.name}">${visited?'Visitado ✓':'Marcar visitado'}</button>
+  </div>`;
+}
+
+function renderGuia(){
+  renderGuideBanner();
+  document.getElementById("geo-status").textContent = geoError || (geoPos ? "Ordenado por cercanía" : "");
+
+  let milan = TRIP.guideMilan.slice();
+  let alps = TRIP.guideAlps.slice();
+  let rests = TRIP.restaurants.slice();
+  if(geoPos){
+    const sortFn = (a,b)=>haversine(geoPos.lat,geoPos.lon,a.lat,a.lon)-haversine(geoPos.lat,geoPos.lon,b.lat,b.lon);
+    milan.sort(sortFn); alps.sort(sortFn); rests.sort(sortFn);
+  }
+
+  document.getElementById("guide-milan-hscroll").innerHTML = milan.map(g=>renderGuideCard(g,"milan")).join("");
+  document.getElementById("guide-alps-hscroll").innerHTML = alps.map(g=>renderGuideCard(g,"alps")).join("");
+
+  document.getElementById("restaurants-list").innerHTML = rests.map(r=>`
+    <div class="rest-card">
+      <div>
+        <strong>${escapeHtml(r.name)}</strong>
+        <div class="subtle" style="font-size:12px;">${escapeHtml(r.zone)}</div>
+        <div class="subtle" style="font-size:12px; margin-top:2px;">${escapeHtml(r.desc)}</div>
+        ${geoPos ? `<div class="tiny" style="margin-top:2px;">📍 ${fmtDist(haversine(geoPos.lat,geoPos.lon,r.lat,r.lon))}</div>` : ""}
+      </div>
+      <div style="font-weight:700;">${escapeHtml(r.price)}</div>
+    </div>
+  `).join("");
+
+  document.querySelectorAll("[data-visit]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      toggleChecked(btn.dataset.visit);
+      renderGuia();
+    });
+  });
+}
+
+document.getElementById("near-me-btn").addEventListener("click", ()=>{
+  if(!navigator.geolocation){
+    geoError = "Geolocalización no disponible en este navegador.";
+    renderGuia();
+    return;
+  }
+  document.getElementById("geo-status").textContent = "Buscando tu posición...";
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      geoPos = {lat:pos.coords.latitude, lon:pos.coords.longitude};
+      geoError = null;
+      renderGuia();
+      renderResumen();
+      renderMap();
+      toast("Ubicación actualizada");
+    },
+    err=>{
+      // retry with low accuracy
+      navigator.geolocation.getCurrentPosition(
+        pos2=>{
+          geoPos = {lat:pos2.coords.latitude, lon:pos2.coords.longitude};
+          geoError = null;
+          renderGuia(); renderResumen(); renderMap();
+        },
+        err2=>{
+          if(err2.code===1) geoError = "Permiso de ubicación denegado.";
+          else if(err2.code===3) geoError = "Tiempo de espera agotado al buscar tu ubicación.";
+          else geoError = "No se pudo obtener tu ubicación.";
+          renderGuia();
+        },
+        {enableHighAccuracy:false, timeout:8000}
+      );
+    },
+    {enableHighAccuracy:true, timeout:6000}
+  );
+});
+
+/* ============ RENDER: GASTOS ============ */
+function getExpenses(){ return lsGet("expenses", []); }
+function setExpenses(arr){ lsSet("expenses", arr); }
+
+function renderGastos(){
+  const expenses = getExpenses();
+  const total = expenses.reduce((s,e)=>s+parseFloat(e.amount||0),0);
+  const budgetMax = TRIP.budgetCeiling || 0;
+  const remaining = budgetMax - total;
+  document.getElementById("expense-summary-grid").innerHTML = `
+    <div class="fact-card"><div class="flbl">Total gastado</div><div class="fval">${total.toFixed(2)} €</div></div>
+    <div class="fact-card"><div class="flbl">Restante</div><div class="fval">${remaining.toFixed(2)} €</div></div>
+    <div class="fact-card"><div class="flbl">Nº de gastos</div><div class="fval">${expenses.length}</div></div>
+    <div class="fact-card"><div class="flbl">Presupuesto</div><div class="fval">${budgetMax} €</div></div>
+  `;
+  const cardTotal = expenses.filter(e=>e.method==="Tarjeta").reduce((s,e)=>s+parseFloat(e.amount||0),0);
+  const cashTotal = expenses.filter(e=>e.method==="Efectivo").reduce((s,e)=>s+parseFloat(e.amount||0),0);
+  document.getElementById("expense-split-card").innerHTML = `
+    <h3>Por método de pago</h3>
+    <div class="row"><span>💳 Tarjeta</span><strong>${cardTotal.toFixed(2)} €</strong></div>
+    <div class="row"><span>💶 Efectivo</span><strong>${cashTotal.toFixed(2)} €</strong></div>
+  `;
+
+  const list = document.getElementById("expense-list");
+  if(expenses.length===0){
+    list.innerHTML = `<div class="empty-note">Aún no hay gastos registrados.</div>`;
+  } else {
+    list.innerHTML = expenses.slice().reverse().map(e=>`
+      <div class="expense-item">
+        <div class="expense-top">
+          <div class="expense-amount">${parseFloat(e.amount).toFixed(2)} €</div>
+          <button class="icon-btn danger" data-del-exp="${e.id}">×</button>
+        </div>
+        <div style="font-size:14px; margin:4px 0;">${escapeHtml(e.desc)}</div>
+        <div>
+          <span class="badge badge-cat">${escapeHtml(e.cat)}</span>
+          <span class="badge badge-method">${escapeHtml(e.method)}</span>
+          <span class="badge badge-payer">${escapeHtml(e.payer)}</span>
+        </div>
+      </div>
+    `).join("");
+  }
+  list.querySelectorAll("[data-del-exp]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      confirmDelete("Eliminar gasto","¿Seguro que quieres eliminar este gasto?", ()=>{
+        let exps = getExpenses();
+        exps = exps.filter(e=>e.id!==btn.dataset.delExp);
+        setExpenses(exps);
+        renderGastos();
+      });
+    });
+  });
+
+  const numbersUrl = lsGet("numbersUrl", "");
+  document.getElementById("numbers-url-input").value = numbersUrl;
+  document.getElementById("numbers-url-link").innerHTML = numbersUrl ? `<a href="${escapeHtml(numbersUrl)}" target="_blank" class="btn btn-secondary btn-sm">Abrir hoja</a>` : "";
+}
+
+document.getElementById("expense-form").addEventListener("submit", e=>{
+  e.preventDefault();
+  const amount = document.getElementById("exp-amount").value;
+  const desc = document.getElementById("exp-desc").value.trim();
+  const cat = document.getElementById("exp-cat").value;
+  const method = document.getElementById("exp-method").value;
+  const payer = document.getElementById("exp-payer").value;
+  if(!amount || !desc){ toast("Rellena importe y descripción"); return; }
+  const exps = getExpenses();
+  exps.push({id:uid(), amount, desc, cat, method, payer});
+  setExpenses(exps);
+  e.target.reset();
+  renderGastos();
+  toast("Gasto añadido");
+});
+
+document.getElementById("numbers-url-save").addEventListener("click", ()=>{
+  const url = document.getElementById("numbers-url-input").value.trim();
+  lsSet("numbersUrl", url);
+  renderGastos();
+  toast("Enlace guardado");
+});
+
+/* ============ RENDER: MAPAS ============ */
+function renderMap(){
+  const pins = TRIP.mapPins;
+  const colorMap = {brass:"#B08D57", pine:"#3F6B52", ice:"#3E6E92"};
+  const pinsSorted = geoPos ? pins.slice().sort((a,b)=>haversine(geoPos.lat,geoPos.lon,a.lat,a.lon)-haversine(geoPos.lat,geoPos.lon,b.lat,b.lon)) : pins;
+
+  let svgPins = pins.map(p=>`
+    <circle cx="${p.x}" cy="${p.y}" r="14" fill="${colorMap[p.color]||'#007AFF'}" stroke="#fff" stroke-width="2"/>
+    <text x="${p.x}" y="${p.y+5}" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">${p.num}</text>
+  `).join("");
+  // connect pins in order with lines
+  let path = "";
+  for(let i=0;i<pins.length-1;i++){
+    path += `<line x1="${pins[i].x}" y1="${pins[i].y}" x2="${pins[i+1].x}" y2="${pins[i+1].y}" stroke="#C7C7CC" stroke-width="2" stroke-dasharray="4 4"/>`;
+  }
+  document.getElementById("map-svg-wrap").innerHTML = `
+    <svg viewBox="0 0 560 400" width="100%" height="260" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="560" height="400" fill="#EAF2FF" rx="12"/>
+      ${path}
+      ${svgPins}
+    </svg>
+  `;
+
+  document.getElementById("pin-legend").innerHTML = pinsSorted.map(p=>{
+    const dist = geoPos ? `<div class="tiny">📍 ${fmtDist(haversine(geoPos.lat,geoPos.lon,p.lat,p.lon))}</div>` : "";
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${p.query}`;
+    const uberUrl = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodeURIComponent(p.name)}`;
+    return `<div class="pin-legend-item">
+      <div class="pin-num">${p.num}</div>
+      <div style="flex:1;">
+        <strong>${escapeHtml(p.name)}</strong>
+        <div class="subtle" style="font-size:12px;">${escapeHtml(p.note)}</div>
+        ${dist}
+        <div style="display:flex; gap:6px; margin-top:6px;">
+          <a href="${mapsUrl}" target="_blank" class="btn btn-secondary btn-sm">📍 Maps</a>
+          <a href="${uberUrl}" target="_blank" class="btn btn-secondary btn-sm">🚗 Uber</a>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  const route = TRIP.route;
+  document.getElementById("alps-route-card").innerHTML = `
+    <div class="row"><span>De</span><strong>${escapeHtml(route.from)}</strong></div>
+    <div class="row"><span>A</span><strong>${escapeHtml(route.to)}</strong></div>
+    <div class="row"><span>Duración</span><strong>${escapeHtml(route.duration)}</strong></div>
+    <div class="row"><span>Precio</span><strong>${escapeHtml(route.price)}</strong></div>
+    <div class="row"><span>Salida</span><strong>${escapeHtml(route.departure)}</strong></div>
+    <div class="warn-box">⚠️ ${escapeHtml(route.warn)}</div>
+  `;
+}
+
+/* ============ RENDER: DOCUMENTACION ============ */
+function getDocsState(){ return lsGet("docsChecked", {}); }
+function setDocsState(o){ lsSet("docsChecked", o); }
+
+function renderDocumentacion(){
+  const wrap = document.getElementById("doc-traveler-pills");
+  const travs = TRIP.travelers;
+  wrap.innerHTML = travs.map(t=>`<button class="pill-btn ${selectedDocTraveler===t.id?'active':''}" data-doc-trav="${t.id}">${escapeHtml(t.name)}</button>`).join("");
+  wrap.querySelectorAll("[data-doc-trav]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      selectedDocTraveler = btn.dataset.docTrav;
+      renderDocumentacion();
+    });
+  });
+
+  const docs = TRIP.documents[selectedDocTraveler] || [];
+  const state = getDocsState();
+  document.getElementById("doc-checklist").innerHTML = docs.map(d=>`
+    <div class="check-row">
+      <input type="checkbox" id="doc-${d.id}" ${state[d.id]?'checked':''} data-doc-check="${d.id}">
+      <label for="doc-${d.id}" class="${state[d.id]?'checked':''}">${escapeHtml(d.label)}</label>
+    </div>
+  `).join("");
+  document.querySelectorAll("[data-doc-check]").forEach(cb=>{
+    cb.addEventListener("change", ()=>{
+      const st = getDocsState();
+      st[cb.dataset.docCheck] = cb.checked;
+      setDocsState(st);
+      renderDocumentacion();
+    });
+  });
+}
+
+/* ============ RENDER: EQUIPAJE ============ */
+function getPackingState(){ return lsGet("packing", {}); }
+function setPackingState(o){ lsSet("packing", o); }
+
+function renderEquipaje(){
+  const items = TRIP.packing;
+  const state = getPackingState();
+  const total = items.length;
+  const done = items.filter(i=>state[i.id]).length;
+  document.getElementById("packing-counter").textContent = `${done} / ${total} listos`;
+
+  const cats = {};
+  items.forEach(i=>{ (cats[i.cat] = cats[i.cat]||[]).push(i); });
+  let html = "";
+  Object.keys(cats).forEach(cat=>{
+    html += `<div class="pack-cat-title">${escapeHtml(cat)}</div>`;
+    html += cats[cat].map(i=>`
+      <div class="check-row">
+        <input type="checkbox" id="pack-${i.id}" ${state[i.id]?'checked':''} data-pack-check="${i.id}">
+        <label for="pack-${i.id}" class="${state[i.id]?'checked':''}">${escapeHtml(i.label)}</label>
+      </div>
+    `).join("");
+  });
+  document.getElementById("packing-list").innerHTML = html;
+  document.querySelectorAll("[data-pack-check]").forEach(cb=>{
+    cb.addEventListener("change", ()=>{
+      const st = getPackingState();
+      st[cb.dataset.packCheck] = cb.checked;
+      setPackingState(st);
+      renderEquipaje();
+    });
+  });
+}
+
+/* ============ RENDER: PRESUPUESTO ============ */
+function renderPresupuesto(){
+  document.getElementById("budget-total").textContent = (TRIP.budgetCeiling||0) + " € (máx.)";
+  const colorMap = {brass:"#B08D57", ice:"#3E6E92", pine:"#3F6B52", rust:"#A6472F", est:"#8E8E93"};
+  document.getElementById("budget-bar").innerHTML = TRIP.budgetRows.map(r=>
+    `<div style="width:${r.pct}%; background:${colorMap[r.color]||'#999'};"></div>`
+  ).join("");
+  document.getElementById("budget-breakdown").innerHTML = TRIP.budgetRows.map(r=>`
+    <div class="budget-row">
+      <div class="swatch" style="background:${colorMap[r.color]||'#999'}"></div>
+      <div style="flex:1;">
+        <div style="font-weight:600; font-size:14px;">${escapeHtml(r.label)}</div>
+        <div class="tiny">${escapeHtml(r.note)}</div>
+      </div>
+      <div style="font-weight:700;">${escapeHtml(r.value)}</div>
+    </div>
+  `).join("");
+}
+
+/* ============ RENDER: CLIMA ============ */
+function weatherIcon(code){
+  if(code===0) return "☀️";
+  if(code>=1 && code<=3) return "⛅";
+  if(code>=4 && code<=48) return "🌫️";
+  if(code>=51 && code<=67) return "🌧️";
+  if(code>=71 && code<=77) return "❄️";
+  return "⛈️";
+}
+function weatherDesc(code){
+  if(code===0) return "Despejado";
+  if(code>=1 && code<=3) return "Parcialmente nublado";
+  if(code>=4 && code<=48) return "Niebla";
+  if(code>=51 && code<=67) return "Lluvia";
+  if(code>=71 && code<=77) return "Nieve";
+  return "Tormenta";
+}
+
+function renderClima(){
+  const wrap = document.getElementById("weather-content");
+  const tripStart = new Date(TRIP.dateStart);
+  const now = new Date();
+  const diffDays = (tripStart - now) / (1000*60*60*24);
+
+  if(diffDays <= 16){
+    wrap.innerHTML = `<div class="empty-note">Cargando previsión...</div>`;
+    const lat = TRIP.coords.lat, lon = TRIP.coords.lon;
+    const start = TRIP.dateStart.slice(0,10);
+    const end = TRIP.dateEnd.slice(0,10);
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto&start_date=${start}&end_date=${end}`;
+    fetch(url).then(r=>r.json()).then(data=>{
+      if(!data.daily){ throw new Error("no data"); }
+      const days = data.daily.time;
+      let html = `<div class="weather-grid">`;
+      days.forEach((d,i)=>{
+        const code = data.daily.weathercode[i];
+        html += `<div class="weather-card">
+          <div class="tiny">${d}</div>
+          <div class="wico">${weatherIcon(code)}</div>
+          <div class="wtemp">${Math.round(data.daily.temperature_2m_max[i])}° / ${Math.round(data.daily.temperature_2m_min[i])}°</div>
+          <div class="tiny">${weatherDesc(code)}</div>
+        </div>`;
+      });
+      html += `</div>`;
+      wrap.innerHTML = html;
+    }).catch(()=>{
+      wrap.innerHTML = renderSeasonalWeather();
+    });
+  } else {
+    wrap.innerHTML = renderSeasonalWeather();
+  }
+}
+function renderSeasonalWeather(){
+  return `<div class="card">
+    <h3>Referencia estacional — Milán en diciembre</h3>
+    <div class="subtle">La previsión en vivo estará disponible 16 días antes del viaje.</div>
+    <div class="weather-grid" style="margin-top:12px;">
+      <div class="weather-card"><div class="wico">🌫️</div><div class="wtemp">~8° / ~2°</div><div class="tiny">Niebla y frío</div></div>
+    </div>
+  </div>`;
+}
+
+/* ============ RENDER: FRASES ============ */
+function renderFrases(){
+  document.getElementById("phrases-list").innerHTML = TRIP.phrases.map(p=>`
+    <div class="phrase-row">
+      <div class="phrase-it">${escapeHtml(p.it)}</div>
+      <div class="phrase-es">${escapeHtml(p.es)}</div>
+    </div>
+  `).join("");
+}
+
+/* ============ RENDER: OFFLINE ============ */
+function renderOffline(){
+  document.getElementById("offline-list").innerHTML = TRIP.offlineNotes.map(n=>`
+    <div class="card">
+      <h3>${escapeHtml(n.title)}</h3>
+      <div class="subtle">${escapeHtml(n.text)}</div>
+    </div>
+  `).join("");
+}
+
+/* ============ RENDER: SEGURIDAD ============ */
+function renderSeguridad(){
+  const sec = TRIP.security;
+  document.getElementById("risk-list").innerHTML = sec.risk.map(r=>`
+    <div class="risk-card">
+      <div>
+        <strong>${escapeHtml(r.zone)}</strong>
+        <div class="tiny">${escapeHtml(r.when)}</div>
+      </div>
+      <div class="level-badge ${r.level==='high'?'level-high':'level-mid'}">${r.level==='high'?'Alto':'Medio'}</div>
+    </div>
+  `).join("");
+  document.getElementById("do-list").innerHTML = sec.do.map(t=>`<div class="do-item"><span class="ico">✓</span><span>${escapeHtml(t)}</span></div>`).join("");
+  document.getElementById("dont-list").innerHTML = sec.dont.map(t=>`<div class="dont-item"><span class="ico">×</span><span>${escapeHtml(t)}</span></div>`).join("");
+  document.getElementById("contacts-list").innerHTML = sec.contacts.map(c=>`
+    <div class="contact-row">
+      <span>${escapeHtml(c.label)}</span>
+      <a href="tel:${escapeHtml(c.value.replace(/\s/g,''))}" class="contact-num">${escapeHtml(c.value)}</a>
+    </div>
+  `).join("");
+  document.getElementById("consulate-note").textContent = sec.note;
+}
+
+/* ============ SECTION DISPATCH ============ */
+function renderSection(tab){
+  switch(tab){
+    case "resumen": renderResumen(); break;
+    case "calendario":
+      renderDaysHscroll();
+      if(calendarView==="month") renderMonthGrid();
+      break;
+    case "vuelo": renderVuelo(); break;
+    case "guia": renderGuia(); break;
+    case "gastos": renderGastos(); break;
+    case "mapas": renderMap(); break;
+    case "documentacion": renderDocumentacion(); break;
+    case "equipaje": renderEquipaje(); break;
+    case "presupuesto": renderPresupuesto(); break;
+    case "clima": renderClima(); break;
+    case "frases": renderFrases(); break;
+    case "offline": renderOffline(); break;
+    case "seguridad": renderSeguridad(); break;
+  }
+}
+
+function renderAll(){
+  renderMoreSheet();
+  switchTab("resumen");
+}
+
+/* ============ INIT ============ */
+function init(){
+  initAuthUI();
+  const restored = tryRestoreSession();
+  fetch("data/trips/milan.json")
+    .then(r=>r.json())
+    .then(data=>{
+      TRIP = data;
+      if(restored) renderAll();
+    })
+    .catch(err=>{
+      document.getElementById("app-body").innerHTML = `<div class="section"><div class="card">No se pudieron cargar los datos del viaje.</div></div>`;
+      console.error(err);
+    });
+  if(!restored){
+    // auth screen already visible by default
+  }
+}
+init();
+
+})();
+</script>
+</body>
+</html>
