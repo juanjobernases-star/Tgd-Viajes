@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body{margin:0;background:#dcdce2;font-family:-apple-system,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    a{color:#007AFF;text-decoration:none}
+    a:hover{color:#0A84FF}
+    input,select,button{font-family:inherit}
+    ::selection{background:rgba(10,132,255,0.2)}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:48px 20px;box-sizing:border-box">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="430px" height="932px" hint-size="430px,932px">
+
+  <sc-if value="{{ showAuth }}" hint-placeholder-val="{{ true }}">
+  <div style="height:100%;display:flex;flex-direction:column;min-height:0;background:#F2F2F7;padding:80px 24px 40px;box-sizing:border-box;overflow:auto">
+    <div style="text-align:center;margin-bottom:22px">
+      <div style="font-size:34px;margin-bottom:6px">✈️</div>
+      <div style="font-size:20px;font-weight:700">Andanzas</div>
+      <div style="font-size:13px;color:rgba(60,60,67,0.55);margin-top:4px">Inicia sesión para ver tu viaje</div>
+    </div>
+    <div style="display:flex;background:rgba(60,60,67,0.08);border-radius:10px;padding:3px;margin-bottom:18px">
+      <button onClick="{{ onSetAuthLogin }}" style="flex:1;border:none;padding:8px 0;border-radius:8px;font-size:13.5px;font-weight:700;cursor:pointer;background:{{ authLoginTabBg }};color:#000">Entrar</button>
+      <button onClick="{{ onSetAuthRegister }}" style="flex:1;border:none;padding:8px 0;border-radius:8px;font-size:13.5px;font-weight:700;cursor:pointer;background:{{ authRegisterTabBg }};color:#000">Crear cuenta</button>
+    </div>
+    <sc-if value="{{ authError }}" hint-placeholder-val="{{ false }}">
+      <p style="margin:0 0 12px;font-size:12.5px;color:#FF3B30;text-align:center">{{ authError }}</p>
+    </sc-if>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <sc-if value="{{ authIsRegister }}" hint-placeholder-val="{{ false }}">
+          <input type="text" placeholder="Tu nombre" value="{{ authForm.name }}" onChange="{{ onAuthNameChange }}" style="border:1px solid rgba(60,60,67,0.15);border-radius:10px;padding:12px 14px;font-size:14px;background:#fff"></input>
+        </sc-if>
+        <input type="email" placeholder="Email" value="{{ authForm.email }}" onChange="{{ onAuthEmailChange }}" style="border:1px solid rgba(60,60,67,0.15);border-radius:10px;padding:12px 14px;font-size:14px;background:#fff"></input>
+        <input type="password" placeholder="Contraseña" value="{{ authForm.password }}" onChange="{{ onAuthPasswordChange }}" style="border:1px solid rgba(60,60,67,0.15);border-radius:10px;padding:12px 14px;font-size:14px;background:#fff"></input>
+        <sc-if value="{{ authIsRegister }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <div style="font-size:12px;font-weight:600;color:rgba(60,60,67,0.6);margin-bottom:6px">Tus intereses en el viaje</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <sc-for list="{{ authInterestOptions }}" as="opt" hint-placeholder-count="5">
+                <button onClick="{{ opt.onToggle }}" style="border:1.5px solid #007AFF;border-radius:100px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;background:{{ opt.chipBg }};color:{{ opt.chipColor }}">{{ opt.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <button onClick="{{ onAuthSubmit }}" style="border:none;background:#007AFF;color:#fff;font-size:15px;font-weight:700;padding:13px 0;border-radius:12px;cursor:pointer;margin-top:6px">{{ authSubmitLabel }}</button>
+      </div>
+    <p style="text-align:center;font-size:10.5px;color:rgba(60,60,67,0.35);margin-top:20px">Prototipo · Cuentas de prueba: monica@ / diego@ / familia@family.trip — clave: 1234</p>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isLoggedIn }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%;display:flex;flex-direction:column;min-height:0;position:relative;background:#F2F2F7;overflow:hidden">
+
+    <div style="flex:none;position:relative;z-index:6;padding:56px 20px 14px;background:rgba(242,242,247,0.82);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:0.5px solid rgba(60,60,67,0.12)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:13px;font-weight:600;letter-spacing:0.2px;color:rgba(60,60,67,0.55)">Andanzas · {{ trip.name }}</span>
+        <div style="display:flex;gap:6px">
+          <button onClick="{{ onNewTrip }}" style="border:none;background:rgba(0,122,255,0.12);color:#007AFF;font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:100px;cursor:pointer">+ Viaje</button>
+          <button onClick="{{ onLogout }}" style="border:none;background:rgba(60,60,67,0.08);color:rgba(60,60,67,0.6);font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:100px;cursor:pointer">Salir</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <sc-if value="{{ canGoBack }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ onGoBack }}" aria-label="Atrás" style="border:none;background:transparent;padding:4px 4px 4px 0;margin-left:-4px;cursor:pointer;display:flex;align-items:center;color:#007AFF">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#007AFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </button>
+        </sc-if>
+        <h1 style="margin:0;font-size:30px;font-weight:700;letter-spacing:0.2px;color:#000">{{ currentLabel }}</h1>
+      </div>
+    </div>
+
+    <div style="flex:1;min-height:0;overflow:auto;padding:18px 16px 110px;-webkit-overflow-scrolling:touch">
+
+      <sc-if value="{{ tab_resumen }}" hint-placeholder-val="{{ true }}">
+      <section style="animation:fadeIn .2s ease">
+        <sc-if value="{{ showNextBanner }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ onOpenCalendario }}" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:none;background:linear-gradient(135deg,#0A84FF,#007AFF);border-radius:16px;padding:14px 16px;margin-bottom:14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,122,255,0.25)">
+            <span style="flex:none;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:17px">📍</span>
+            <span style="flex:1;color:#fff">
+              <span style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;opacity:0.75;letter-spacing:0.2px">Próximo plan · {{ nextBannerDay }}</span>
+              <span style="display:block;font-size:15px;font-weight:700;margin-top:2px">{{ nextBannerTime }} — {{ nextBannerDesc }}</span>
+            </span>
+            <svg width="8" height="14" viewBox="0 0 8 14" style="flex:none"><path d="M1 1l6 6-6 6" stroke="rgba(255,255,255,0.7)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </button>
+        </sc-if>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+          <div style="background:#fff;border-radius:16px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,0.04)"><div style="font-size:11px;font-weight:600;text-transform:uppercase;color:rgba(60,60,67,0.5);margin-bottom:4px">Destino</div><div style="font-size:15px;font-weight:700">{{ trip.facts.destino }}</div></div>
+          <div style="background:#fff;border-radius:16px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,0.04)"><div style="font-size:11px;font-weight:600;text-transform:uppercase;color:rgba(60,60,67,0.5);margin-bottom:4px">Duración</div><div style="font-size:15px;font-weight:700">{{ trip.facts.duracion }}</div></div>
+          <div style="background:#fff;border-radius:16px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,0.04)"><div style="font-size:11px;font-weight:600;text-transform:uppercase;color:rgba(60,60,67,0.5);margin-bottom:4px">Alojamiento</div><div style="font-size:15px;font-weight:700">{{ trip.facts.alojamiento }}</div></div>
+          <div style="background:#fff;border-radius:16px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,0.04)"><div style="font-size:11px;font-weight:600;text-transform:uppercase;color:rgba(60,60,67,0.5);margin-bottom:4px">Presupuesto</div><div style="font-size:15px;font-weight:700">{{ trip.facts.presupuesto }}</div></div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin:16px 0 0;flex-wrap:wrap">
+          <sc-for list="{{ travelers }}" as="t" hint-placeholder-count="3">
+            <span style="display:flex;align-items:center;gap:6px;background:#fff;border-radius:100px;padding:5px 12px 5px 5px;font-size:12.5px;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+              <span style="width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:#fff;background:{{ t.color }}">{{ t.initial }}</span>{{ t.name }}
+            </span>
+          </sc-for>
+        </div>
+
+        <div style="font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:-0.1px;color:rgba(60,60,67,0.55);margin:26px 2px 10px">Vuelos</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ flightCards }}" as="f" hint-placeholder-count="2">
+            <button onClick="{{ onOpenVuelo }}" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:#fff;border:none;text-align:left;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+              <span style="font-size:14px;flex:1"><b>{{ f.routeLabel }}</b> · {{ f.dateLabel }}<small style="display:block;color:rgba(60,60,67,0.5);margin-top:2px">{{ f.summaryLine }}</small></span>
+              <svg width="8" height="14" viewBox="0 0 8 14"><path d="M1 1l6 6-6 6" stroke="rgba(60,60,67,0.3)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </button>
+          </sc-for>
+        </div>
+
+        <div style="font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:-0.1px;color:rgba(60,60,67,0.55);margin:26px 2px 10px">Hotel</div>
+        <div style="background:#fff;border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+            <span style="font-size:15px;font-weight:700">{{ trip.hotel.name }}</span>
+            <a target="_blank" rel="noopener" href="{{ trip.hotel.mapsUrl }}" style="flex:none;font-size:11px;font-weight:600;background:rgba(0,122,255,0.1);padding:5px 10px;border-radius:100px;color:#007AFF">Abrir en Maps ↗</a>
+          </div>
+          <p style="margin:0 0 10px;font-size:12.5px;color:rgba(60,60,67,0.6)">{{ trip.hotel.address }}</p>
+          <div style="display:flex;gap:10px;padding-top:10px;border-top:0.5px solid rgba(60,60,67,0.1);font-size:12px;color:rgba(60,60,67,0.55);flex-wrap:wrap">
+            <span>Check-in {{ trip.hotel.checkIn }}</span><span>Check-out {{ trip.hotel.checkOut }}</span><span>{{ trip.hotel.phone }}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:12px">
+            <span style="font-size:12px;color:rgba(60,60,67,0.55);flex:none">Nº de confirmación</span>
+            <input value="{{ hotelConfirmation }}" onChange="{{ onHotelConfirmationChange }}" placeholder="pendiente…" style="flex:1;padding:7px 9px;border-radius:8px;border:none;background:#F2F2F7;font-size:13px;box-sizing:border-box">
+          </div>
+        </div>
+
+        <div style="font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:-0.1px;color:rgba(60,60,67,0.55);margin:26px 2px 10px">Excursiones</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ excursionCards }}" as="ex" hint-placeholder-count="2">
+            <div style="background:#fff;border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px">
+                <span style="font-size:14.5px;font-weight:700">{{ ex.name }}</span>
+                <a target="_blank" rel="noopener" href="{{ ex.bookingUrl }}" style="flex:none;font-size:11px;font-weight:600;background:rgba(0,122,255,0.1);padding:5px 10px;border-radius:100px;color:#007AFF">{{ ex.provider }} ↗</a>
+              </div>
+              <div style="font-size:12px;color:rgba(60,60,67,0.55);margin-bottom:10px">{{ ex.when }} · {{ ex.price }}</div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:12px;color:rgba(60,60,67,0.55);flex:none">Nº de reserva</span>
+                <input value="{{ ex.confirmation }}" onChange="{{ ex.onConfirmationChange }}" placeholder="pendiente…" style="flex:1;padding:7px 9px;border-radius:8px;border:none;background:#F2F2F7;font-size:13px;box-sizing:border-box">
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:-0.1px;color:rgba(60,60,67,0.55);margin:26px 2px 10px">Estado de las reservas</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ reservations }}" as="r" hint-placeholder-count="5">
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+              <span style="width:8px;height:8px;border-radius:50%;flex:none;background:{{ r.dotColor }}"></span>
+              <span style="flex:1;font-size:14px"><b>{{ r.strong }}</b> {{ r.rest }}</span>
+              <span style="font-size:11px;padding:3px 9px;border-radius:100px;font-weight:700;background:{{ r.tagBg }};color:{{ r.tagColor }}">{{ r.tagLabel }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:-0.1px;color:rgba(60,60,67,0.55);margin:26px 2px 10px">Cómo llegar y moverse</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ trip.gettingAround }}" as="g" hint-placeholder-count="2">
+            <div style="background:#fff;border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px">
+                <div style="font-size:15px;font-weight:700">{{ g.title }}</div>
+                <div style="display:flex;gap:6px;flex:none">
+                  <a target="_blank" rel="noopener" href="{{ g.uberUrl }}" style="font-size:11px;font-weight:600;background:#000;padding:5px 10px;border-radius:100px;color:#fff">Uber</a>
+                  <a target="_blank" rel="noopener" href="{{ g.mapsUrl }}" style="font-size:11px;font-weight:600;background:rgba(0,122,255,0.1);padding:5px 10px;border-radius:100px;color:#007AFF">Maps ↗</a>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <sc-for list="{{ g.steps }}" as="st" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <span style="flex:none;width:24px;height:24px;border-radius:50%;background:rgba(0,122,255,0.1);color:#007AFF;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">{{ st.num }}</span>
+                    <div style="flex:1">
+                      <div style="font-size:13.5px;font-weight:600">{{ st.mode }} · {{ st.detail }}</div>
+                    </div>
+                    <span style="flex:none;font-size:11px;color:rgba(60,60,67,0.5);text-align:right">{{ st.meta }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid rgba(60,60,67,0.1);font-size:12px;color:#FF9500">{{ g.tip }}</div>
+            </div>
+          </sc-for>
+
+          <sc-for list="{{ customRoutes }}" as="cr" hint-placeholder-count="0">
+            <div style="background:#fff;border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                <div style="font-size:15px;font-weight:700">{{ cr.title }}</div>
+                <div style="display:flex;align-items:center;gap:8px;flex:none">
+                  <a target="_blank" rel="noopener" href="{{ cr.mapsUrl }}" style="font-size:11px;font-weight:600;background:rgba(0,122,255,0.1);padding:5px 10px;border-radius:100px;color:#007AFF">Abrir en Maps ↗</a>
+                  <button onClick="{{ cr.onDelete }}" title="Eliminar" style="background:none;border:none;color:rgba(60,60,67,0.4);cursor:pointer;font-size:17px;line-height:1;padding:0">×</button>
+                </div>
+              </div>
+              <div style="margin-top:6px;font-size:12.5px;color:rgba(60,60,67,0.55)">{{ cr.origin }} → {{ cr.destination }}</div>
+            </div>
+          </sc-for>
+
+          <sc-if value="{{ showRouteForm }}" hint-placeholder-val="{{ false }}">
+            <div style="background:#fff;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+              <input value="{{ routeDraft.title }}" onChange="{{ onRouteField_title }}" placeholder="Título (p.ej. Hotel → Aeropuerto)" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#F2F2F7;font-size:14px;box-sizing:border-box">
+              <input value="{{ routeDraft.origin }}" onChange="{{ onRouteField_origin }}" placeholder="Origen" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#F2F2F7;font-size:14px;box-sizing:border-box">
+              <input value="{{ routeDraft.destination }}" onChange="{{ onRouteField_destination }}" placeholder="Destino" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#F2F2F7;font-size:14px;box-sizing:border-box">
+              <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:rgba(60,60,67,0.5);margin:6px 2px 0">Vincular al calendario (opcional)</div>
+              <select value="{{ routeDraft.dayId }}" onChange="{{ onRouteField_dayId }}" style="width:100%;padding:10px 8px;border-radius:10px;border:none;background:#F2F2F7;font-size:13.5px">
+                <option value="">Sin vincular</option>
+                <sc-for list="{{ days }}" as="dopt" hint-placeholder-count="4">
+                  <option value="{{ dopt.id }}">{{ dopt.weekday }} {{ dopt.daynum }} — {{ dopt.title }}</option>
+                </sc-for>
+              </select>
+              <sc-if value="{{ routeDraft.dayId }}" hint-placeholder-val="{{ false }}">
+                <input type="time" value="{{ routeDraft.time }}" onChange="{{ onRouteField_time }}" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#F2F2F7;font-size:14px;box-sizing:border-box">
+              </sc-if>
+              <div style="display:flex;gap:8px;margin-top:4px">
+                <button onClick="{{ onAddRoute }}" style="flex:1;padding:11px;border-radius:10px;border:none;background:#007AFF;color:#fff;font-weight:700;font-size:14px;cursor:pointer">Guardar ruta</button>
+                <button onClick="{{ onToggleRouteForm }}" style="padding:11px 16px;border-radius:10px;border:none;background:rgba(60,60,67,0.08);color:rgba(60,60,67,0.6);font-weight:600;font-size:14px;cursor:pointer">Cancelar</button>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ !showRouteForm }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ onToggleRouteForm }}" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:13px;border-radius:14px;border:1.5px dashed rgba(0,122,255,0.35);background:transparent;color:#007AFF;font-weight:600;font-size:14px;cursor:pointer">+ Añadir ruta</button>
+          </sc-if>
+        </div>
+        <p style="font-size:11px;color:rgba(60,60,67,0.4);margin-top:10px">Las rutas que añadas aquí se guardan para toda la familia y se actualizan al momento en todos los dispositivos. No es posible sincronizar automáticamente con tu app de Google Maps — Google no ofrece esa conexión — pero cada ruta abre directamente en Maps con un toque.</p>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ tab_calendario }}" hint-placeholder-val="{{ false }}">
+      <section style="animation:fadeIn .2s ease">
+        <div style="display:flex;background:rgba(60,60,67,0.08);border-radius:10px;padding:3px;margin-bottom:16px">
+          <button onClick="{{ onCalViewDays }}" style="flex:1;padding:8px;border:none;border-radius:8px;background:{{ calViewDaysBg }};color:{{ calViewDaysColor }};font-size:13px;font-weight:700;cursor:pointer">Tarjetas</button>
+          <button onClick="{{ onCalViewMonth }}" style="flex:1;padding:8px;border:none;border-radius:8px;background:{{ calViewMonthBg }};color:{{ calViewMonthColor }};font-size:13px;font-weight:700;cursor:pointer">Mes</button>
+        </div>
+
+        <sc-if value="{{ calViewMonth }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <button onClick="{{ onCalPrevMonth }}" style="border:none;background:rgba(60,60,67,0.08);width:30px;height:30px;border-radius:50%;color:#007AFF;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">‹</button>
+            <span style="font-size:15px;font-weight:700">{{ calMonthLabel }}</span>
+            <button onClick="{{ onCalNextMonth }}" style="border:none;background:rgba(60,60,67,0.08);width:30px;height:30px;border-radius:50%;color:#007AFF;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">›</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px">
+            <sc-for list="{{ calWeekdays }}" as="wd" hint-placeholder-count="7">
+              <div style="text-align:center;font-size:11px;font-weight:700;color:rgba(60,60,67,0.4)">{{ wd }}</div>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:38px;row-gap:6px">
+            <sc-for list="{{ calCells }}" as="c" hint-placeholder-count="42">
+              <div style="display:flex;align-items:center;justify-content:center">
+                <button onClick="{{ c.onClick }}" disabled="{{ c.disabled }}" style="width:34px;height:34px;border:none;border-radius:100px;background:{{ c.bg }};color:{{ c.color }};font-size:14px;font-weight:600;cursor:{{ c.cursor }};display:flex;align-items:center;justify-content:center;padding:0">{{ c.label }}</button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <sc-if value="{{ hasSelectedDay }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fff;border-radius:18px;padding:16px;margin-bottom:20px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(60,60,67,0.5);margin-bottom:8px">{{ selectedDay.weekday }} {{ selectedDay.daynum }} — {{ selectedDay.title }}</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ selectedDay.items }}" as="it" hint-placeholder-count="4">
+                <div style="display:flex;gap:9px;align-items:flex-start">
+                  <span style="font-size:12px;color:#007AFF;font-weight:700;flex:none;width:48px;font-variant-numeric:tabular-nums">{{ it.time }}</span>
+                  <span style="font-size:13px;flex:1;line-height:1.4">{{ it.desc }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noSelectedDay }}" hint-placeholder-val="{{ true }}">
+          <p style="text-align:center;font-size:12.5px;color:rgba(60,60,67,0.45);margin:0 0 20px">Toca un día para ver sus planes</p>
+        </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ calViewDays }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:14px;overflow-x:auto;padding-bottom:6px;margin:0 -16px;padding-left:16px;padding-right:16px;scroll-snap-type:x mandatory">
+          <sc-for list="{{ days }}" as="day" hint-placeholder-count="4">
+            <article style="flex:0 0 250px;scroll-snap-align:start;background:#fff;border-radius:18px;display:flex;flex-direction:column;box-shadow:{{ day.cardShadow }}">
+              <div style="padding:16px 16px 12px">
+                <span style="font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(60,60,67,0.5)">{{ day.weekday }}</span>
+                <div style="font-size:30px;font-weight:700;line-height:1;margin-top:2px">{{ day.daynum }}</div>
+                <p style="margin:6px 0 0;font-size:14.5px;font-weight:700">{{ day.title }}</p>
+                <span style="display:inline-block;margin-top:8px;font-size:10.5px;padding:3px 9px;border-radius:100px;background:rgba(0,122,255,0.12);color:#007AFF;font-weight:700">{{ day.flag }}</span>
+              </div>
+              <div style="border-top:0.5px solid rgba(60,60,67,0.12)"></div>
+              <div style="padding:14px 16px 10px;display:flex;flex-direction:column;gap:9px;flex:1">
+                <sc-for list="{{ day.items }}" as="it" hint-placeholder-count="4">
+                  <sc-if value="{{ it.isEditing }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;gap:6px;background:#F2F2F7;border-radius:10px;padding:8px">
+                      <input type="time" value="{{ itemEditDraft.time }}" onChange="{{ onItemEditTime }}" style="width:100%;padding:6px 8px;border-radius:8px;border:none;background:#fff;font-size:12.5px;box-sizing:border-box">
+                      <input value="{{ itemEditDraft.desc }}" onChange="{{ onItemEditDesc }}" placeholder="Descripción" style="width:100%;padding:6px 8px;border-radius:8px;border:none;background:#fff;font-size:12.5px;box-sizing:border-box">
+                      <input value="{{ itemEditDraft.note }}" onChange="{{ onItemEditNote }}" placeholder="Nota (opcional)" style="width:100%;padding:6px 8px;border-radius:8px;border:none;background:#fff;font-size:12.5px;box-sizing:border-box">
+                      <div style="display:flex;gap:6px">
+                        <button onClick="{{ onItemEditSave }}" style="flex:1;padding:7px;border-radius:8px;border:none;background:#007AFF;color:#fff;font-weight:700;font-size:12px;cursor:pointer">Guardar</button>
+                        <button onClick="{{ onItemEditCancel }}" style="padding:7px 10px;border-radius:8px;border:none;background:rgba(60,60,67,0.1);color:rgba(60,60,67,0.6);font-weight:600;font-size:12px;cursor:pointer">Cancelar</button>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ it.notEditing }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;gap:9px;align-items:flex-start">
+                      <span style="font-size:11.5px;color:#007AFF;font-weight:700;flex:none;width:52px;padding-top:1px;font-variant-numeric:tabular-nums">{{ it.time }}</span>
+                      <button onClick="{{ it.onToggleDone }}" aria-label="Marcar como hecho" style="flex:none;width:20px;height:20px;border-radius:50%;border:1.5px solid {{ it.checkBorder }};background:{{ it.checkBg }};color:{{ it.checkColor }};font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;margin-top:1px">✓</button>
+                      <span style="font-size:12.5px;flex:1;line-height:1.4">{{ it.desc }}<small style="display:block;color:rgba(60,60,67,0.5);margin-top:2px">{{ it.note }}</small>
+                        <sc-if value="{{ it.mapsUrl }}" hint-placeholder-val="{{ false }}">
+                          <a target="_blank" rel="noopener" href="{{ it.mapsUrl }}" style="display:inline-block;margin-top:4px;font-size:10.5px;font-weight:600;background:rgba(0,122,255,0.1);padding:2px 8px;border-radius:100px;color:#007AFF">Abrir en Maps ↗</a>
+                        </sc-if>
+                      </span>
+                      <button onClick="{{ it.onEdit }}" title="Editar" style="background:none;border:none;color:rgba(60,60,67,0.4);cursor:pointer;font-size:13px;line-height:1;padding:0 2px">✎</button>
+                      <button onClick="{{ it.onRemove }}" title="Quitar" style="background:none;border:none;color:rgba(60,60,67,0.4);cursor:pointer;font-size:15px;line-height:1;padding:0 2px">×</button>
+                    </div>
+                  </sc-if>
+                </sc-for>
+              </div>
+              <div style="padding:0 14px 14px">
+                <button onClick="{{ day.onOpenAdd }}" style="width:100%;padding:10px;border-radius:10px;border:1.5px dashed rgba(0,122,255,0.35);background:transparent;color:#007AFF;font-weight:600;font-size:13px;cursor:pointer;box-sizing:border-box">+ Añadir plan</button>
+              </div>
+            </article>
+          </sc-for>
+        </div>
+        </sc-if>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ tab_mapas }}" hint-placeholder-val="{{ false }}">
+      <section style="animation:fadeIn .2s ease">
+        <div style="background:#fff;border-radius:18px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px">
+            <div>
+              <h3 style="margin:0 0 3px;font-size:16px;font-weight:700">Centro de Milán</h3>
+              <p style="margin:0;font-size:12.5px;color:rgba(60,60,67,0.55)">{{ geoStatusLabel }}</p>
+            </div>
+            <button onClick="{{ onLocateMe }}" disabled="{{ geoLoading }}" style="flex:none;font-size:12px;font-weight:700;background:rgba(0,122,255,0.1);color:#007AFF;border:none;padding:7px 12px;border-radius:100px;cursor:pointer;white-space:nowrap">{{ geoButtonLabel }}</button>
+          </div>
+          <div style="background:#F2F2F7;border-radius:14px;overflow:hidden">
+            <svg viewBox="0 0 600 420" style="width:100%;height:auto;display:block" role="img" aria-label="Mapa esquemático del centro de Milán">
+              <rect width="600" height="420" fill="#F2F2F7"></rect>
+              <g stroke="rgba(60,60,67,0.18)" stroke-width="2" fill="none">
+                <path d="M430,150 L300,230"></path><path d="M300,230 L300,205 L295,175"></path><path d="M300,230 L200,190"></path>
+                <path d="M200,190 L230,130"></path><path d="M200,190 L120,210"></path><path d="M300,230 L230,330"></path><path d="M480,100 L430,150"></path>
+              </g>
+              <sc-for list="{{ mapPins }}" as="pin" hint-placeholder-count="9">
+                <g>
+                  <circle cx="{{ pin.x }}" cy="{{ pin.y }}" r="12" fill="{{ pin.hex }}" stroke="#fff" stroke-width="2.5"></circle>
+                  <text x="{{ pin.x }}" y="{{ pin.ylabel }}" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">{{ pin.num }}</text>
+                </g>
+              </sc-for>
+            </svg>
+          </div>
+          <div style="display:flex;flex-direction:column;margin-top:12px">
+            <sc-for list="{{ mapPins }}" as="pin" hint-placeholder-count="9">
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 2px;border-top:0.5px solid rgba(60,60,67,0.1);font-size:13.5px">
+                <span style="width:22px;height:22px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;background:{{ pin.hex }}">{{ pin.num }}</span>
+                <span style="flex:1">{{ pin.name }}<small style="display:block;color:rgba(60,60,67,0.5);font-size:11px">{{ pin.distanceLabel }}{{ pin.note }}</small></span>
+                <a target="_blank" rel="noopener" href="{{ pin.uberUrl }}" style="font-size:11px;font-weight:600;white-space:nowrap;background:#000;padding:5px 10px;border-radius:100px;color:#fff">Uber</a>
+                <a target="_blank" rel="noopener" href="{{ pin.mapsUrl }}" style="font-size:11px;font-weight:600;white-space:nowrap;background:rgba(0,122,255,0.1);padding:5px 10px;border-radius:100px;color:#007AFF">Ir</a>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:-0.1px;color:rgba(60,60,67,0.55);margin:26px 2px 10px">Ruta a los Alpes · 26 diciembre</div>
+        <div style="background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+          <div style="padding:18px 16px 14px;display:flex;justify-content:space-between;font-size:12px;font-weight:700;background:rgba(0,122,255,0.06)">
+            <span>{{ trip.route.from }}</span><span style="color:rgba(60,60,67,0.5)">línea alpina</span><span>{{ trip.route.to }}</span>
+          </div>
+          <div style="display:flex">
+            <div style="flex:1;padding:14px;border-right:0.5px solid rgba(60,60,67,0.1)"><div style="font-size:10.5px;text-transform:uppercase;color:rgba(60,60,67,0.5)">Duración</div><div style="font-size:17px;font-weight:700;color:#007AFF;margin-top:2px">{{ trip.route.duration }}</div></div>
+            <div style="flex:1;padding:14px;border-right:0.5px solid rgba(60,60,67,0.1)"><div style="font-size:10.5px;text-transform:uppercase;color:rgba(60,60,67,0.5)">Precio</div><div style="font-size:17px;font-weight:700;color:#007AFF;margin-top:2px">{{ trip.route.price }}</div></div>
+            <div style="flex:1;padding:14px"><div style="font-size:10.5px;text-transform:uppercase;color:rgba(60,60,67,0.5)">Salida</div><div style="font-size:17px;font-weight:700;color:#007AFF;margin-top:2px">{{ trip.route.departure }}</div></div>
+          </div>
+          <p style="margin:0;padding:12px 16px 16px;font-size:12px;color:#FF3B30">{{ trip.route.warn }}</p>
+        </div>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ tab_vuelo }}" hint-placeholder-val="{{ false }}">
+      <section style="animation:fadeIn .2s ease">
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+          <sc-for list="{{ flightCards }}" as="f" hint-placeholder-count="2">
+            <div style="background:linear-gradient(180deg,#1c1c1e,#2c2c2e);border-radius:20px;padding:20px;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,0.25)">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                <span style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.5)">{{ f.airlineLabel }}</span>
+                <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;background:{{ f.statusBg }};color:{{ f.statusColor }}">{{ f.statusLabel }}</span>
+              </div>
+
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div style="text-align:left">
+                  <div style="font-size:28px;font-weight:800;letter-spacing:-0.5px">{{ f.originCode }}</div>
+                  <div style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:2px">{{ f.originTime }}</div>
+                </div>
+                <div style="flex:1;position:relative;height:2px;background:rgba(255,255,255,0.2);margin:0 12px;border-radius:2px">
+                  <div style="position:absolute;left:0;top:0;height:2px;background:#0A84FF;border-radius:2px;width:{{ f.progressPct }}"></div>
+                  <div style="position:absolute;top:50%;left:{{ f.progressPct }};transform:translate(-50%,-50%) rotate(90deg);font-size:16px">✈️</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-size:28px;font-weight:800;letter-spacing:-0.5px">{{ f.destCode }}</div>
+                  <div style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:2px">{{ f.destTime }}</div>
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.12)">
+                <div><div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px">Vuelo</div><div style="font-size:14px;font-weight:700;margin-top:3px">{{ f.number }}</div></div>
+                <div><div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px">Puerta</div><div style="font-size:14px;font-weight:700;margin-top:3px">{{ f.gateLabel }}</div></div>
+                <div><div style="font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px">Retraso</div><div style="font-size:14px;font-weight:700;margin-top:3px;color:{{ f.delayColor }}">{{ f.delayLabel }}</div></div>
+              </div>
+
+              <sc-if value="{{ f.error }}" hint-placeholder-val="{{ false }}">
+                <p style="margin:12px 0 0;font-size:11.5px;color:#FF6961">{{ f.error }}</p>
+              </sc-if>
+
+              <div style="display:flex;gap:8px;margin-top:16px">
+                <input value="{{ f.number }}" onChange="{{ f.onNumberChange }}" placeholder="Nº de vuelo" style="flex:1;padding:9px 10px;border-radius:9px;border:none;background:rgba(255,255,255,0.12);color:#fff;font-size:13px;box-sizing:border-box;text-transform:uppercase">
+                <button onClick="{{ f.onRefresh }}" disabled="{{ f.refreshDisabled }}" style="padding:0 16px;border-radius:9px;border:none;background:#0A84FF;color:#fff;font-weight:700;font-size:13px;cursor:{{ f.refreshCursor }};opacity:{{ f.refreshOpacity }}">{{ f.refreshLabel }}</button>
+              </div>
+              <div style="font-size:10.5px;color:rgba(255,255,255,0.4);margin-top:8px">{{ f.lastUpdatedLabel }}</div>
+            </div>
+          </sc-for>
+          <p style="font-size:11px;color:rgba(60,60,67,0.4);margin:0 2px">Introduce el número de vuelo en cuanto reserves; "Actualizar" consulta la aerolínea en vivo (hora estimada, puerta, retrasos).</p>
+        </div>
+
+        <div style="font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:-0.1px;color:rgba(60,60,67,0.55);margin:0 2px 10px">Pasajeros</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ passengerRows }}" as="t" hint-placeholder-count="3">
+            <div style="background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                <span style="width:34px;height:34px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:{{ t.color }}">{{ t.initial }}</span>
+                <span style="font-size:16px;font-weight:700;flex:1">{{ t.name }}</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div>
+                  <label style="display:block;font-size:10.5px;font-weight:600;text-transform:uppercase;color:rgba(60,60,67,0.45);margin:0 2px 4px">Asiento</label>
+                  <input value="{{ t.seat }}" onChange="{{ t.onSeatChange }}" placeholder="—" style="width:100%;padding:9px 10px;border-radius:9px;border:none;background:#F2F2F7;font-size:14px;box-sizing:border-box;font-weight:600">
+                </div>
+                <div>
+                  <label style="display:block;font-size:10.5px;font-weight:600;text-transform:uppercase;color:rgba(60,60,67,0.45);margin:0 2px 4px">Nº e-ticket</label>
+                  <input value="{{ t.eticket }}" onChange="{{ t.onEticketChange }}" placeholder="—" style="width:100%;padding:9px 10px;border-radius:9px;border:none;background:#F2F2F7;font-size:14px;box-sizing:border-box">
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ tab_documentos }}" hint-placeholder-val="{{ false }}">
+      <section style="animation:fadeIn .2s ease">
+        <sc-if value="{{ docShowLogin }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fff;border-radius:16px;padding:18px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+            <div style="font-size:15px;font-weight:700;margin-bottom:2px">☁️ Conectar con Nextcloud</div>
+            <p style="margin:0 0 14px;font-size:12.5px;color:rgba(60,60,67,0.55)">{{ docLoginHint }}</p>
+            <sc-if value="{{ docLoginError }}" hint-placeholder-val="{{ false }}">
+              <p style="margin:0 0 10px;font-size:12px;color:#FF3B30">{{ docLoginError }}</p>
+            </sc-if>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <input type="text" placeholder="Usuario" value="{{ docLoginForm.usuario }}" onChange="{{ onDocUserChange }}" style="border:1px solid rgba(60,60,67,0.15);border-radius:10px;padding:11px 13px;font-size:14px"></input>
+              <input type="password" placeholder="Contraseña" value="{{ docLoginForm.password }}" onChange="{{ onDocPassChange }}" style="border:1px solid rgba(60,60,67,0.15);border-radius:10px;padding:11px 13px;font-size:14px"></input>
+              <button onClick="{{ onDocLogin }}" style="border:none;background:#007AFF;color:#fff;font-size:14.5px;font-weight:700;padding:12px 0;border-radius:10px;cursor:pointer;margin-top:2px">Conectar</button>
+            </div>
+            <p style="margin:14px 0 0;font-size:11px;color:rgba(60,60,67,0.4);text-align:center">⚠️ Demo: la conexión con Nextcloud es simulada en este prototipo. La integración real requiere acceso LAN/VPN al servidor privado.</p>
+          </div>
+        </sc-if>
+
+        <div style="display:{{ docAppDisplay }}">
+          <sc-if value="{{ docUploadError }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:0 0 12px;font-size:12px;color:#FF3B30">{{ docUploadError }}</p>
+          </sc-if>
+          <sc-if value="{{ docIsLoading }}" hint-placeholder-val="{{ false }}">
+            <p style="text-align:center;font-size:13px;color:rgba(60,60,67,0.5);padding:20px 0">Cargando documentos…</p>
+          </sc-if>
+          <sc-if value="{{ docIsError }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align:center;padding:20px 0">
+              <p style="font-size:13px;color:#FF3B30;margin:0 0 10px">No se pudo conectar con Nextcloud.</p>
+              <button onClick="{{ onDocRetry }}" style="border:none;background:rgba(0,122,255,0.1);color:#007AFF;font-size:13px;font-weight:600;padding:8px 16px;border-radius:100px;cursor:pointer">Reintentar</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ docIsReady }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <sc-for list="{{ docCategories }}" as="c" hint-placeholder-count="7">
+                <div style="background:#fff;border-radius:16px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                    <span style="font-size:14.5px;font-weight:700">{{ c.cat }}</span>
+                    <span style="font-size:11px;font-weight:600;color:rgba(60,60,67,0.5);background:rgba(60,60,67,0.08);padding:3px 9px;border-radius:100px">{{ c.count }}</span>
+                  </div>
+                  <label onDragOver="{{ c.onDragOver }}" onDragLeave="{{ c.onDragLeave }}" onDrop="{{ c.onDrop }}" style="display:flex;align-items:center;justify-content:center;gap:8px;border:1.5px dashed {{ c.dropBorder }};background:{{ c.dropBg }};border-radius:12px;padding:12px;cursor:pointer;margin-bottom:10px">
+                    <span style="font-size:12.5px;font-weight:600;color:rgba(60,60,67,0.6)">📤 Arrastra o toca para subir</span>
+                    <input type="file" onChange="{{ c.onFileInputChange }}" style="display:none"></input>
+                  </label>
+                  <sc-if value="{{ c.isUploading }}" hint-placeholder-val="{{ false }}">
+                    <p style="margin:0 0 8px;font-size:12px;color:rgba(60,60,67,0.5)">Subiendo…</p>
+                  </sc-if>
+                  <sc-if value="{{ c.isEmpty }}" hint-placeholder-val="{{ true }}">
+                    <p style="margin:0;font-size:12px;color:rgba(60,60,67,0.4);text-align:center;padding:6px 0">Sin documentos en esta categoría.</p>
+                  </sc-if>
+                  <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+                    <sc-for list="{{ c.files }}" as="doc" hint-placeholder-count="1">
+                      <div style="display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;background:#F2F2F7">
+                        <span style="flex:none;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:700;color:#fff;background:{{ doc.iconColor }}">{{ doc.iconLabel }}</span>
+                        <span style="flex:1;min-width:0">
+                          <span style="display:block;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ doc.nombre }}</span>
+                          <span style="display:block;font-size:10.5px;color:rgba(60,60,67,0.5)">{{ doc.sizeLabel }} · {{ doc.dateLabel }}</span>
+                        </span>
+                        <button onClick="{{ doc.onDownload }}" title="Descargar" style="flex:none;background:none;border:none;color:#007AFF;font-size:15px;cursor:pointer;padding:4px">⬇︎</button>
+                        <button onClick="{{ doc.onDelete }}" title="Eliminar" style="flex:none;background:none;border:none;color:#FF3B30;font-size:15px;cursor:pointer;padding:4px">🗑</button>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ docToast }}" hint-placeholder-val="{{ false }}">
+            <p style="text-align:center;font-size:12px;color:rgba(60,60,67,0.5);margin-top:10px">{{ docToast }}</p>
+          </sc-if>
+        </div>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ tab_equipaje }}" hint-placeholder-val="{{ false }}">
+      <section style="animation:fadeIn .2s ease">
+        <p style="margin:0 0 14px;font-size:13px;color:rgba(60,60,67,0.55)">{{ packProgress }}</p>
+        <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+          <sc-for list="{{ packGroups }}" as="grp" hint-placeholder-count="6">
+            <div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#007AFF;background:rgba(0,122,255,0.08);padding:9px 16px">{{ grp.cat }}</div>
+              <sc-for list="{{ grp.items }}" as="p" hint-placeholder-count="4">
+                <label style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:0.5px solid rgba(60,60,67,0.1);cursor:pointer">
+                  <input type="checkbox" checked="{{ p.checked }}" onChange="{{ p.onToggle }}" style="width:20px;height:20px;accent-color:#007AFF;flex:none">
+                  <span style="font-size:14.5px;flex:1;color:{{ p.textColor }};text-decoration:{{ p.strike }}">{{ p.label }}</span>
+                </label>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ tab_presupuesto }}" hint-placeholder-val="{{ false }}">
+      <section style="animation:fadeIn .2s ease">
+        <div style="background:#fff;border-radius:18px;padding:18px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+          <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px;flex-wrap:wrap">
+            <span style="font-size:28px;font-weight:700;color:#007AFF;font-variant-numeric:tabular-nums">{{ trip.facts.presupuesto }}</span>
+            <span style="color:rgba(60,60,67,0.55);font-size:12.5px">estimado total</span>
+          </div>
+          <div style="display:flex;height:28px;border-radius:8px;overflow:hidden;margin:16px 0 14px">
+            <sc-for list="{{ budgetRows }}" as="b" hint-placeholder-count="5">
+              <div style="height:100%;width:{{ b.pctStr }};background:{{ b.barStyle }}" title="{{ b.label }}"></div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column">
+            <sc-for list="{{ budgetRows }}" as="b" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 2px;border-top:0.5px solid rgba(60,60,67,0.1);font-size:14px">
+                <span style="width:10px;height:10px;border-radius:3px;flex:none;background:{{ b.swatch }}"></span>
+                <span style="flex:1">{{ b.label }}<small style="display:block;color:rgba(60,60,67,0.5);font-size:11px">{{ b.note }}</small></span>
+                <span style="font-weight:700;font-variant-numeric:tabular-nums">{{ b.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ tab_gastos }}" hint-placeholder-val="{{ false }}">
+      <section style="animation:fadeIn .2s ease">
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px">
+          <div style="background:#fff;border-radius:16px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,0.04);grid-column:1/-1">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:rgba(60,60,67,0.5);margin-bottom:4px">Gastado hasta ahora</div>
+            <div style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums">{{ expTotal }}</div>
+            <div style="margin-top:5px;font-size:11.5px;color:rgba(60,60,67,0.55)">{{ expSplit }}</div>
+          </div>
+          <div style="background:#fff;border-radius:16px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,0.04)"><div style="font-size:11px;font-weight:600;text-transform:uppercase;color:rgba(60,60,67,0.5);margin-bottom:4px">Restante</div><div style="font-size:18px;font-weight:700;font-variant-numeric:tabular-nums">{{ expRemaining }}</div></div>
+          <div style="background:#fff;border-radius:16px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,0.04)"><div style="font-size:11px;font-weight:600;text-transform:uppercase;color:rgba(60,60,67,0.5);margin-bottom:4px">Registrados</div><div style="font-size:18px;font-weight:700;font-variant-numeric:tabular-nums">{{ expCount }}</div></div>
+        </div>
+
+        <div style="background:#fff;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+          <input type="number" step="0.01" value="{{ expDraft.amount }}" onChange="{{ onExpField_amount }}" placeholder="Importe (€)" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#F2F2F7;font-size:15px;box-sizing:border-box">
+          <input type="text" value="{{ expDraft.description }}" onChange="{{ onExpField_description }}" placeholder="Descripción" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#F2F2F7;font-size:15px;box-sizing:border-box">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <select value="{{ expDraft.category }}" onChange="{{ onExpField_category }}" style="padding:10px 8px;border-radius:10px;border:none;background:#F2F2F7;font-size:13.5px">
+              <option value="Alojamiento">Alojamiento</option><option value="Comida">Comida</option><option value="Transporte">Transporte</option><option value="Actividades">Actividades</option><option value="Otros">Otros</option>
+            </select>
+            <select value="{{ expDraft.method }}" onChange="{{ onExpField_method }}" style="padding:10px 8px;border-radius:10px;border:none;background:#F2F2F7;font-size:13.5px">
+              <option value="tarjeta">Tarjeta</option><option value="efectivo">Efectivo</option>
+            </select>
+          </div>
+          <select value="{{ expDraft.payer }}" onChange="{{ onExpField_payer }}" style="padding:10px 8px;border-radius:10px;border:none;background:#F2F2F7;font-size:13.5px">
+            <option value="juanjo">Pagado por Juanjo</option><option value="monica">Pagado por Mónica</option><option value="diego">Pagado por Diego</option><option value="familia">Pagado por Familia</option>
+          </select>
+          <button onClick="{{ onAddExpense }}" style="padding:12px;border-radius:10px;border:none;background:#007AFF;color:#fff;font-weight:700;font-size:15px;cursor:pointer">Añadir gasto</button>
+        </div>
+
+        <sc-if value="{{ hasExpenses }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ expenseRows }}" as="e" hint-placeholder-count="0">
+              <div style="background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+                  <span style="font-weight:600;font-size:14.5px">{{ e.description }}</span>
+                  <div style="display:flex;align-items:center;gap:8px;flex:none">
+                    <span style="font-weight:700;font-variant-numeric:tabular-nums">{{ e.amountLabel }}</span>
+                    <button onClick="{{ e.onDelete }}" title="Eliminar" style="background:none;border:none;color:rgba(60,60,67,0.4);cursor:pointer;font-size:17px;line-height:1;padding:0">×</button>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px">
+                  <span style="font-size:10.5px;color:rgba(60,60,67,0.5)">{{ e.dateLabel }}</span>
+                  <span style="font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:100px;background:{{ e.catBg }};color:{{ e.catColor }}">{{ e.category }}</span>
+                  <span style="font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:100px;background:{{ e.methodBg }};color:{{ e.methodColor }}">{{ e.methodLabel }}</span>
+                  <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(60,60,67,0.55)"><span style="width:14px;height:14px;border-radius:50%;font-size:7px;display:flex;align-items:center;justify-content:center;color:#fff;background:{{ e.payerColor }}">{{ e.payerInitial }}</span>{{ e.payerLabel }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noExpenses }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:30px 16px;text-align:center;color:rgba(60,60,67,0.5);font-size:13.5px;background:#fff;border-radius:16px">Aún no hay gastos. Añade el primero arriba.</div>
+        </sc-if>
+
+        <div style="font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:-0.1px;color:rgba(60,60,67,0.55);margin:26px 2px 10px">Hoja compartida en Numbers</div>
+        <div style="background:#fff;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+          <input type="url" value="{{ numbersUrl }}" onChange="{{ onNumbersUrlChange }}" placeholder="https://www.icloud.com/numbers/…" style="width:100%;padding:10px 12px;border-radius:10px;border:none;background:#F2F2F7;font-size:13.5px;box-sizing:border-box">
+          <sc-if value="{{ hasNumbersUrl }}" hint-placeholder-val="{{ false }}">
+            <a target="_blank" rel="noopener" href="{{ numbersUrl }}" style="font-size:13px;font-weight:600;color:#007AFF">Abrir hoja ↗</a>
+          </sc-if>
+        </div>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ tab_clima }}" hint-placeholder-val="{{ false }}">
+      <section style="animation:fadeIn .2s ease">
+        <p style="margin:0 0 14px;font-size:13px;color:rgba(60,60,67,0.55)">{{ weatherModeLabel }}</p>
+        <sc-if value="{{ weatherLoading }}" hint-placeholder-val="{{ false }}"><p style="color:rgba(60,60,67,0.5);font-size:13.5px">Consultando previsión…</p></sc-if>
+        <sc-if value="{{ weatherHasDays }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;gap:10px;overflow-x:auto;margin:0 -16px;padding:0 16px 6px">
+            <sc-for list="{{ weatherDays }}" as="w" hint-placeholder-count="4">
+              <div style="flex:0 0 110px;background:#fff;border-radius:16px;padding:14px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+                <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;color:rgba(60,60,67,0.5)">{{ w.label }}</div>
+                <div style="font-size:26px;margin:8px 0">{{ w.icon }}</div>
+                <div style="font-size:14.5px;font-weight:700;font-variant-numeric:tabular-nums">{{ w.tmax }}° / {{ w.tmin }}°</div>
+                <div style="font-size:10.5px;color:rgba(60,60,67,0.5);margin-top:4px">{{ w.desc }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <p style="font-size:11.5px;color:rgba(60,60,67,0.45);margin-top:14px">{{ weatherNote }}</p>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ tab_guia }}" hint-placeholder-val="{{ false }}">
+      <section style="animation:fadeIn .2s ease">
+        <sc-if value="{{ showGuideSuggestion }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:12px;align-items:flex-start;background:linear-gradient(135deg,#0A84FF,#007AFF);border-radius:16px;padding:14px 16px;margin-bottom:16px;color:#fff">
+            <span style="flex:none;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:15px">★</span>
+            <div style="flex:1;min-width:0">
+              <span style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;opacity:0.75;letter-spacing:0.2px">Sugerencia · {{ guideSuggestion.dayLabel }} · {{ guideSuggestion.zoneLabel }}</span>
+              <span style="display:block;font-size:15.5px;font-weight:700;margin-top:2px">{{ guideSuggestion.name }}</span>
+              <span style="display:block;font-size:12.5px;opacity:0.85;margin-top:2px;line-height:1.35">{{ guideSuggestion.desc }}</span>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;font-size:11px;font-weight:600;opacity:0.9">
+                <span>{{ guideSuggestion.rating }}</span><span>{{ guideSuggestion.time }}</span><span>{{ guideSuggestion.locationNote }}</span>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 2px 4px">
+          <div style="font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:-0.1px;color:rgba(60,60,67,0.55)">Milán</div>
+          <button onClick="{{ onLocateMe }}" disabled="{{ geoLoading }}" style="font-size:11.5px;font-weight:700;background:rgba(0,122,255,0.1);color:#007AFF;border:none;padding:6px 11px;border-radius:100px;cursor:pointer;white-space:nowrap">{{ geoButtonLabel }}</button>
+        </div>
+        <sc-if value="{{ geoError }}" hint-placeholder-val="{{ false }}">
+          <p style="margin:0 2px 10px;font-size:12px;color:#FF3B30">{{ geoError }}</p>
+        </sc-if>
+        <div style="display:flex;gap:12px;overflow-x:auto;margin:0 -16px;padding:0 16px 6px">
+          <sc-for list="{{ guideMilanCards }}" as="g" hint-placeholder-count="6">
+            <div style="flex:0 0 220px;background:#fff;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:6px;box-shadow:0 1px 2px rgba(0,0,0,0.04);position:relative">
+              <button onClick="{{ g.onToggleDone }}" aria-label="Marcar como hecho" style="position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;border:1.5px solid {{ g.checkBorder }};background:{{ g.checkBg }};color:{{ g.checkColor }};font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">✓</button>
+              <div style="display:flex;justify-content:space-between;gap:8px;padding-right:26px"><span style="font-weight:700;font-size:15px">{{ g.name }}</span><span style="font-size:12px;font-weight:700;color:#007AFF;white-space:nowrap">{{ g.rating }}</span></div>
+              <sc-if value="{{ g.matched }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size:10px;font-weight:700;color:#AF52DE;text-transform:uppercase">★ Para ti</span>
+              </sc-if>
+              <p style="margin:0;font-size:12.5px;color:rgba(60,60,67,0.6);line-height:1.4">{{ g.desc }}</p>
+              <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:auto;padding-top:8px;border-top:0.5px solid rgba(60,60,67,0.1);font-size:11px;color:rgba(60,60,67,0.5)"><span>{{ g.price }}</span><span>{{ g.time }}</span><span>{{ g.distanceLabel }}</span></div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:-0.1px;color:rgba(60,60,67,0.55);margin:26px 2px 10px">Alpes · St. Moritz</div>
+        <div style="display:flex;gap:12px;overflow-x:auto;margin:0 -16px;padding:0 16px 6px">
+          <sc-for list="{{ guideAlpsCards }}" as="g" hint-placeholder-count="3">
+            <div style="flex:0 0 220px;background:#fff;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:6px;box-shadow:0 1px 2px rgba(0,0,0,0.04);position:relative">
+              <button onClick="{{ g.onToggleDone }}" aria-label="Marcar como hecho" style="position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;border:1.5px solid {{ g.checkBorder }};background:{{ g.checkBg }};color:{{ g.checkColor }};font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">✓</button>
+              <div style="display:flex;justify-content:space-between;gap:8px;padding-right:26px"><span style="font-weight:700;font-size:15px">{{ g.name }}</span><span style="font-size:12px;font-weight:700;color:#007AFF;white-space:nowrap">{{ g.rating }}</span></div>
+              <sc-if value="{{ g.matched }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size:10px;font-weight:700;color:#AF52DE;text-transform:uppercase">★ Para ti</span>
+              </sc-if>
+              <p style="margin:0;font-size:12.5px;color:rgba(60,60,67,0.6);line-height:1.4">{{ g.desc }}</p>
+              <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:auto;padding-top:8px;border-top:0.5px solid rgba(60,60,67,0.1);font-size:11px;color:rgba(60,60,67,0.5)"><span>{{ g.price }}</span><span>{{ g.time }}</span><span>{{ g.distanceLabel }}</span></div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:26px 2px 10px">
+          <div style="font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:-0.1px;color:rgba(60,60,67,0.55)">Restaurantes</div>
+          <button onClick="{{ onLocateMe }}" disabled="{{ geoLoading }}" style="font-size:11.5px;font-weight:700;background:rgba(0,122,255,0.1);color:#007AFF;border:none;padding:6px 11px;border-radius:100px;cursor:pointer;white-space:nowrap">{{ geoButtonLabel }}</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ restaurantCards }}" as="r" hint-placeholder-count="4">
+            <div style="background:#fff;border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+              <div style="display:flex;justify-content:space-between;gap:8px"><span style="font-weight:700;font-size:14.5px">{{ r.name }}</span><span style="font-size:12px;color:#007AFF">{{ r.price }}</span></div>
+              <p style="margin:4px 0 0;font-size:12.5px;color:rgba(60,60,67,0.6)">{{ r.desc }}</p>
+              <div style="font-size:11px;color:rgba(60,60,67,0.5);margin-top:6px">{{ r.zone }}{{ r.distanceLabel }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ tab_frases }}" hint-placeholder-val="{{ false }}">
+      <section style="animation:fadeIn .2s ease">
+        <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+          <sc-for list="{{ trip.phrases }}" as="ph" hint-placeholder-count="8">
+            <div style="display:flex;flex-direction:column;gap:2px;padding:12px 16px;border-top:0.5px solid rgba(60,60,67,0.1)">
+              <span style="font-weight:700;font-size:14.5px">{{ ph.it }}</span>
+              <span style="color:rgba(60,60,67,0.55);font-size:13px">{{ ph.es }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ tab_offline }}" hint-placeholder-val="{{ false }}">
+      <section style="animation:fadeIn .2s ease">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ trip.offlineNotes }}" as="n" hint-placeholder-count="4">
+            <div style="background:#fff;border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(60,60,67,0.5);margin-bottom:6px">{{ n.title }}</div>
+              <p style="margin:0;font-size:13px;line-height:1.5">{{ n.text }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{ tab_seguridad }}" hint-placeholder-val="{{ false }}">
+      <section style="animation:fadeIn .2s ease">
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+          <sc-for list="{{ securityRisk }}" as="row" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+              <span style="flex:1;font-size:14px;font-weight:600">{{ row.zone }}</span>
+              <span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:100px;white-space:nowrap;background:{{ row.levelBg }};color:{{ row.levelColor }}">{{ row.levelLabel }}</span>
+              <span style="font-size:12px;color:rgba(60,60,67,0.5)">{{ row.when }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background:#fff;border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+          <h3 style="margin:0 0 10px;font-size:14px;font-weight:700">Haz esto</h3>
+          <ul style="margin:0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ trip.security.do }}" as="li" hint-placeholder-count="4"><li style="font-size:13.5px;padding-left:22px;position:relative"><span style="position:absolute;left:0;color:#34C759;font-weight:700">✓</span>{{ li }}</li></sc-for>
+          </ul>
+        </div>
+        <div style="background:#fff;border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+          <h3 style="margin:0 0 10px;font-size:14px;font-weight:700">Evita esto</h3>
+          <ul style="margin:0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ trip.security.dont }}" as="li" hint-placeholder-count="4"><li style="font-size:13.5px;padding-left:22px;position:relative"><span style="position:absolute;left:0;color:#FF3B30;font-weight:700">×</span>{{ li }}</li></sc-for>
+          </ul>
+        </div>
+
+        <div style="font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:-0.1px;color:rgba(60,60,67,0.55);margin:26px 2px 10px">Contactos de emergencia</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ trip.security.contacts }}" as="c" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 1px 2px rgba(0,0,0,0.04)">
+              <span style="font-size:13px;color:rgba(60,60,67,0.6)">{{ c.label }}</span><span style="font-size:16px;font-weight:700;font-variant-numeric:tabular-nums">{{ c.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <p style="font-size:11.5px;color:rgba(60,60,67,0.45);margin-top:14px">{{ trip.security.note }}</p>
+      </section>
+      </sc-if>
+
+    </div>
+
+    <div style="flex:none;position:relative;z-index:6;display:flex;align-items:center;justify-content:space-around;padding:8px 4px 26px;background:rgba(242,242,247,0.82);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-top:0.5px solid rgba(60,60,67,0.12)">
+      <button onClick="{{ onTabResumen }}" style="border:none;background:transparent;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 6px;cursor:pointer;flex:1">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M4 11.5L12 4l8 7.5" stroke="{{ resumenColor }}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M6 10.2V19a1 1 0 001 1h4v-6h2v6h4a1 1 0 001-1v-8.8" stroke="{{ resumenColor }}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <span style="font-size:10.5px;font-weight:600;color:{{ resumenColor }}">Resumen</span>
+      </button>
+<button onClick="{{ onTabCalendario }}" style="border:none;background:transparent;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 6px;cursor:pointer;flex:1">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="5" width="18" height="16" rx="4" stroke="{{ calendarioColor }}" stroke-width="1.9"></rect>
+          <path d="M8 3v4M16 3v4M3 10h18" stroke="{{ calendarioColor }}" stroke-width="1.9" stroke-linecap="round"></path>
+        </svg>
+        <span style="font-size:10.5px;font-weight:600;color:{{ calendarioColor }}">Calendario</span>
+      </button>
+      <button onClick="{{ onTabVuelo }}" style="border:none;background:transparent;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 6px;cursor:pointer;flex:1">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M10.5 3.5l-1 5-6.5 3.7v2l6.7-1.6.3 4.6-2 1.4v1.6l3-1 3 1v-1.6l-2-1.4.3-4.6 6.7 1.6v-2L14.5 8.5l-1-5h-3z" stroke="{{ vueloColor }}" stroke-width="1.6" stroke-linejoin="round"></path>
+        </svg>
+        <span style="font-size:10.5px;font-weight:600;color:{{ vueloColor }}">Vuelo</span>
+      </button>
+      <button onClick="{{ onTabGuia }}" style="border:none;background:transparent;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 6px;cursor:pointer;flex:1">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M4 5.5C4 4.7 4.7 4 5.5 4H12v16H5.5A1.5 1.5 0 014 18.5v-13z" stroke="{{ guiaColor }}" stroke-width="1.9" stroke-linejoin="round"></path>
+          <path d="M20 5.5c0-.8-.7-1.5-1.5-1.5H12v16h6.5a1.5 1.5 0 001.5-1.5v-13z" stroke="{{ guiaColor }}" stroke-width="1.9" stroke-linejoin="round"></path>
+        </svg>
+        <span style="font-size:10.5px;font-weight:600;color:{{ guiaColor }}">Guía</span>
+      </button>
+      <button onClick="{{ onOpenMore }}" style="border:none;background:transparent;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 6px;cursor:pointer;flex:1">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="9" stroke="{{ masColor }}" stroke-width="1.9"></circle>
+          <circle cx="8.5" cy="12" r="1.3" fill="{{ masColor }}"></circle><circle cx="12" cy="12" r="1.3" fill="{{ masColor }}"></circle><circle cx="15.5" cy="12" r="1.3" fill="{{ masColor }}"></circle>
+        </svg>
+        <span style="font-size:10.5px;font-weight:600;color:{{ masColor }}">Más</span>
+      </button>
+    </div>
+
+  </div>
+
+  <sc-if value="{{ addEventOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onAddCancel }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.32);z-index:42"></div>
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:43;background:#F2F2F7;border-radius:24px 24px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,0.25);padding:14px 0 34px;max-height:78%;overflow:auto;animation:fadeIn .2s ease">
+      <div style="width:36px;height:5px;background:rgba(60,60,67,0.25);border-radius:100px;margin:0 auto 14px"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin-bottom:4px">
+        <button onClick="{{ onAddCancel }}" style="border:none;background:none;color:#007AFF;font-size:16px;padding:0;cursor:pointer">Cancelar</button>
+        <span style="font-size:16px;font-weight:700">Nuevo plan</span>
+        <button onClick="{{ onAddConfirm }}" disabled="{{ addConfirmDisabled }}" style="border:none;background:none;color:{{ addConfirmColor }};font-size:16px;font-weight:700;padding:0;cursor:pointer">Añadir</button>
+      </div>
+      <div style="padding:2px 16px 10px;font-size:12.5px;color:rgba(60,60,67,0.5)">{{ addEventDayLabel }}</div>
+
+      <div style="margin:8px 16px 0;background:#fff;border-radius:14px;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:0.5px solid rgba(60,60,67,0.1)">
+          <span style="width:80px;flex:none;font-size:15px;color:#000">Título</span>
+          <input value="{{ addDraft.desc }}" onChange="{{ onAddTitleChange }}" placeholder="p.ej. Visita al Duomo" style="flex:1;border:none;background:transparent;font-size:15px;text-align:right;outline:none">
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 14px">
+          <span style="width:80px;flex:none;font-size:15px;color:#000">Hora</span>
+          <input type="time" value="{{ addDraft.time }}" onChange="{{ onAddTimeChange }}" style="flex:1;border:none;background:transparent;font-size:15px;text-align:right;outline:none;color:#007AFF">
+        </div>
+      </div>
+
+      <div style="margin:16px 16px 0;background:#fff;border-radius:14px;overflow:hidden">
+        <input value="{{ addDraft.note }}" onChange="{{ onAddNoteChange }}" placeholder="Notas (opcional)" style="width:100%;border:none;background:transparent;padding:12px 14px;font-size:15px;outline:none;box-sizing:border-box">
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ moreSheetOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeMore }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.32);z-index:40"></div>
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:41;background:#F2F2F7;border-radius:24px 24px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,0.25);padding:14px 16px 40px;max-height:72%;overflow:auto;animation:fadeIn .2s ease">
+      <div style="width:36px;height:5px;background:rgba(60,60,67,0.25);border-radius:100px;margin:0 auto 14px"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <h2 style="margin:0;font-size:20px;font-weight:700">Más secciones</h2>
+        <button onClick="{{ closeMore }}" style="border:none;background:rgba(60,60,67,0.08);color:#007AFF;font-size:13px;font-weight:600;padding:7px 14px;border-radius:100px;cursor:pointer">Hecho</button>
+      </div>
+      <div style="background:#fff;border-radius:16px;overflow:hidden">
+        <sc-for list="{{ moreItems }}" as="mi" hint-placeholder-count="8">
+          <button onClick="{{ mi.onClick }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;border:none;background:transparent;border-top:0.5px solid rgba(60,60,67,0.1);cursor:pointer;text-align:left;box-sizing:border-box">
+            <span style="width:30px;height:30px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;background:{{ mi.color }}">{{ mi.letter }}</span>
+            <span style="flex:1;font-size:16px;color:#000">{{ mi.label }}</span>
+            <svg width="8" height="14" viewBox="0 0 8 14"><path d="M1 1l6 6-6 6" stroke="rgba(60,60,67,0.3)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ confirmDeleteOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onConfirmDeleteNo }}" style="position:absolute;inset:0;background:rgba(0,0,0,0.4);z-index:50;display:flex;align-items:center;justify-content:center">
+      <div onClick="{{ stopPropagation }}" style="width:270px;background:#F2F2F7;border-radius:14px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.3);animation:fadeIn .15s ease">
+        <div style="padding:20px 16px 14px;text-align:center">
+          <div style="font-size:17px;font-weight:700;margin-bottom:4px">Eliminar documento</div>
+          <div style="font-size:13px;color:rgba(60,60,67,0.6)">¿Eliminar «{{ confirmDeleteName }}»? Esta acción no se puede deshacer.</div>
+        </div>
+        <div style="border-top:0.5px solid rgba(60,60,67,0.15);display:flex">
+          <button onClick="{{ onConfirmDeleteNo }}" style="flex:1;padding:12px;border:none;background:transparent;font-size:17px;color:#007AFF;cursor:pointer;border-right:0.5px solid rgba(60,60,67,0.15)">Cancelar</button>
+          <button onClick="{{ onConfirmDeleteYes }}" style="flex:1;padding:12px;border:none;background:transparent;font-size:17px;font-weight:700;color:#FF3B30;cursor:pointer">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ globalToast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;bottom:100px;left:50%;transform:translateX(-50%);z-index:60;background:rgba(0,0,0,0.78);color:#fff;font-size:13.5px;font-weight:600;padding:10px 20px;border-radius:100px;white-space:nowrap;animation:fadeIn .2s ease;pointer-events:none">{{ globalToast }}</div>
+  </sc-if>
+
+</x-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const COLOR = {
+  brass:'#0A84FF', brassDeep:'#007AFF', brassTint:'rgba(10,132,255,0.12)',
+  ice:'#30B0C7', iceTint:'rgba(48,176,199,0.12)',
+  pine:'#34C759', pineTint:'rgba(52,199,89,0.12)',
+  rust:'#FF3B30', rustTint:'rgba(255,59,48,0.12)',
+  ink:'#000000', inkMuted:'rgba(60,60,67,0.6)', inkFaint:'rgba(60,60,67,0.3)',
+  border:'rgba(60,60,67,0.12)', borderSoft:'rgba(60,60,67,0.08)', surface3:'rgba(60,60,67,0.18)'
+};
+const EXP_CAT = {
+  'Alojamiento':{color:COLOR.brassDeep,tint:COLOR.brassTint},
+  'Comida':{color:COLOR.ice,tint:COLOR.iceTint},
+  'Transporte':{color:COLOR.pine,tint:COLOR.pineTint},
+  'Actividades':{color:COLOR.rust,tint:COLOR.rustTint},
+  'Otros':{color:COLOR.inkMuted,tint:COLOR.borderSoft}
+};
+const PAYER = {
+  juanjo:{label:'Juanjo',color:COLOR.ice,initial:'JJ'},
+  monica:{label:'Mónica',color:COLOR.rust,initial:'M'},
+  diego:{label:'Diego',color:COLOR.pine,initial:'D'},
+  familia:{label:'Familia',color:COLOR.brassDeep,initial:'F'}
+};
+const METHOD = {
+  tarjeta:{label:'Tarjeta',color:COLOR.ice,tint:COLOR.iceTint},
+  efectivo:{label:'Efectivo',color:COLOR.brassDeep,tint:COLOR.brassTint}
+};
+const TABS = [
+  ['resumen','Resumen'],['calendario','Calendario'],['vuelo','Vuelo'],['mapas','Mapas'],['documentos','Documentación'],
+  ['equipaje','Equipaje'],['presupuesto','Presupuesto'],['gastos','Gastos'],['clima','Clima'],
+  ['guia','Guía'],['frases','Frases'],['offline','Offline'],['seguridad','Seguridad']
+];
+const TAB_LABELS = Object.fromEntries(TABS);
+const MORE_CONFIG = [
+  { id:'gastos', label:'Gastos', letter:'G', color:'#FF9500' },
+  { id:'mapas', label:'Mapas', letter:'M', color:'#0A84FF' },
+  { id:'documentos', label:'Documentación', letter:'D', color:'#34C759' },
+  { id:'equipaje', label:'Equipaje', letter:'E', color:'#FF9500' },
+  { id:'presupuesto', label:'Presupuesto', letter:'P', color:'#AF52DE' },
+  { id:'clima', label:'Clima', letter:'C', color:'#30B0C7' },
+  { id:'frases', label:'Frases', letter:'F', color:'#FF2D55' },
+  { id:'offline', label:'Offline', letter:'O', color:'#8E8E93' },
+  { id:'seguridad', label:'Seguridad', letter:'S', color:'#FF3B30' }
+];
+const MORE_IDS = MORE_CONFIG.map(m => m.id);
+// DEMO ONLY — these accounts exist solely for the prototype.
+// In production, replace with real auth (e.g. Nextcloud SSO or backend JWT).
+const AUTH_SEED = [
+  { email:'monica@family.trip', password:'1234', travelerId:'monica', interests:['arte','compras'] },
+  { email:'diego@family.trip', password:'1234', travelerId:'diego', interests:['aventura','tranquilo'] },
+  { email:'familia@family.trip', password:'1234', travelerId:'familia', interests:['comida','tranquilo'] }
+];
+const INTEREST_OPTIONS = [
+  { id:'arte', label:'Arte y cultura' }, { id:'comida', label:'Comida' },
+  { id:'aventura', label:'Aventura' }, { id:'compras', label:'Compras' }, { id:'tranquilo', label:'Tranquilo' }
+];
+const DOC_CATEGORIES = ['Pasaporte','DNI','Permiso de conducir','Seguro de viaje','Vacunas','Visados','Reservas','Otros'];
+const DOC_SEED = {
+  'Pasaporte': [{ nombre:'pasaporte-diego.jpg', tamano:2200000, tipo:'image/jpeg', modificado:'Mon, 15 Sep 2026 09:30:00 GMT' }],
+  'DNI': [{ nombre:'dni-monica.pdf', tamano:184000, tipo:'application/pdf', modificado:'Wed, 01 Oct 2026 10:00:00 GMT' }],
+  'Permiso de conducir': [],
+  'Seguro de viaje': [{ nombre:'seguro-viaje.pdf', tamano:284133, tipo:'application/pdf', modificado:'Fri, 10 Oct 2026 08:12:44 GMT' }],
+  'Vacunas': [],
+  'Visados': [],
+  'Reservas': [
+    { nombre:'Viaje_Milan_Bernina_Express.pdf', tamano:420000, tipo:'application/pdf', modificado:new Date().toUTCString() },
+    { nombre:'mapa_milan_bernina.jpeg', tamano:928000, tipo:'image/jpeg', modificado:new Date().toUTCString() }
+  ],
+  'Otros': []
+};
+const DOC_TYPE_ICON = (nombre) => {
+  const ext = (nombre.split('.').pop() || '').toLowerCase();
+  if (ext === 'pdf') return { label:'PDF', color:'#FF3B30' };
+  if (['png','jpg','jpeg','heic','gif'].includes(ext)) return { label:'IMG', color:'#0A84FF' };
+  if (['doc','docx'].includes(ext)) return { label:'DOC', color:'#0A84FF' };
+  if (['xls','xlsx','numbers'].includes(ext)) return { label:'XLS', color:'#34C759' };
+  if (['zip','rar'].includes(ext)) return { label:'ZIP', color:'#8E8E93' };
+  return { label:'FILE', color:'#8E8E93' };
+};
+const fmtBytes = (n) => {
+  if (n < 1024) return n + ' B';
+  if (n < 1024*1024) return (n/1024).toFixed(0) + ' KB';
+  return (n/(1024*1024)).toFixed(1) + ' MB';
+};
+const fmtDocDate = (str) => { try { return new Date(str).toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' }); } catch(e) { return str; } };
+const DOC_NAME_MAX = 180;
+const validateDocName = (name) => {
+  if (!name) return 'Nombre no válido';
+  if (name.includes('/')) return 'El nombre no puede contener barras';
+  if (name.startsWith('.')) return 'El nombre no puede empezar por punto';
+  if (name.length > DOC_NAME_MAX) return `Máximo ${DOC_NAME_MAX} caracteres`;
+  return '';
+};
+const INTEREST_KEYWORDS = {
+  arte: /pinacoteca|scala|última cena|castello|caravaggio|museo|duomo/i,
+  comida: /trattoria|luini|merluzzo|pavé|cena|desayuno|risotto|panzerotti|osteria|almuerzo/i,
+  aventura: /teleférico|trineo|piz nair|alpes|moritz|patinaje/i,
+  compras: /galleria|tienda|shopping/i,
+  tranquilo: /navigli|paseo|parco|lago|relajado|descanso/i
+};
+
+class Component extends DCLogic {
+  state = {
+    trip: null,
+    activeTab: 'resumen',
+    activePerson: 'diego',
+    moreSheetOpen: false,
+    customRoutes: [],
+    showRouteForm: false,
+    routeDraft: { title:'', origin:'', destination:'', dayId:'', time:'' },
+    packingState: {},
+    docState: {},
+    docFiles: {},
+    itineraryExtra: {},
+    removedItems: {},
+    dayDrafts: {},
+    addingDayId: null,
+    expenses: [],
+    expDraft: { amount:'', description:'', category:'Comida', method:'tarjeta', payer:'juanjo' },
+    numbersUrl: '',
+    hotelConfirmation: '',
+    excursionConfirmations: {},
+    flights: {},
+    passengerInfo: {},
+    weather: { loading: true, mode: null, days: [], note: '' },
+    geo: { status: 'idle', coords: null, error: null },
+    selectedDate: null,
+    calMonth: 11,
+    calYear: 2026,
+    tabHistory: [],
+    authMode: 'login',
+    currentUserEmail: null,
+    authForm: { name:'', email:'', password:'', interests: [] },
+    authError: '',
+    customProfiles: [],
+    checkins: {},
+    docUser: null,
+    docLoginForm: { usuario:'', password:'' },
+    docLoginError: '',
+    docsByCategoria: { ...DOC_SEED },
+    docLoadStatus: 'idle',
+    docDragOverCat: null,
+    docUploadError: '',
+    docUploadingCat: null,
+    docToast: '',
+    calView: 'days',
+    itemOverrides: {},
+    editingItemId: null,
+    itemEditDraft: { time:'', desc:'', note:'' },
+    confirmDelete: null,
+    globalToast: ''
+  };
+
+  simDelay(ms) { return new Promise(r => setTimeout(r, ms)); }
+  showDocToast(msg) { this.setState({ docToast: msg }); setTimeout(() => this.setState(s => s.docToast === msg ? { docToast:'' } : s), 2000); }
+  showGlobalToast(msg) { this.setState({ globalToast: msg }); setTimeout(() => this.setState(s => s.globalToast === msg ? { globalToast:'' } : s), 2500); }
+  setDocField = (field, e) => this.setState(s => ({ docLoginForm: { ...s.docLoginForm, [field]: e.target.value } }));
+  docLogin = async () => {
+    const { usuario, password } = this.state.docLoginForm;
+    if (!usuario.trim() || !password) { this.setState({ docLoginError: 'Introduce usuario y contraseña' }); return; }
+    await this.simDelay(400);
+    this.setState({ docUser: usuario.trim(), docLoginError: '', docLoginForm: { usuario:'', password:'' } });
+    this.loadDocs();
+  };
+  docLogout = () => this.setState({ docUser: null });
+  loadDocs = async () => {
+    this.setState({ docLoadStatus: 'loading' });
+    await this.simDelay(450);
+    if (!this.state.docUser) { this.setState({ docLoadStatus: 'expired' }); return; }
+    this.setState({ docLoadStatus: 'ready' });
+  };
+  onDocRetry = () => this.loadDocs();
+  onDocDragOver = (cat) => (e) => { e.preventDefault(); this.setState({ docDragOverCat: cat }); };
+  onDocDragLeave = () => this.setState({ docDragOverCat: null });
+  onDocDrop = (cat) => (e) => { e.preventDefault(); this.setState({ docDragOverCat: null }); this.handleDocFiles(cat, e.dataTransfer.files); };
+  onDocFileInputChange = (cat) => (e) => this.handleDocFiles(cat, e.target.files);
+  handleDocFiles = (cat, fileList) => {
+    const file = fileList && fileList[0];
+    if (!file) return;
+    const nameErr = validateDocName(file.name);
+    if (nameErr) { this.setState({ docUploadError: nameErr }); return; }
+    if (file.size > 512 * 1024 * 1024) { this.setState({ docUploadError: 'Fichero demasiado grande (máx. 512 MB)' }); return; }
+    this.setState({ docUploadError: '', docUploadingCat: cat });
+    this.simDelay(600).then(() => {
+      if (!this.state.docUser) { this.setState({ docLoadStatus: 'expired', docUploadingCat: null }); return; }
+      const doc = { nombre: file.name, tamano: file.size, tipo: file.type || 'application/octet-stream', modificado: new Date().toUTCString() };
+      this.setState(s => ({
+        docsByCategoria: { ...s.docsByCategoria, [cat]: [doc, ...(s.docsByCategoria[cat]||[])] },
+        docUploadingCat: null
+      }));
+      this.showDocToast('Subido: ' + file.name);
+    });
+  };
+  docDownload = (nombre) => this.showDocToast('Descargando ' + nombre + '…');
+  docDelete = (cat, nombre) => {
+    this.setState({ confirmDelete: { cat, nombre } });
+  };
+  confirmDeleteYes = () => {
+    const { cat, nombre } = this.state.confirmDelete || {};
+    if (cat && nombre) {
+      this.setState(s => ({ docsByCategoria: { ...s.docsByCategoria, [cat]: (s.docsByCategoria[cat]||[]).filter(d => d.nombre !== nombre) }, confirmDelete: null }));
+    }
+  };
+  confirmDeleteNo = () => this.setState({ confirmDelete: null });
+
+  loadCheckins(email) {
+    let checkins = {};
+    try { checkins = JSON.parse(localStorage.getItem('mf_checkins_'+email) || '{}'); } catch(e) {}
+    this.setState({ checkins });
+  }
+  setAuthMode = (m) => this.setState({ authMode: m, authError: '' });
+  setAuthField = (field, value) => this.setState(s => ({ authForm: { ...s.authForm, [field]: value } }));
+  toggleInterest = (tag) => this.setState(s => {
+    const has = s.authForm.interests.includes(tag);
+    const interests = has ? s.authForm.interests.filter(i => i !== tag) : [...s.authForm.interests, tag];
+    return { authForm: { ...s.authForm, interests } };
+  });
+  doLogin = () => {
+    const { email, password } = this.state.authForm;
+    const seed = AUTH_SEED.find(u => u.email === email && u.password === password);
+    const custom = this.state.customProfiles.find(u => u.email === email && u.password === password);
+    if (!seed && !custom) { this.setState({ authError: 'Email o contraseña incorrectos' }); return; }
+    const profileId = seed ? seed.travelerId : custom.id;
+    localStorage.setItem('mf_session', email);
+    this.setState({ currentUserEmail: email, activePerson: profileId, authError: '', authForm: { name:'', email:'', password:'', interests:[] } });
+    this.loadCheckins(email);
+  };
+  doRegister = () => {
+    const { name, email, password, interests } = this.state.authForm;
+    if (!name.trim() || !email.trim() || !password) { this.setState({ authError: 'Completa nombre, email y contraseña' }); return; }
+    const exists = AUTH_SEED.some(u => u.email === email) || this.state.customProfiles.some(u => u.email === email);
+    if (exists) { this.setState({ authError: 'Ya existe una cuenta con ese email' }); return; }
+    const id = 'u_' + Date.now();
+    const palette = ['#3E6E92','#A6472F','#3F6B52','#8E44AD','#C77B2E'];
+    const color = palette[this.state.customProfiles.length % palette.length];
+    const profile = { id, email, password, name: name.trim(), initial: (name.trim()[0]||'?').toUpperCase(), color, interests };
+    const list = [...this.state.customProfiles, profile];
+    try { localStorage.setItem('mf_profiles', JSON.stringify(list)); } catch(e) {}
+    localStorage.setItem('mf_session', email);
+    this.setState({ customProfiles: list, currentUserEmail: email, activePerson: id, authForm: { name:'', email:'', password:'', interests:[] }, authError: '' });
+    this.loadCheckins(email);
+  };
+  logout = () => { localStorage.removeItem('mf_session'); this.setState({ currentUserEmail: null }); };
+  toggleCheckin = (id) => {
+    const email = this.state.currentUserEmail;
+    if (!email) return;
+    this.setState(s => {
+      const checkins = { ...s.checkins };
+      if (checkins[id]) delete checkins[id]; else checkins[id] = true;
+      try { localStorage.setItem('mf_checkins_'+email, JSON.stringify(checkins)); } catch(e) {}
+      return { checkins };
+    });
+  };
+
+  async componentDidMount() {
+    let customProfiles = [];
+    try { customProfiles = JSON.parse(localStorage.getItem('mf_profiles') || '[]'); } catch(e) {}
+    const session = localStorage.getItem('mf_session');
+    const patch = { customProfiles };
+    if (session) {
+      const seed = AUTH_SEED.find(u => u.email === session);
+      const custom = customProfiles.find(u => u.email === session);
+      if (seed || custom) {
+        patch.currentUserEmail = session;
+        patch.activePerson = seed ? seed.travelerId : custom.id;
+        let checkins = {};
+        try { checkins = JSON.parse(localStorage.getItem('mf_checkins_'+session) || '{}'); } catch(e) {}
+        patch.checkins = checkins;
+      }
+    }
+    this.setState(patch);
+    const res = await fetch('data/trips/milan.json');
+    const trip = await res.json();
+    this.setState({ trip }, () => this.fetchWeather());
+
+    try {
+      if (window.claude && window.claude.use) this.db = await window.claude.use('db');
+    } catch (e) { this.db = null; }
+    if (!this.db) return;
+
+    try {
+      this.db.collection('packing').onSnapshot(snap => {
+        const s = {}; snap.docs.forEach(d => { s[d.id] = (d.data()||{}).value; });
+        this.setState({ packingState: s });
+      });
+      this.db.collection('documents').onSnapshot(snap => {
+        const s = {}; snap.docs.forEach(d => { s[d.id] = (d.data()||{}).value; });
+        this.setState({ docState: s });
+      });
+      this.db.collection('docfiles').onSnapshot(snap => {
+        const s = {}; snap.docs.forEach(d => { s[d.id] = d.data(); });
+        this.setState({ docFiles: s });
+      });
+      this.db.collection('itinerary_extra').onSnapshot(snap => {
+        const s = {}; snap.docs.forEach(d => { s[d.id] = (d.data()||{}).items || []; });
+        this.setState({ itineraryExtra: s });
+      });
+      this.db.collection('itinerary_removed').onSnapshot(snap => {
+        const s = {}; snap.docs.forEach(d => { s[d.id] = true; });
+        this.setState({ removedItems: s });
+      });
+      this.db.collection('itinerary_overrides').onSnapshot(snap => {
+        const s = {}; snap.docs.forEach(d => { s[d.id] = d.data() || {}; });
+        this.setState({ itemOverrides: s });
+      });
+      this.db.collection('expenses').orderBy('createdAt','desc').onSnapshot(snap => {
+        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        this.setState({ expenses: list });
+      });
+      this.db.collection('settings').doc('numbersUrl').onSnapshot(doc => {
+        const data = doc.data && doc.data();
+        if (data && data.value != null) this.setState({ numbersUrl: data.value });
+      });
+      this.db.collection('settings').doc('hotelConfirmation').onSnapshot(doc => {
+        const data = doc.data && doc.data();
+        if (data && data.value != null) this.setState({ hotelConfirmation: data.value });
+      });
+      this.db.collection('excursionConfirmations').onSnapshot(snap => {
+        const s = {}; snap.docs.forEach(d => { s[d.id] = (d.data()||{}).value; });
+        this.setState({ excursionConfirmations: s });
+      });
+      this.db.collection('passengerInfo').onSnapshot(snap => {
+        const s = {}; snap.docs.forEach(d => { s[d.id] = d.data(); });
+        this.setState({ passengerInfo: s });
+      });
+      this.db.collection('flights').onSnapshot(snap => {
+        const s = {}; snap.docs.forEach(d => { s[d.id] = d.data(); });
+        this.setState({ flights: s });
+      });
+      this.db.collection('customRoutes').orderBy('createdAt','desc').onSnapshot(snap => {
+        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        this.setState({ customRoutes: list });
+      });
+    } catch (e) {}
+  }
+
+  async fetchWeather() {
+    const trip = this.state.trip;
+    if (!trip) return;
+    const start = new Date(trip.dateStart);
+    const daysUntil = Math.floor((start - new Date()) / 86400000);
+    if (daysUntil >= 0 && daysUntil <= 15) {
+      try {
+        const sd = trip.dateStart.slice(0,10), ed = trip.dateEnd.slice(0,10);
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${trip.coords.lat}&longitude=${trip.coords.lon}&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto&start_date=${sd}&end_date=${ed}`;
+        const r = await fetch(url);
+        const j = await r.json();
+        const days = j.daily.time.map((t,i) => ({
+          label: t.slice(5), tmax: Math.round(j.daily.temperature_2m_max[i]), tmin: Math.round(j.daily.temperature_2m_min[i]),
+          icon: this.weatherIcon(j.daily.weathercode[i]), desc: this.weatherDesc(j.daily.weathercode[i])
+        }));
+        this.setState({ weather: { loading:false, mode:'live', days, note:'Previsión en vivo (Open-Meteo) — se actualiza automáticamente a menos de 16 días del viaje.' } });
+        return;
+      } catch(e) {
+        this.setState({ weather: { loading:false, mode:'seasonal', days: [
+          { label:'Típico dic.', icon:'🌫️', tmax:8, tmin:2, desc:'Frío y húmedo, niebla frecuente' }
+        ], note:'No se pudo obtener la previsión en vivo. Mostrando referencia climática típica de Milán en diciembre.' } });
+        return;
+      }
+    }
+    this.setState({ weather: { loading:false, mode:'seasonal', days: [
+      { label:'Típico dic.', icon:'🌫️', tmax:8, tmin:2, desc:'Frío y húmedo, niebla frecuente' }
+    ], note:'La previsión en vivo se activa automáticamente 16 días antes de la salida. Mientras tanto: referencia climática típica de Milán en diciembre.' } });
+  }
+
+  locateMe = () => {
+    if (!navigator.geolocation) { this.setState({ geo: { status:'error', coords:null, error:'Este dispositivo no soporta geolocalización' } }); return; }
+    this.setState(s => ({ geo: { ...s.geo, status:'loading', error:null } }));
+    const onOk = pos => this.setState({ geo: { status:'ready', coords: { lat: pos.coords.latitude, lon: pos.coords.longitude }, error:null } });
+    const onErr = err => {
+      const msg = err.code === 1 ? 'Permiso de ubicación denegado — actívalo en los ajustes del navegador'
+        : err.code === 3 ? 'Tardó demasiado en localizarte, inténtalo de nuevo'
+        : 'No se pudo obtener tu ubicación';
+      this.setState({ geo: { status:'error', coords:null, error: msg } });
+    };
+    navigator.geolocation.getCurrentPosition(onOk, () => {
+      navigator.geolocation.getCurrentPosition(onOk, onErr, { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
+    }, { enableHighAccuracy: true, timeout: 6000, maximumAge: 60000 });
+  };
+  haversineKm(lat1,lon1,lat2,lon2){
+    const R=6371, toRad=d=>d*Math.PI/180;
+    const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1);
+    const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  }
+
+  weatherIcon(code){ if(code===0) return '☀️'; if(code<=3) return '⛅'; if(code<=48) return '🌫️'; if(code<=67) return '🌧️'; if(code<=77) return '❄️'; return '⛈️'; }
+  weatherDesc(code){ if(code===0) return 'Despejado'; if(code<=3) return 'Parcialmente nublado'; if(code<=48) return 'Niebla'; if(code<=67) return 'Lluvia'; if(code<=77) return 'Nieve'; return 'Tormenta'; }
+
+  dbSet(collection, id, data) { if (this.db) this.db.collection(collection).doc(id).set(data).catch(()=>{}); }
+
+  togglePacking = (id, checked) => {
+    this.setState(s => ({ packingState: { ...s.packingState, [id]: checked } }));
+    this.dbSet('packing', id, { value: checked, updatedAt: Date.now() });
+  };
+  toggleDoc = (id, checked) => {
+    const value = checked ? 'ready' : 'pending';
+    this.setState(s => ({ docState: { ...s.docState, [id]: value } }));
+    this.dbSet('documents', id, { value, updatedAt: Date.now() });
+  };
+  attachFile = (person, docId, file) => {
+    const key = person + '/' + docId;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const data = { name: file.name, dataUrl: reader.result, uploadedAt: Date.now() };
+      this.setState(s => ({ docFiles: { ...s.docFiles, [key]: data } }));
+      this.dbSet('docfiles', key, data);
+    };
+    reader.readAsDataURL(file);
+  };
+  removeItem = (id) => {
+    this.setState(s => ({ removedItems: { ...s.removedItems, [id]: true } }));
+    this.dbSet('itinerary_removed', id, { removed: true });
+  };
+  setDayDraft = (dayId, field, value) => {
+    this.setState(s => ({ dayDrafts: { ...s.dayDrafts, [dayId]: { ...(s.dayDrafts[dayId]||{}), [field]: value } } }));
+  };
+  addItem = (dayId) => {
+    const draft = (this.state.dayDrafts[dayId]) || {};
+    if (!draft.desc || !draft.desc.trim()) return;
+    const extra = (this.state.itineraryExtra[dayId] || []).slice();
+    extra.push({ id: dayId + '-x' + Date.now(), time: draft.time || '', desc: draft.desc, note: draft.note || '' });
+    this.setState(s => ({ itineraryExtra: { ...s.itineraryExtra, [dayId]: extra }, dayDrafts: { ...s.dayDrafts, [dayId]: { time:'', desc:'', note:'' } }, addingDayId: null }));
+    this.dbSet('itinerary_extra', dayId, { items: extra });
+  };
+  selectDate = (dateStr) => this.setState(s => ({ selectedDate: s.selectedDate === dateStr ? null : dateStr }));
+  navCalMonth = (delta) => this.setState(s => {
+    let m = s.calMonth + delta, y = s.calYear;
+    if (m < 0) { m = 11; y -= 1; } else if (m > 11) { m = 0; y += 1; }
+    return { calMonth: m, calYear: y };
+  });
+  setCalView = (v) => this.setState({ calView: v });
+  startEditItem = (item) => this.setState({ editingItemId: item.id, itemEditDraft: { time: item.time || '', desc: item.desc || '', note: item.note || '' } });
+  setItemEditField = (field, value) => this.setState(s => ({ itemEditDraft: { ...s.itemEditDraft, [field]: value } }));
+  cancelEditItem = () => this.setState({ editingItemId: null });
+  saveEditItem = () => {
+    const id = this.state.editingItemId;
+    if (!id) return;
+    const d = this.state.itemEditDraft;
+    if (!d.desc || !d.desc.trim()) return;
+    const override = { time: d.time, desc: d.desc, note: d.note };
+    this.setState(s => ({ itemOverrides: { ...s.itemOverrides, [id]: override }, editingItemId: null }));
+    this.dbSet('itinerary_overrides', id, override);
+  };
+  openAddEvent = (dayId) => this.setState({ addingDayId: dayId });
+  closeAddEvent = () => this.setState({ addingDayId: null });
+  setPerson = (id) => this.setState({ activePerson: id });
+  setTab = (id) => this.setState(s => s.activeTab === id ? s : ({ activeTab: id, tabHistory: [...(s.tabHistory||[]), s.activeTab] }));
+  goBack = () => this.setState(s => {
+    const h = (s.tabHistory||[]).slice();
+    const prev = h.pop();
+    return prev ? { activeTab: prev, tabHistory: h } : s;
+  });
+  openMore = () => this.setState({ moreSheetOpen: true });
+  closeMore = () => this.setState({ moreSheetOpen: false });
+  goToMore = (id) => { this.setTab(id); this.closeMore(); };
+
+  setExpField = (field, value) => this.setState(s => ({ expDraft: { ...s.expDraft, [field]: value } }));
+  addExpense = () => {
+    const d = this.state.expDraft;
+    const amount = parseFloat(d.amount);
+    if (!amount || amount <= 0 || !d.description) return;
+    const entry = { amount, description: d.description, category: d.category, method: d.method, payer: d.payer,
+      date: new Date().toISOString().slice(0,10), createdAt: Date.now() };
+    const id = 'local-' + Date.now();
+    this.setState(s => ({ expenses: [{ id, ...entry }, ...s.expenses], expDraft: { ...d, amount:'', description:'' } }));
+    if (this.db) this.db.collection('expenses').add(entry).catch(()=>{});
+  };
+  deleteExpense = (id) => {
+    this.setState(s => ({ expenses: s.expenses.filter(e => e.id !== id) }));
+    if (this.db && !String(id).startsWith('local-')) this.db.collection('expenses').doc(id).delete().catch(()=>{});
+  };
+  setNumbersUrl = (value) => {
+    this.setState({ numbersUrl: value });
+    this.dbSet('settings', 'numbersUrl', { value });
+  };
+
+  setPassengerField = (id, field, value) => {
+    const next = { ...(this.state.passengerInfo[id]||{}), [field]: value };
+    this.setState(s => ({ passengerInfo: { ...s.passengerInfo, [id]: next } }));
+    this.dbSet('passengerInfo', id, next);
+  };
+  setHotelConfirmation = (value) => { this.setState({ hotelConfirmation: value }); this.dbSet('settings', 'hotelConfirmation', { value }); };
+  setExcursionConfirmation = (id, value) => {
+    this.setState(s => ({ excursionConfirmations: { ...s.excursionConfirmations, [id]: value } }));
+    this.dbSet('excursionConfirmations', id, { value });
+  };
+  setFlightNumber = (id, value) => {
+    const cur = this.state.flights[id] || {};
+    const next = { ...cur, number: value.toUpperCase() };
+    this.setState(s => ({ flights: { ...s.flights, [id]: next } }));
+    this.dbSet('flights', id, next);
+  };
+  refreshFlight = async (id, dateISO) => {
+    const cur = this.state.flights[id] || {};
+    const number = (cur.number || '').trim();
+    if (!number) return;
+    const next = { ...cur, loading: true, error: null };
+    this.setState(s => ({ flights: { ...s.flights, [id]: next } }));
+    try {
+      const r = await fetch('/viajes/api/flight-status?flight=' + encodeURIComponent(number));
+      if (!r.ok) throw new Error('El servidor devolvió ' + r.status);
+      const j = await r.json();
+      if (j.error) throw new Error(j.error);
+      const result = {
+        number, loading:false, error:null, fetchedAt: Date.now(),
+        status: j.status, delay: j.delay, gate: j.gate, estDeparture: j.estDeparture
+      };
+      this.setState(s => ({ flights: { ...s.flights, [id]: result } }));
+      this.dbSet('flights', id, result);
+    } catch (e) {
+      const errState = { ...cur, loading:false, error: e.message || 'No se pudo consultar el vuelo' };
+      this.setState(s => ({ flights: { ...s.flights, [id]: errState } }));
+    }
+  };
+  toggleRouteForm = () => this.setState(s => ({ showRouteForm: !s.showRouteForm }));
+  setRouteField = (field, value) => this.setState(s => ({ routeDraft: { ...s.routeDraft, [field]: value } }));
+  addRoute = () => {
+    const d = this.state.routeDraft;
+    if (!d.title || !d.origin || !d.destination) return;
+    const mapsUrl = 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(d.origin) + '&destination=' + encodeURIComponent(d.destination);
+    const entry = { title: d.title, origin: d.origin, destination: d.destination, mapsUrl, dayId: d.dayId || '', time: d.dayId ? (d.time || '') : '', createdAt: Date.now() };
+    const id = 'local-' + Date.now();
+    this.setState(s => ({ customRoutes: [{ id, ...entry }, ...s.customRoutes], routeDraft: { title:'', origin:'', destination:'', dayId:'', time:'' }, showRouteForm: false }));
+    if (this.db) this.db.collection('customRoutes').add(entry).catch(()=>{});
+    if (d.dayId) {
+      const extra = (this.state.itineraryExtra[d.dayId] || []).slice();
+      extra.push({ id: 'route-' + Date.now(), time: d.time || '', desc: d.title, note: d.origin + ' → ' + d.destination, mapsUrl });
+      this.setState(s => ({ itineraryExtra: { ...s.itineraryExtra, [d.dayId]: extra } }));
+      this.dbSet('itinerary_extra', d.dayId, { items: extra });
+    }
+  };
+  deleteRoute = (id) => {
+    this.setState(s => ({ customRoutes: s.customRoutes.filter(r => r.id !== id) }));
+    if (this.db && !String(id).startsWith('local-')) this.db.collection('customRoutes').doc(id).delete().catch(()=>{});
+  };
+
+  fmtEUR(n){ return (Number(n)||0).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €'; }
+
+  renderVals() {
+    const s = this.state;
+    const trip = s.trip;
+    if (!trip) return { trip: { facts:{}, gettingAround:[], guideMilan:[], guideAlps:[], restaurants:[], phrases:[], offlineNotes:[], route:{}, security:{risk:[],do:[],dont:[],contacts:[]} } };
+
+    const tabFlags = {};
+    TABS.forEach(([id]) => { tabFlags['tab_'+id] = s.activeTab===id; });
+
+    const isMoreActive = MORE_IDS.includes(s.activeTab) || s.moreSheetOpen;
+    const tabColor = (id) => (s.activeTab===id && !s.moreSheetOpen) ? '#007AFF' : 'rgba(60,60,67,0.45)';
+
+    const uberUrl = (lat,lon,name) => `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[latitude]=${lat}&dropoff[longitude]=${lon}&dropoff[nickname]=${encodeURIComponent(name)}`;
+    const gettingAround = trip.gettingAround.map(g => ({
+      ...g, steps: g.steps.map((st,i) => ({ ...st, num: i+1 })),
+      uberUrl: uberUrl(g.destLat, g.destLon, g.destName)
+    }));
+
+    const reservations = trip.reservations.map(r => ({
+      strong: r.strong, rest: r.rest,
+      dotColor: r.status==='ready' ? COLOR.pine : COLOR.rust,
+      tagBg: r.status==='ready' ? COLOR.pineTint : COLOR.rustTint,
+      tagColor: r.status==='ready' ? COLOR.pine : COLOR.rust,
+      tagLabel: r.status==='ready' ? 'Confirmado' : 'Pendiente'
+    }));
+
+    const days = trip.days.map(day => {
+      const base = day.items.filter(it => !s.removedItems[it.id]);
+      const extra = (s.itineraryExtra[day.id]||[]).filter(it => !s.removedItems[it.id]);
+      const items = base.concat(extra).map(it => {
+        const ov = s.itemOverrides[it.id];
+        const merged = ov ? { ...it, ...ov } : it;
+        const isEditing = s.editingItemId === it.id;
+        const checkId = 'it_' + it.id;
+        const isDone = !!s.checkins[checkId];
+        return { ...merged, onRemove: () => this.removeItem(it.id), onEdit: () => this.startEditItem(merged),
+          isEditing, notEditing: !isEditing, isDone, onToggleDone: () => this.toggleCheckin(checkId),
+          checkBg: isDone ? '#34C759' : '#fff', checkBorder: isDone ? '#34C759' : 'rgba(60,60,67,0.25)', checkColor: isDone ? '#fff' : 'rgba(60,60,67,0.3)' };
+      });
+      return {
+        ...day, items,
+        onOpenAdd: () => this.openAddEvent(day.id),
+        cardShadow: s.selectedDate === day.date ? '0 0 0 2.5px #007AFF' : '0 1px 2px rgba(0,0,0,0.04)'
+      };
+    });
+
+    const WEEKDAYS = ['L','M','X','J','V','S','D'];
+    const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const calYear = s.calYear, calMonth = s.calMonth;
+    const monthStart = new Date(calYear, calMonth, 1);
+    const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+    const offset = (monthStart.getDay()+6)%7;
+    const totalCells = Math.ceil((offset+daysInMonth)/7)*7;
+    const calCells = [];
+    for (let i=0;i<totalCells;i++){
+      const dayNum = i-offset+1;
+      const inMonth = dayNum>=1 && dayNum<=daysInMonth;
+      const dateStr = inMonth ? `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}` : null;
+      const tripDay = inMonth ? days.find(d => d.date===dateStr) : null;
+      const isSel = inMonth && s.selectedDate===dateStr;
+      calCells.push({
+        key:'c'+i, label: inMonth ? String(dayNum) : '',
+        disabled: !inMonth, cursor: inMonth ? 'pointer' : 'default',
+        onClick: inMonth ? (() => this.selectDate(dateStr)) : undefined,
+        bg: isSel ? '#007AFF' : (tripDay ? 'rgba(0,122,255,0.12)' : 'transparent'),
+        color: isSel ? '#fff' : (tripDay ? '#007AFF' : (inMonth ? '#000' : 'rgba(60,60,67,0.25)'))
+      });
+    }
+    const calMonthLabel = MONTH_NAMES[calMonth] + ' ' + calYear;
+    const todayMidnight = new Date(); todayMidnight.setHours(0,0,0,0);
+    const futureDays = days.filter(d => new Date(d.date+'T00:00:00') >= todayMidnight);
+    const nearestDay = futureDays.length ? futureDays[0] : null;
+    const nextItem = nearestDay && nearestDay.items.length ? nearestDay.items[0] : null;
+    const showNextBanner = !!(nearestDay && nextItem);
+    const nextBannerDay = nearestDay ? (nearestDay.weekday + ' ' + nearestDay.daynum) : '';
+    let nextBannerTime = nextItem ? nextItem.time : '';
+    const nextBannerDesc = nextItem ? nextItem.desc : '';
+
+    const selectedDay = s.selectedDate
+      ? (days.find(d => d.date === s.selectedDate) || { weekday:'', daynum: s.selectedDate.slice(8,10), title:'Sin planes', items: [] })
+      : null;
+
+    const geo = s.geo;
+    const userCoords = geo.status === 'ready' ? geo.coords : null;
+    const geoButtonLabel = geo.status === 'loading' ? 'Localizando…' : (userCoords ? 'Actualizar ubicación' : 'Cerca de mí');
+    const geoStatusLabel = geo.status === 'error' ? geo.error : (userCoords ? 'Ordenado por cercanía a ti' : 'Puntos de interés cerca del hotel (nº 1)');
+
+    const uberUrlPin = (lat,lon,name) => `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[latitude]=${lat}&dropoff[longitude]=${lon}&dropoff[nickname]=${encodeURIComponent(name)}`;
+    let mapPins = trip.mapPins.map(p => ({
+      ...p, hex: COLOR[p.color] || COLOR.ice, ylabel: p.y + 4,
+      mapsUrl: userCoords
+        ? `https://www.google.com/maps/dir/?api=1&origin=${userCoords.lat},${userCoords.lon}&destination=${p.query}`
+        : 'https://www.google.com/maps/search/?api=1&query=' + p.query,
+      uberUrl: uberUrlPin(p.lat, p.lon, p.name),
+      distanceLabel: userCoords ? this.haversineKm(userCoords.lat, userCoords.lon, p.lat, p.lon).toFixed(1) + ' km · ' : ''
+    }));
+    if (userCoords) mapPins = mapPins.slice().sort((a,b) => this.haversineKm(userCoords.lat,userCoords.lon,a.lat,a.lon) - this.haversineKm(userCoords.lat,userCoords.lon,b.lat,b.lon));
+
+    const restaurantCards = trip.restaurants.map(r => ({
+      ...r, distanceLabel: userCoords ? ' · ' + this.haversineKm(userCoords.lat, userCoords.lon, r.lat, r.lon).toFixed(1) + ' km' : ''
+    }));
+    const restaurantCardsSorted = userCoords ? restaurantCards.slice().sort((a,b) => this.haversineKm(userCoords.lat,userCoords.lon,a.lat,a.lon) - this.haversineKm(userCoords.lat,userCoords.lon,b.lat,b.lon)) : restaurantCards;
+
+    const currentSeed = AUTH_SEED.find(u => u.email === s.currentUserEmail);
+    const currentCustom = s.customProfiles.find(u => u.email === s.currentUserEmail);
+    const currentInterests = currentSeed ? (currentSeed.interests||[]) : (currentCustom ? (currentCustom.interests||[]) : []);
+    const matchesInterest = (item) => currentInterests.some(tag => (INTEREST_KEYWORDS[tag]||/(?!)/).test((item.name||'')+' '+(item.desc||'')));
+    const withDistance = (list) => {
+      const withDist = list.map(g => {
+        const cid = 'g_' + g.name;
+        const isDone = !!s.checkins[cid];
+        return { ...g, distanceLabel: (userCoords && g.lat!=null) ? this.haversineKm(userCoords.lat, userCoords.lon, g.lat, g.lon).toFixed(1) + ' km' : '',
+          matched: matchesInterest(g), checkId: cid, isDone, onToggleDone: () => this.toggleCheckin(cid),
+          checkBg: isDone ? '#34C759' : '#fff', checkBorder: isDone ? '#34C759' : 'rgba(60,60,67,0.2)', checkColor: isDone ? '#fff' : 'rgba(60,60,67,0.3)' };
+      });
+      const base = userCoords ? withDist.slice().sort((a,b) => this.haversineKm(userCoords.lat,userCoords.lon,a.lat,a.lon) - this.haversineKm(userCoords.lat,userCoords.lon,b.lat,b.lon)) : withDist;
+      return currentInterests.length ? base.slice().sort((a,b) => (b.matched?1:0) - (a.matched?1:0)) : base;
+    };
+    const guideMilanCards = withDistance(trip.guideMilan);
+    const guideAlpsCards = withDistance(trip.guideAlps);
+
+    const suggestionDay = selectedDay || nearestDay || days[0] || null;
+    const suggestionIsAlps = !!(suggestionDay && /alpes|st\.?\s*moritz/i.test((suggestionDay.title||'') + ' ' + (suggestionDay.flag||'')));
+    const suggestionPool = suggestionIsAlps ? guideAlpsCards : guideMilanCards;
+    const dayIdx = suggestionDay ? Math.max(0, days.findIndex(d => d.id === suggestionDay.id)) : 0;
+    const useRestaurant = !suggestionIsAlps && dayIdx % 2 === 1 && restaurantCardsSorted.length > 0;
+    const restaurantPick = useRestaurant ? restaurantCardsSorted[dayIdx % restaurantCardsSorted.length] : null;
+    const suggestionTop = restaurantPick
+      ? { name: restaurantPick.name, desc: restaurantPick.desc, rating: restaurantPick.price, time: restaurantPick.zone, price: restaurantPick.price, distanceLabel: (restaurantPick.distanceLabel||'').replace(' · ','') }
+      : (suggestionPool && suggestionPool.length ? suggestionPool[dayIdx % suggestionPool.length] : null);
+    const showGuideSuggestion = !!(suggestionDay && suggestionTop);
+    const guideSuggestion = showGuideSuggestion ? {
+      dayLabel: (suggestionDay.weekday || '') + ' ' + (suggestionDay.daynum || ''),
+      zoneLabel: restaurantPick ? 'Restaurante recomendado' : (suggestionIsAlps ? 'Alpes · St. Moritz' : 'Milán'),
+      name: suggestionTop.name, desc: suggestionTop.desc, rating: suggestionTop.rating,
+      time: suggestionTop.time, price: suggestionTop.price,
+      locationNote: userCoords ? (suggestionTop.distanceLabel + ' de ti') : 'Cerca del hotel'
+    } : null;
+
+    const travelers = trip.travelers.concat(s.customProfiles.map(p => ({ id:p.id, name:p.name, initial:p.initial, color:p.color })));
+    const personButtons = travelers.map(t => ({
+      id: t.id, name: t.name.split(' ')[0], initial: t.initial, dotColor: t.color,
+      onClick: () => this.setPerson(t.id),
+      bg: s.activePerson===t.id ? COLOR.brassTint : '#fff',
+      textColor: s.activePerson===t.id ? '#000' : COLOR.inkMuted
+    }));
+    const activePersonName = (travelers.find(t=>t.id===s.activePerson)||{}).name || '';
+    const docList = trip.documents[s.activePerson] || [];
+    let docDone = 0;
+    const docItems = docList.map(d => {
+      const checked = s.docState[d.id] === 'ready';
+      if (checked) docDone++;
+      const fileKey = s.activePerson + '/' + d.id;
+      const file = s.docFiles[fileKey];
+      return {
+        id: d.id, label: d.label, checked,
+        onToggle: e => this.toggleDoc(d.id, e.target.checked),
+        textColor: checked ? COLOR.inkFaint : '#000',
+        strike: checked ? 'line-through' : 'none',
+        file: !!file, fileName: file ? file.name : '',
+        attachLabel: file ? 'Cambiar' : 'Adjuntar',
+        onAttach: e => { const f = e.target.files[0]; if (f) this.attachFile(s.activePerson, d.id, f); }
+      };
+    });
+    const docProgress = docDone + ' / ' + docList.length + ' listos';
+
+    const byCat = {};
+    trip.packing.forEach(item => { (byCat[item.cat] = byCat[item.cat] || []).push(item); });
+    let packDone = 0;
+    const packGroups = Object.keys(byCat).map(cat => ({
+      cat, items: byCat[cat].map(p => {
+        const checked = !!s.packingState[p.id];
+        if (checked) packDone++;
+        return { id:p.id, label:p.label, checked, onToggle: e => this.togglePacking(p.id, e.target.checked),
+          textColor: checked ? COLOR.inkFaint : '#000', strike: checked ? 'line-through' : 'none' };
+      })
+    }));
+    const packProgress = packDone + ' / ' + trip.packing.length + ' listos';
+
+    const budgetRows = trip.budgetRows.map(b => {
+      const hex = b.color==='est' ? COLOR.surface3 : COLOR[b.color];
+      return { ...b, pctStr: b.pct + '%', barStyle: hex, swatch: hex };
+    });
+
+    const expenses = s.expenses;
+    const total = expenses.reduce((sum,e) => sum + (Number(e.amount)||0), 0);
+    const ceiling = trip.budgetCeiling || 2240;
+    const cardTotal = expenses.filter(e=>e.method==='tarjeta').reduce((sum,e)=>sum+(Number(e.amount)||0),0);
+    const cashTotal = expenses.filter(e=>e.method==='efectivo').reduce((sum,e)=>sum+(Number(e.amount)||0),0);
+    const expenseRows = expenses.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(e => {
+      const cat = EXP_CAT[e.category] ? e.category : 'Otros';
+      const catInfo = EXP_CAT[cat];
+      const method = METHOD[e.method] ? e.method : 'tarjeta';
+      const methodInfo = METHOD[method];
+      const payer = PAYER[e.payer] || PAYER.familia;
+      return {
+        id: e.id, dateLabel: e.date ? e.date.slice(8,10)+'/'+e.date.slice(5,7) : '—',
+        description: e.description, category: cat, catBg: catInfo.tint, catColor: catInfo.color,
+        methodLabel: methodInfo.label, methodBg: methodInfo.tint, methodColor: methodInfo.color,
+        payerLabel: payer.label, payerColor: payer.color, payerInitial: payer.initial,
+        amountLabel: this.fmtEUR(e.amount), onDelete: () => this.deleteExpense(e.id)
+      };
+    });
+
+    const securityRisk = (trip.security.risk||[]).map(row => ({
+      zone: row.zone, when: row.when,
+      levelBg: row.level==='high' ? COLOR.rustTint : COLOR.brassTint,
+      levelColor: row.level==='high' ? COLOR.rust : COLOR.brassDeep,
+      levelLabel: row.level==='high' ? 'Alto' : 'Medio'
+    }));
+
+    const FLIGHT_DEFS = [
+      { id:'outbound', routeLabel:'Madrid → Milán', dateLabel:'24 dic', originCode:'MAD', destCode:'MXP', originTime:'~08:00', destTime:'~10:15' },
+      { id:'return', routeLabel:'Milán → Madrid', dateLabel:'27 dic', originCode:'MXP', destCode:'MAD', originTime:'19:00', destTime:'~21:15' }
+    ];
+    const STATUS_LABEL = { scheduled:'Programado', active:'En vuelo', landed:'Aterrizado', cancelled:'Cancelado', incident:'Incidente', diverted:'Desviado' };
+    const flightCards = FLIGHT_DEFS.map(def => {
+      const f = s.flights[def.id] || {};
+      const canRefresh = !!(f.number && f.number.trim());
+      const hasStatus = !!f.status && !f.loading;
+      const isDelayed = f.delay && Number(f.delay) > 0;
+      const progressPct = f.status === 'landed' ? '100%' : (f.status === 'active' ? '50%' : '0%');
+      return {
+        ...def, number: f.number || '', error: f.error || null,
+        onNumberChange: e => this.setFlightNumber(def.id, e.target.value),
+        onRefresh: () => this.refreshFlight(def.id, def.id),
+        refreshDisabled: !canRefresh || f.loading,
+        refreshOpacity: (!canRefresh || f.loading) ? 0.4 : 1,
+        refreshLabel: f.loading ? 'Consultando…' : 'Actualizar',
+        refreshCursor: canRefresh ? 'pointer' : 'default',
+        hasStatus, progressPct,
+        airlineLabel: hasStatus ? 'Vuelo en directo' : 'Sin consultar aún',
+        statusLabel: hasStatus ? (STATUS_LABEL[f.status] || f.status) : 'Sin datos',
+        statusBg: hasStatus ? (isDelayed ? 'rgba(255,69,58,0.2)' : 'rgba(48,209,88,0.2)') : 'rgba(255,255,255,0.12)',
+        statusColor: hasStatus ? (isDelayed ? '#FF6961' : '#30D158') : 'rgba(255,255,255,0.5)',
+        gateLabel: f.gate || '—',
+        delayLabel: isDelayed ? '+' + f.delay + ' min' : (hasStatus ? 'A tiempo' : '—'),
+        delayColor: isDelayed ? '#FF6961' : '#fff',
+        lastUpdatedLabel: f.fetchedAt ? 'Actualizado ' + new Date(f.fetchedAt).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) : 'Aún sin consultar',
+        summaryLine: hasStatus ? (STATUS_LABEL[f.status] || f.status) : (f.number ? 'Nº ' + f.number + ' · sin consultar' : 'Sin número asignado'),
+        liveTimeLabel: (hasStatus && f.estDeparture) ? new Date(f.estDeparture).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) : def.originTime
+      };
+    });
+
+    const FLIGHT_ID_BY_DAY = { d24: 'outbound', d27: 'return' };
+    if (nearestDay && FLIGHT_ID_BY_DAY[nearestDay.id]) {
+      const fc = flightCards.find(f => f.id === FLIGHT_ID_BY_DAY[nearestDay.id]);
+      if (fc) nextBannerTime = fc.liveTimeLabel;
+    }
+
+    const addingDay = days.find(d => d.id === s.addingDayId);    const addDraft = s.dayDrafts[s.addingDayId] || {};
+    const addCanConfirm = !!(addDraft.desc && addDraft.desc.trim());
+
+    const moreItems = MORE_CONFIG.map(m => ({
+      id: m.id, label: m.label, letter: m.letter, color: m.color,
+      onClick: () => this.goToMore(m.id)
+    }));
+
+    return {
+      trip: { ...trip, gettingAround }, ...tabFlags, securityRisk,
+      currentLabel: TAB_LABELS[s.activeTab] || '',
+      canGoBack: (s.tabHistory||[]).length > 0,
+      onGoBack: this.goBack,
+      isLoggedIn: !!s.currentUserEmail, showAuth: !s.currentUserEmail,
+      docShowLogin: !s.docUser || s.docLoadStatus === 'expired',
+      docAppDisplay: (!s.docUser || s.docLoadStatus === 'expired') ? 'none' : 'block',
+      docLoginHint: s.docLoadStatus === 'expired' ? 'Tu sesión de Nextcloud ha caducado. Vuelve a conectarte.' : 'Introduce tus credenciales del Nextcloud privado (LAN/VPN).',
+      docLoginForm: s.docLoginForm, docLoginError: s.docLoginError,
+      onDocUserChange: (e) => this.setDocField('usuario', e), onDocPassChange: (e) => this.setDocField('password', e),
+      onDocLogin: this.docLogin,
+      docUploadError: s.docUploadError, docToast: s.docToast,
+      docIsLoading: s.docLoadStatus === 'loading',
+      docIsError: s.docLoadStatus === 'error',
+      docIsReady: s.docLoadStatus === 'ready',
+      onDocRetry: this.onDocRetry,
+      docCategories: DOC_CATEGORIES.map(cat => {
+        const files = (s.docsByCategoria[cat]||[]).slice().sort((a,b) => new Date(b.modificado) - new Date(a.modificado));
+        return {
+          cat, count: files.length, isEmpty: files.length === 0,
+          isDragOver: s.docDragOverCat === cat, isUploading: s.docUploadingCat === cat,
+          dropBorder: s.docDragOverCat === cat ? '#007AFF' : 'rgba(60,60,67,0.25)', dropBg: s.docDragOverCat === cat ? 'rgba(0,122,255,0.06)' : '#fff',
+          onDragOver: this.onDocDragOver(cat), onDragLeave: this.onDocDragLeave, onDrop: this.onDocDrop(cat), onFileInputChange: this.onDocFileInputChange(cat),
+          files: files.map(d => {
+            const icon = DOC_TYPE_ICON(d.nombre);
+            return { ...d, iconLabel: icon.label, iconColor: icon.color, sizeLabel: fmtBytes(d.tamano), dateLabel: fmtDocDate(d.modificado),
+              onDownload: () => this.docDownload(d.nombre), onDelete: () => this.docDelete(cat, d.nombre) };
+          })
+        };
+      }),
+      authMode: s.authMode, authIsLogin: s.authMode === 'login', authIsRegister: s.authMode !== 'login', authError: s.authError,
+      authLoginTabBg: s.authMode === 'login' ? '#fff' : 'transparent', authRegisterTabBg: s.authMode !== 'login' ? '#fff' : 'transparent',
+      authForm: s.authForm, authInterestOptions: INTEREST_OPTIONS.map(o => {
+        const isOn = s.authForm.interests.includes(o.id);
+        return { ...o, isOn, onToggle: () => this.toggleInterest(o.id), chipBg: isOn ? '#007AFF' : '#fff', chipColor: isOn ? '#fff' : '#007AFF' };
+      }),
+      onSetAuthLogin: () => this.setAuthMode('login'), onSetAuthRegister: () => this.setAuthMode('register'),
+      onAuthNameChange: (e) => this.setAuthField('name', e.target.value),
+      onAuthEmailChange: (e) => this.setAuthField('email', e.target.value),
+      onAuthPasswordChange: (e) => this.setAuthField('password', e.target.value),
+      onAuthSubmit: s.authMode === 'login' ? this.doLogin : this.doRegister,
+      authSubmitLabel: s.authMode === 'login' ? 'Entrar' : 'Crear cuenta',
+      onLogout: this.logout,
+      showNextBanner, nextBannerDay, nextBannerTime, nextBannerDesc,
+      onOpenCalendario: () => this.setTab('calendario'),
+      moreSheetOpen: s.moreSheetOpen,
+      moreItems,
+      resumenColor: tabColor('resumen'), calendarioColor: tabColor('calendario'),
+      vueloColor: tabColor('vuelo'), guiaColor: tabColor('guia'),
+      masColor: isMoreActive ? '#007AFF' : 'rgba(60,60,67,0.45)',
+      onTabResumen: () => this.setTab('resumen'),
+      onTabCalendario: () => this.setTab('calendario'),
+      onTabVuelo: () => this.setTab('vuelo'),
+      onTabGuia: () => this.setTab('guia'),
+      onOpenMore: this.openMore,
+      closeMore: this.closeMore,
+      onOpenVuelo: () => this.setTab('vuelo'),
+      onLocateMe: this.locateMe, geoLoading: geo.status === 'loading', geoButtonLabel, geoStatusLabel,
+      geoError: geo.status === 'error' ? geo.error : '',
+      showGuideSuggestion, guideSuggestion,
+      restaurantCards: restaurantCardsSorted,
+      guideMilanCards, guideAlpsCards,
+      passengerRows: travelers.map(t => {
+        const info = s.passengerInfo[t.id] || {};
+        return { ...t, seat: info.seat || '', eticket: info.eticket || '',
+          onSeatChange: e => this.setPassengerField(t.id, 'seat', e.target.value),
+          onEticketChange: e => this.setPassengerField(t.id, 'eticket', e.target.value) };
+      }),
+      addEventOpen: s.addingDayId != null,
+      addEventDayLabel: addingDay ? (addingDay.weekday + ' ' + addingDay.daynum + ' — ' + addingDay.title) : '',
+      addDraft,
+      onAddTitleChange: e => this.setDayDraft(s.addingDayId, 'desc', e.target.value),
+      onAddTimeChange: e => this.setDayDraft(s.addingDayId, 'time', e.target.value),
+      onAddNoteChange: e => this.setDayDraft(s.addingDayId, 'note', e.target.value),
+      onAddCancel: this.closeAddEvent,
+      onAddConfirm: () => this.addItem(s.addingDayId),
+      addConfirmDisabled: !addCanConfirm,
+      addConfirmColor: addCanConfirm ? '#007AFF' : 'rgba(0,122,255,0.35)',
+      showRouteForm: s.showRouteForm,
+      routeDraft: s.routeDraft,
+      onToggleRouteForm: this.toggleRouteForm,
+      onAddRoute: this.addRoute,
+      onRouteField_title: e => this.setRouteField('title', e.target.value),
+      onRouteField_origin: e => this.setRouteField('origin', e.target.value),
+      onRouteField_destination: e => this.setRouteField('destination', e.target.value),
+      onRouteField_dayId: e => this.setRouteField('dayId', e.target.value),
+      onRouteField_time: e => this.setRouteField('time', e.target.value),
+      customRoutes: s.customRoutes.map(r => ({ ...r, onDelete: () => this.deleteRoute(r.id) })),
+      calMonthLabel, calWeekdays: WEEKDAYS, calCells,
+      onCalPrevMonth: () => this.navCalMonth(-1), onCalNextMonth: () => this.navCalMonth(1),
+      selectedDay, hasSelectedDay: !!selectedDay, noSelectedDay: !selectedDay,
+      calViewDays: s.calView === 'days', calViewMonth: s.calView === 'month',
+      onCalViewDays: () => this.setCalView('days'), onCalViewMonth: () => this.setCalView('month'),
+      calViewDaysBg: s.calView==='days' ? '#fff' : 'transparent', calViewDaysColor: s.calView==='days' ? '#000' : 'rgba(60,60,67,0.55)',
+      calViewMonthBg: s.calView==='month' ? '#fff' : 'transparent', calViewMonthColor: s.calView==='month' ? '#000' : 'rgba(60,60,67,0.55)',
+      itemEditDraft: s.itemEditDraft,
+      onItemEditTime: e => this.setItemEditField('time', e.target.value),
+      onItemEditDesc: e => this.setItemEditField('desc', e.target.value),
+      onItemEditNote: e => this.setItemEditField('note', e.target.value),
+      onItemEditSave: this.saveEditItem, onItemEditCancel: this.cancelEditItem,
+      travelers, reservations, days, mapPins,
+      personButtons, activePersonName, docItems, docProgress,
+      packGroups, packProgress,
+      budgetRows,
+      expTotal: this.fmtEUR(total),
+      expSplit: 'Tarjeta ' + this.fmtEUR(cardTotal) + ' · Efectivo ' + this.fmtEUR(cashTotal),
+      expRemaining: this.fmtEUR(Math.max(0, ceiling - total)),
+      expCount: expenses.length,
+      expenseRows, hasExpenses: expenseRows.length > 0, noExpenses: expenseRows.length === 0,
+      expDraft: s.expDraft,
+      onExpField_amount: e => this.setExpField('amount', e.target.value),
+      onExpField_description: e => this.setExpField('description', e.target.value),
+      onExpField_category: e => this.setExpField('category', e.target.value),
+      onExpField_method: e => this.setExpField('method', e.target.value),
+      onExpField_payer: e => this.setExpField('payer', e.target.value),
+      onAddExpense: this.addExpense,
+      flightCards,
+      hotelConfirmation: s.hotelConfirmation, onHotelConfirmationChange: e => this.setHotelConfirmation(e.target.value),
+      excursionCards: (trip.excursions||[]).map(ex => ({
+        ...ex, confirmation: s.excursionConfirmations[ex.id] || '',
+        onConfirmationChange: e => this.setExcursionConfirmation(ex.id, e.target.value)
+      })),
+      numbersUrl: s.numbersUrl, hasNumbersUrl: !!s.numbersUrl,
+      onNumbersUrlChange: e => this.setNumbersUrl(e.target.value),
+      confirmDeleteOpen: !!s.confirmDelete,
+      confirmDeleteName: s.confirmDelete ? s.confirmDelete.nombre : '',
+      onConfirmDeleteYes: this.confirmDeleteYes,
+      onConfirmDeleteNo: this.confirmDeleteNo,
+      stopPropagation: (e) => e.stopPropagation(),
+      onNewTrip: () => this.showGlobalToast('Próximamente: podrás añadir más viajes aquí.'),
+      globalToast: s.globalToast,
+      weatherLoading: s.weather.loading,
+      weatherHasDays: !s.weather.loading && s.weather.days.length > 0,
+      weatherDays: s.weather.days,
+      weatherModeLabel: s.weather.mode==='live' ? 'Previsión en vivo' : 'Referencia estacional',
+      weatherNote: s.weather.note
+    };
+  }
+}
+
+</script>
+</body>
+</html>
