@@ -679,10 +679,15 @@ let pendingDeleteAction = null;
 let addRouteContext = null;
 let addEventDayId = null;
 
+async function hashPass(pass){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(pass));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+const DEMO_HASH_1234 = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
 const DEMO_ACCOUNTS = {
-  "monica@family.trip": {password:"1234", name:"Mónica", interests:["arte","tranquilo"]},
-  "diego@family.trip": {password:"1234", name:"Diego", interests:["aventura","comida"]},
-  "familia@family.trip": {password:"1234", name:"Familia", interests:["arte","comida","aventura","compras","tranquilo"]}
+  "monica@family.trip": {hash:DEMO_HASH_1234, name:"Mónica", interests:["arte","tranquilo"]},
+  "diego@family.trip": {hash:DEMO_HASH_1234, name:"Diego", interests:["aventura","comida"]},
+  "familia@family.trip": {hash:DEMO_HASH_1234, name:"Familia", interests:["arte","comida","aventura","compras","tranquilo"]}
 };
 
 const SECTION_META = {
@@ -747,15 +752,17 @@ function initAuthUI(){
   const chips = document.querySelectorAll("#reg-interests .interest-chip");
   chips.forEach(c=>c.addEventListener("click", ()=>c.classList.toggle("selected")));
 
-  document.getElementById("login-form").addEventListener("submit", e=>{
+  document.getElementById("login-form").addEventListener("submit", async e=>{
     e.preventDefault();
     const email = document.getElementById("login-email").value.trim().toLowerCase();
     const pass = document.getElementById("login-password").value;
     const err = document.getElementById("auth-error");
+    if(!email || !pass){ err.textContent = "Introduce email y contraseña."; return; }
+    const h = await hashPass(pass);
     let user = DEMO_ACCOUNTS[email];
     const profiles = getProfiles();
     if(!user && profiles[email]) user = profiles[email];
-    if(!user || user.password !== pass){
+    if(!user || user.hash !== h){
       err.textContent = "Email o contraseña incorrectos.";
       return;
     }
@@ -763,7 +770,7 @@ function initAuthUI(){
     loginAs(email, user);
   });
 
-  document.getElementById("register-form").addEventListener("submit", e=>{
+  document.getElementById("register-form").addEventListener("submit", async e=>{
     e.preventDefault();
     const name = document.getElementById("reg-name").value.trim();
     const email = document.getElementById("reg-email").value.trim().toLowerCase();
@@ -773,13 +780,18 @@ function initAuthUI(){
       err.textContent = "Rellena todos los campos.";
       return;
     }
+    if(pass.length < 4){
+      err.textContent = "La contraseña debe tener al menos 4 caracteres.";
+      return;
+    }
     const interests = Array.from(document.querySelectorAll("#reg-interests .interest-chip.selected")).map(c=>c.dataset.val);
     const profiles = getProfiles();
     if(DEMO_ACCOUNTS[email] || profiles[email]){
       err.textContent = "Ese email ya está registrado.";
       return;
     }
-    const user = {password:pass, name, interests};
+    const h = await hashPass(pass);
+    const user = {hash:h, name, interests};
     profiles[email] = user;
     saveProfiles(profiles);
     err.textContent = "";
