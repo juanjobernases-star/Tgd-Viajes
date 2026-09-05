@@ -165,7 +165,6 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 }
 .interest-chip.selected{background:rgba(0,122,255,0.12); color:var(--blue); border-color:var(--blue);}
 .auth-error{color:var(--red); font-size:13px; margin-bottom:8px; min-height:16px;}
-.auth-demo{margin-top:20px; padding:12px; background:rgba(0,122,255,0.06); border-radius:12px; font-size:12px; color:var(--text2); line-height:1.5;}
 
 /* Traveler details for flights/passengers */
 .dark-card{
@@ -184,8 +183,11 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 .hscroll{display:flex; gap:12px; overflow-x:auto; padding-bottom:8px; margin:0 -16px 8px; padding-left:16px; padding-right:16px; scroll-snap-type:x mandatory;}
 .hscroll::-webkit-scrollbar{display:none;}
 .day-card{
-  min-width:280px; scroll-snap-align:start; background:var(--card); border-radius:16px; padding:16px;
+  min-width:calc(100vw - 48px); max-width:calc(100vw - 48px); scroll-snap-align:start; background:var(--card); border-radius:16px; padding:16px;
   box-shadow:0 1px 2px rgba(0,0,0,0.04); flex-shrink:0;
+}
+@media (min-width:500px){
+  .day-card{ min-width:280px; max-width:340px; }
 }
 .day-card .dhead{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;}
 .day-card .dtitle{font-size:16px; font-weight:700;}
@@ -393,11 +395,6 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       </div>
       <button type="submit" class="btn btn-primary btn-block">Crear cuenta</button>
     </form>
-
-    <div class="auth-demo">
-      <strong>Cuentas demo</strong> (contraseña 1234):<br>
-      monica@family.trip · diego@family.trip · familia@family.trip
-    </div>
   </div>
 
   <!-- HEADER -->
@@ -760,9 +757,15 @@ function initAuthUI(){
     let user = DEMO_ACCOUNTS[email];
     const profiles = getProfiles();
     if(!user && profiles[email]) user = profiles[email];
-    if(!user || user.hash !== h){
-      err.textContent = "Email o contraseña incorrectos.";
-      return;
+    if(!user){ err.textContent = "Email o contraseña incorrectos."; return; }
+    let ok = false;
+    if(user.hash) ok = user.hash === h;
+    else if(user.password) ok = user.password === pass;
+    if(!ok){ err.textContent = "Email o contraseña incorrectos."; return; }
+    if(user.password && profiles[email]){
+      profiles[email].hash = h;
+      delete profiles[email].password;
+      saveProfiles(profiles);
     }
     err.textContent = "";
     loginAs(email, user);
