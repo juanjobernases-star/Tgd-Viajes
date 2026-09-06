@@ -238,9 +238,58 @@ app.get('/api/perfil', async (req) => {
   return { usuario: req.usuario, perfil };
 });
 
+// Sanitize a string field: must be string, truncated to maxLen
+function sanStr(v, maxLen = 200) {
+  return typeof v === 'string' ? v.slice(0, maxLen) : '';
+}
+
+function sanitizarViaje(viaje) {
+  if (!viaje || typeof viaje !== 'object') return undefined;
+  const out = {};
+
+  if (viaje.hotel && typeof viaje.hotel === 'object') {
+    const h = viaje.hotel;
+    out.hotel = {
+      nombre: sanStr(h.nombre), direccion: sanStr(h.direccion),
+      telefono: sanStr(h.telefono), checkIn: sanStr(h.checkIn, 10),
+      horaCheckIn: sanStr(h.horaCheckIn, 5), checkOut: sanStr(h.checkOut, 10),
+      horaCheckOut: sanStr(h.horaCheckOut, 5), confirmacion: sanStr(h.confirmacion),
+      mapsUrl: sanStr(h.mapsUrl, 500)
+    };
+  }
+
+  if (Array.isArray(viaje.vuelos)) {
+    out.vuelos = viaje.vuelos.slice(0, 10).map(v => ({
+      id: sanStr(v.id, 20), tipo: sanStr(v.tipo, 10),
+      numero: sanStr(v.numero, 100), origen: sanStr(v.origen, 3).toUpperCase(),
+      destino: sanStr(v.destino, 3).toUpperCase(), fecha: sanStr(v.fecha, 10),
+      hora: sanStr(v.hora, 5), aerolinea: sanStr(v.aerolinea, 100),
+      confirmacion: sanStr(v.confirmacion, 100)
+    }));
+  }
+
+  if (Array.isArray(viaje.viajeros)) {
+    out.viajeros = viaje.viajeros.slice(0, 20).map(t => ({
+      id: sanStr(t.id, 20), nombre: sanStr(t.nombre, 100),
+      inicial: sanStr(t.inicial, 3), color: sanStr(t.color, 20)
+    }));
+  }
+
+  if (Array.isArray(viaje.excursiones)) {
+    out.excursiones = viaje.excursiones.slice(0, 30).map(e => ({
+      id: sanStr(e.id, 20), nombre: sanStr(e.nombre),
+      proveedor: sanStr(e.proveedor), fecha: sanStr(e.fecha, 10),
+      hora: sanStr(e.hora, 5), precio: sanStr(e.precio, 50),
+      url: sanStr(e.url, 500), confirmacion: sanStr(e.confirmacion)
+    }));
+  }
+
+  return out;
+}
+
 app.put('/api/perfil', async (req) => {
   const actual = await nube.leerPerfil(req.usuario) || {};
-  const { nombre, email, intereses, destino } = req.body ?? {};
+  const { nombre, email, intereses, destino, viaje } = req.body ?? {};
   if (nombre) actual.nombre = nombre;
   if (email !== undefined) actual.email = email;
   if (Array.isArray(intereses)) actual.intereses = intereses.filter(i => INTERESES_VALIDOS.has(i));
@@ -250,6 +299,9 @@ app.put('/api/perfil', async (req) => {
       pais: destino.pais.slice(0, 50),
       ciudades: Array.isArray(destino.ciudades) ? destino.ciudades.filter(c => typeof c === 'string').map(c => c.slice(0, 100)).slice(0, 20) : []
     };
+  }
+  if (viaje !== undefined) {
+    actual.viaje = sanitizarViaje(viaje);
   }
   await nube.guardarPerfil(req.usuario, actual);
   return { usuario: req.usuario, perfil: actual };

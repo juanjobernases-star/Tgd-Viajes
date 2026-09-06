@@ -1096,9 +1096,18 @@ function initAuthUI(){
   }
 }
 
+function perfilToProfile(usuario, perfil){
+  return {
+    name: perfil.nombre || usuario,
+    interests: perfil.intereses || [],
+    destino: perfil.destino || null,
+    viaje: perfil.viaje || null
+  };
+}
+
 function loginAs(usuario, perfil){
   CURRENT_USER = usuario;
-  CURRENT_PROFILE = { name: perfil.nombre || usuario, interests: perfil.intereses || [], destino: perfil.destino || null };
+  CURRENT_PROFILE = perfilToProfile(usuario, perfil);
   document.getElementById("auth-screen").classList.add("hidden");
   toast("Bienvenido, " + CURRENT_PROFILE.name);
   loadTripAndRender();
@@ -1118,7 +1127,7 @@ async function tryRestoreSession(){
     const r = await apiFetch('/api/sesion');
     if(!r.ok) return false;
     CURRENT_USER = r.data.usuario;
-    CURRENT_PROFILE = r.data.perfil ? { name: r.data.perfil.nombre || r.data.usuario, interests: r.data.perfil.intereses || [], destino: r.data.perfil.destino || null } : { name: r.data.usuario, interests: [], destino: null };
+    CURRENT_PROFILE = r.data.perfil ? perfilToProfile(r.data.usuario, r.data.perfil) : { name: r.data.usuario, interests: [], destino: null, viaje: null };
     document.getElementById("auth-screen").classList.add("hidden");
     return true;
   } catch { return false; }
@@ -1259,6 +1268,480 @@ document.getElementById("confirm-alert-ok").addEventListener("click", ()=>{
   pendingDeleteAction = null;
 });
 
+/* ============ VIAJE MANUAL: helpers ============ */
+const TRAVELER_COLORS = ["#3E6E92","#D1567A","#3E9C6B","#C77A2E","#7B68EE","#FF6347","#20B2AA","#DAA520"];
+
+function getViaje(){
+  return (CURRENT_PROFILE && CURRENT_PROFILE.viaje) || {};
+}
+
+function ensureViaje(){
+  if(!CURRENT_PROFILE.viaje) CURRENT_PROFILE.viaje = {};
+  return CURRENT_PROFILE.viaje;
+}
+
+async function saveViaje(){
+  const viaje = CURRENT_PROFILE.viaje || {};
+  try {
+    await apiFetch('/api/perfil', { method:'PUT', body:JSON.stringify({ viaje }) });
+  } catch(e){ console.error('saveViaje failed', e); }
+}
+
+function initialsFrom(nombre){
+  const parts = nombre.trim().split(/\s+/);
+  if(parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return nombre.slice(0,2).toUpperCase();
+}
+
+function getEffectiveTravelers(){
+  const v = getViaje();
+  if(v.viajeros && v.viajeros.length) return v.viajeros;
+  if(TRIP && TRIP.travelers) return TRIP.travelers.map(t=>({id:t.id,nombre:t.name,inicial:t.initial,color:t.color}));
+  return [];
+}
+
+function getEffectiveHotel(){
+  const v = getViaje();
+  if(v.hotel && v.hotel.nombre) return v.hotel;
+  if(TRIP && TRIP.hotel) return {
+    nombre:TRIP.hotel.name, direccion:TRIP.hotel.address, telefono:TRIP.hotel.phone,
+    checkIn:TRIP.hotel.checkIn||"", horaCheckIn:"", checkOut:TRIP.hotel.checkOut||"",
+    horaCheckOut:"", confirmacion:"", mapsUrl:TRIP.hotel.mapsUrl||""
+  };
+  return null;
+}
+
+function getEffectiveVuelos(){
+  const v = getViaje();
+  if(v.vuelos && v.vuelos.length) return v.vuelos;
+  return [];
+}
+
+function getEffectiveExcursiones(){
+  const v = getViaje();
+  const manual = v.excursiones || [];
+  if(manual.length) return manual;
+  if(TRIP && TRIP.excursions) return TRIP.excursions.map(e=>({
+    id:e.id, nombre:e.name, proveedor:e.provider, fecha:"", hora:"",
+    precio:e.price, url:e.bookingUrl||"", confirmacion:""
+  }));
+  return [];
+}
+
+/* --- Hotel form --- */
+let hotelEditMode = false;
+
+function renderHotelCard(){
+  const h = getEffectiveHotel();
+  const wrap = document.getElementById("hotel-card");
+  if(!h){
+    wrap.innerHTML = `<div class="card" style="text-align:center;padding:20px;">
+      <div class="subtle" style="margin-bottom:8px;">No hay hotel registrado</div>
+      <button class="btn btn-secondary btn-sm" id="add-hotel-btn" type="button">+ Añadir hotel</button>
+    </div>`;
+    document.getElementById("add-hotel-btn").addEventListener("click", ()=>{ hotelEditMode=true; renderHotelCard(); });
+    return;
+  }
+  if(!hotelEditMode){
+    wrap.innerHTML = `<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <h3 style="margin:0;">${escapeHtml(h.nombre)}</h3>
+        <button class="btn btn-secondary btn-sm" id="edit-hotel-btn" type="button">Editar</button>
+      </div>
+      <div class="subtle">${escapeHtml(h.direccion)}</div>
+      <div style="display:flex;gap:14px;margin-top:10px;font-size:13px;">
+        <div><strong>Check-in</strong><br>${escapeHtml(h.checkIn)}${h.horaCheckIn?' '+escapeHtml(h.horaCheckIn):''}</div>
+        <div><strong>Check-out</strong><br>${escapeHtml(h.checkOut)}${h.horaCheckOut?' '+escapeHtml(h.horaCheckOut):''}</div>
+      </div>
+      ${h.confirmacion?'<div class="subtle" style="margin-top:8px;">Confirmación: '+escapeHtml(h.confirmacion)+'</div>':''}
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        ${h.mapsUrl?'<a href="'+safeHref(h.mapsUrl)+'" target="_blank" class="btn btn-secondary btn-sm"><img src="assets/icons/address.png" alt="" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;"> Maps</a>':''}
+        ${h.telefono?'<a href="tel:'+h.telefono.replace(/\\s/g,'')+'" class="btn btn-secondary btn-sm">Llamar</a>':''}
+      </div>
+    </div>`;
+    document.getElementById("edit-hotel-btn").addEventListener("click", ()=>{ hotelEditMode=true; renderHotelCard(); });
+    return;
+  }
+  // edit mode
+  wrap.innerHTML = `<div class="card">
+    <h3 style="margin:0 0 12px;">Hotel</h3>
+    <div class="field"><label class="field-label">Nombre del hotel</label><input type="text" id="hf-nombre" value="${escapeHtml(h?h.nombre:'')}" placeholder="Hotel Andreola Central"></div>
+    <div class="field"><label class="field-label">Dirección</label><input type="text" id="hf-direccion" value="${escapeHtml(h?h.direccion:'')}" placeholder="Via Scarlatti 24, Milano"></div>
+    <div class="field"><label class="field-label">Teléfono</label><input type="tel" id="hf-telefono" value="${escapeHtml(h?h.telefono:'')}" placeholder="+39 02 6698 1610"></div>
+    <div style="display:flex;gap:10px;">
+      <div class="field" style="flex:1;"><label class="field-label">Check-in</label><input type="date" id="hf-checkin" value="${escapeHtml(h?h.checkIn:'')}"></div>
+      <div class="field" style="flex:1;"><label class="field-label">Hora</label><input type="time" id="hf-horacheckin" value="${escapeHtml(h?h.horaCheckIn:'')}"></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <div class="field" style="flex:1;"><label class="field-label">Check-out</label><input type="date" id="hf-checkout" value="${escapeHtml(h?h.checkOut:'')}"></div>
+      <div class="field" style="flex:1;"><label class="field-label">Hora</label><input type="time" id="hf-horacheckout" value="${escapeHtml(h?h.horaCheckOut:'')}"></div>
+    </div>
+    <div class="field"><label class="field-label">Nº de confirmación</label><input type="text" id="hf-confirmacion" value="${escapeHtml(h?h.confirmacion:'')}" placeholder="ABC12345"></div>
+    <div class="field"><label class="field-label">URL en Maps (opcional)</label><input type="url" id="hf-maps" value="${escapeHtml(h?h.mapsUrl:'')}" placeholder="https://maps.google.com/..."></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary btn-sm" id="save-hotel-btn" type="button">Guardar</button>
+      <button class="btn btn-ghost btn-sm" id="cancel-hotel-btn" type="button">Cancelar</button>
+    </div>
+  </div>`;
+  document.getElementById("save-hotel-btn").addEventListener("click", async ()=>{
+    const vj = ensureViaje();
+    vj.hotel = {
+      nombre: document.getElementById("hf-nombre").value,
+      direccion: document.getElementById("hf-direccion").value,
+      telefono: document.getElementById("hf-telefono").value,
+      checkIn: document.getElementById("hf-checkin").value,
+      horaCheckIn: document.getElementById("hf-horacheckin").value,
+      checkOut: document.getElementById("hf-checkout").value,
+      horaCheckOut: document.getElementById("hf-horacheckout").value,
+      confirmacion: document.getElementById("hf-confirmacion").value,
+      mapsUrl: document.getElementById("hf-maps").value
+    };
+    await saveViaje();
+    hotelEditMode = false;
+    renderHotelCard();
+    toast("Hotel guardado");
+  });
+  document.getElementById("cancel-hotel-btn").addEventListener("click", ()=>{ hotelEditMode=false; renderHotelCard(); });
+}
+
+/* --- Flights forms --- */
+let flightEditId = null;
+let flightFormNew = false;
+
+function renderFlightsList(){
+  const wrap = document.getElementById("flights-detail");
+  const vuelos = getEffectiveVuelos();
+
+  let html = '';
+  if(vuelos.length === 0){
+    html += `<div class="card" style="text-align:center;padding:20px;">
+      <div class="subtle" style="margin-bottom:8px;">No hay vuelos registrados</div>
+    </div>`;
+  } else {
+    html += vuelos.map(v=>`<div class="dark-card" data-vid="${v.id}">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="btn btn-sm" style="background:${v.tipo==='ida'?'rgba(63,156,107,0.2);color:#3E9C6B':'rgba(209,86,122,0.2);color:#D1567A'};border-radius:100px;padding:3px 10px;font-size:11px;font-weight:700;">${v.tipo==='ida'?'Ida':'Vuelta'}</span>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-secondary btn-sm edit-flight-btn" data-fid="${v.id}" type="button">Editar</button>
+          <button class="btn btn-danger btn-sm del-flight-btn" data-fid="${v.id}" type="button">×</button>
+        </div>
+      </div>
+      <div class="route-codes"><span>${escapeHtml(v.origen)}</span><span>${escapeHtml(v.destino)}</span></div>
+      <div class="route-progress"><span class="plane"><img src="assets/icons/ticket.png" alt="" style="width:24px;height:24px;object-fit:contain;"></span></div>
+      <div class="route-labels"><span>Salida</span><span>Llegada</span></div>
+      <div style="margin-top:10px;font-size:13px;color:rgba(91,70,54,0.7);">
+        ${escapeHtml(v.aerolinea)} · ${escapeHtml(v.numero)} · ${escapeHtml(v.fecha)} ${escapeHtml(v.hora)}
+        ${v.confirmacion?'<br>Conf: '+escapeHtml(v.confirmacion):''}
+      </div>
+    </div>`).join('');
+  }
+  html += `<button class="btn btn-secondary btn-block" id="add-flight-btn" type="button" style="margin-top:8px;">+ Añadir vuelo</button>`;
+  html += `<div id="flight-form-container"></div>`;
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll(".edit-flight-btn").forEach(b=>b.addEventListener("click",()=>{flightEditId=b.dataset.fid; flightFormNew=false; renderFlightForm();}));
+  wrap.querySelectorAll(".del-flight-btn").forEach(b=>b.addEventListener("click",()=>{
+    confirmDelete("Eliminar vuelo","¿Seguro que quieres eliminar este vuelo?",async()=>{
+      const vj=ensureViaje(); vj.vuelos=(vj.vuelos||[]).filter(v=>v.id!==b.dataset.fid);
+      await saveViaje(); renderFlightsList(); renderResumenFlights(); toast("Vuelo eliminado");
+    });
+  }));
+  document.getElementById("add-flight-btn").addEventListener("click",()=>{ flightEditId=null; flightFormNew=true; renderFlightForm(); });
+
+  // Live status buttons
+  vuelos.forEach(v=>{
+    if(v.numero){
+      const card = wrap.querySelector(`[data-vid="${v.id}"]`);
+      if(card){
+        const statusBtn = document.createElement("button");
+        statusBtn.className = "btn btn-secondary btn-sm";
+        statusBtn.style.marginTop = "8px";
+        statusBtn.textContent = "Estado en vivo";
+        statusBtn.addEventListener("click", async ()=>{
+          statusBtn.textContent = "Consultando...";
+          try {
+            const r = await apiFetch('/api/flight-status?flight=' + encodeURIComponent(v.numero));
+            if(r.ok && r.data){
+              statusBtn.textContent = (r.data.status||"?") + (r.data.delay?' · Retraso '+r.data.delay+' min':'') + (r.data.gate?' · Puerta '+r.data.gate:'');
+            } else { statusBtn.textContent = r.data?.error || "No disponible"; }
+          } catch{ statusBtn.textContent = "Error de conexión"; }
+        });
+        card.appendChild(statusBtn);
+      }
+    }
+  });
+}
+
+function renderFlightForm(){
+  const container = document.getElementById("flight-form-container");
+  const vuelos = getEffectiveVuelos();
+  const existing = flightEditId ? vuelos.find(v=>v.id===flightEditId) : null;
+  const v = existing || {id:'',tipo:'ida',numero:'',origen:'',destino:'',fecha:'',hora:'',aerolinea:'',confirmacion:''};
+
+  container.innerHTML = `<div class="card" style="margin-top:12px;">
+    <h3 style="margin:0 0 12px;">${existing?'Editar vuelo':'Nuevo vuelo'}</h3>
+    <div class="field"><label class="field-label">Tipo</label>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-sm ff-tipo ${v.tipo==='ida'?'btn-primary':'btn-ghost'}" data-tipo="ida" type="button">Ida</button>
+        <button class="btn btn-sm ff-tipo ${v.tipo==='vuelta'?'btn-primary':'btn-ghost'}" data-tipo="vuelta" type="button">Vuelta</button>
+      </div>
+    </div>
+    <div class="field"><label class="field-label">Número de vuelo</label><input type="text" id="ff-numero" value="${escapeHtml(v.numero)}" placeholder="FR1234"></div>
+    <div style="display:flex;gap:10px;">
+      <div class="field" style="flex:1;"><label class="field-label">Origen (IATA)</label><input type="text" id="ff-origen" value="${escapeHtml(v.origen)}" maxlength="3" placeholder="MAD" style="text-transform:uppercase;"></div>
+      <div class="field" style="flex:1;"><label class="field-label">Destino (IATA)</label><input type="text" id="ff-destino" value="${escapeHtml(v.destino)}" maxlength="3" placeholder="MXP" style="text-transform:uppercase;"></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <div class="field" style="flex:1;"><label class="field-label">Fecha</label><input type="date" id="ff-fecha" value="${escapeHtml(v.fecha)}"></div>
+      <div class="field" style="flex:1;"><label class="field-label">Hora</label><input type="time" id="ff-hora" value="${escapeHtml(v.hora)}"></div>
+    </div>
+    <div class="field"><label class="field-label">Aerolínea</label><input type="text" id="ff-aerolinea" value="${escapeHtml(v.aerolinea)}" placeholder="Ryanair"></div>
+    <div class="field"><label class="field-label">Nº de confirmación</label><input type="text" id="ff-conf" value="${escapeHtml(v.confirmacion)}" placeholder="XYZ789"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary btn-sm" id="save-flight-btn" type="button">Guardar</button>
+      <button class="btn btn-ghost btn-sm" id="cancel-flight-btn" type="button">Cancelar</button>
+    </div>
+  </div>`;
+
+  let selectedTipo = v.tipo;
+  container.querySelectorAll(".ff-tipo").forEach(b=>b.addEventListener("click",()=>{
+    selectedTipo = b.dataset.tipo;
+    container.querySelectorAll(".ff-tipo").forEach(x=>x.className="btn btn-sm ff-tipo "+(x.dataset.tipo===selectedTipo?"btn-primary":"btn-ghost"));
+  }));
+
+  document.getElementById("save-flight-btn").addEventListener("click", async ()=>{
+    const vj = ensureViaje();
+    if(!vj.vuelos) vj.vuelos=[];
+    const data = {
+      id: existing ? existing.id : uid(),
+      tipo: selectedTipo,
+      numero: document.getElementById("ff-numero").value.trim(),
+      origen: document.getElementById("ff-origen").value.trim().toUpperCase(),
+      destino: document.getElementById("ff-destino").value.trim().toUpperCase(),
+      fecha: document.getElementById("ff-fecha").value,
+      hora: document.getElementById("ff-hora").value,
+      aerolinea: document.getElementById("ff-aerolinea").value.trim(),
+      confirmacion: document.getElementById("ff-conf").value.trim()
+    };
+    if(existing){ const idx=vj.vuelos.findIndex(v=>v.id===existing.id); if(idx>=0) vj.vuelos[idx]=data; }
+    else vj.vuelos.push(data);
+    await saveViaje();
+    flightEditId=null; flightFormNew=false;
+    renderFlightsList(); renderResumenFlights();
+    toast("Vuelo guardado");
+  });
+  document.getElementById("cancel-flight-btn").addEventListener("click",()=>{
+    flightEditId=null; flightFormNew=false;
+    document.getElementById("flight-form-container").innerHTML='';
+  });
+}
+
+/* --- Travelers forms --- */
+let travelerEditId = null;
+
+function renderTravelersList(){
+  const travelers = getEffectiveTravelers();
+  const wrap = document.getElementById("passenger-cards");
+  let html = '';
+  if(travelers.length===0){
+    html += `<div class="subtle" style="text-align:center;padding:10px;">No hay viajeros registrados</div>`;
+  } else {
+    html += travelers.map(t=>`<div class="card" style="margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="trav-circle" style="background:${t.color};width:36px;height:36px;font-size:13px;">${escapeHtml(t.inicial)}</div>
+          <strong>${escapeHtml(t.nombre)}</strong>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-secondary btn-sm edit-trav-btn" data-tid="${t.id}" type="button">Editar</button>
+          <button class="btn btn-danger btn-sm del-trav-btn" data-tid="${t.id}" type="button">×</button>
+        </div>
+      </div>
+    </div>`).join('');
+  }
+  html += `<button class="btn btn-secondary btn-block" id="add-trav-btn" type="button" style="margin-top:8px;">+ Añadir viajero</button>`;
+  html += `<div id="trav-form-container"></div>`;
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll(".edit-trav-btn").forEach(b=>b.addEventListener("click",()=>{ travelerEditId=b.dataset.tid; renderTravelerForm(); }));
+  wrap.querySelectorAll(".del-trav-btn").forEach(b=>b.addEventListener("click",()=>{
+    confirmDelete("Eliminar viajero","¿Seguro?",async()=>{
+      const vj=ensureViaje(); vj.viajeros=(vj.viajeros||[]).filter(t=>t.id!==b.dataset.tid);
+      await saveViaje(); renderTravelersList(); renderResumenTravelers(); toast("Viajero eliminado");
+    });
+  }));
+  document.getElementById("add-trav-btn").addEventListener("click",()=>{ travelerEditId=null; renderTravelerForm(); });
+}
+
+function renderTravelerForm(){
+  const container = document.getElementById("trav-form-container");
+  const travelers = getEffectiveTravelers();
+  const existing = travelerEditId ? travelers.find(t=>t.id===travelerEditId) : null;
+  const t = existing || {id:'',nombre:'',inicial:'',color:TRAVELER_COLORS[travelers.length % TRAVELER_COLORS.length]};
+
+  container.innerHTML = `<div class="card" style="margin-top:12px;">
+    <h3 style="margin:0 0 12px;">${existing?'Editar viajero':'Nuevo viajero'}</h3>
+    <div class="field"><label class="field-label">Nombre</label><input type="text" id="tf-nombre" value="${escapeHtml(t.nombre)}" placeholder="Juanjo"></div>
+    <div class="field"><label class="field-label">Inicial (max 3)</label><input type="text" id="tf-inicial" value="${escapeHtml(t.inicial)}" maxlength="3" placeholder="JJ"></div>
+    <div class="field"><label class="field-label">Color</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="tf-color-pills">
+        ${TRAVELER_COLORS.map(c=>`<button class="tf-color-pill" data-color="${c}" style="width:32px;height:32px;border-radius:50%;background:${c};border:3px solid ${c===t.color?'#3E5449':'transparent'};cursor:pointer;" type="button"></button>`).join('')}
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn btn-primary btn-sm" id="save-trav-btn" type="button">Guardar</button>
+      <button class="btn btn-ghost btn-sm" id="cancel-trav-btn" type="button">Cancelar</button>
+    </div>
+  </div>`;
+
+  let selectedColor = t.color;
+  // Auto-generate initials from name
+  document.getElementById("tf-nombre").addEventListener("input", e=>{
+    const ini = document.getElementById("tf-inicial");
+    if(!ini._userEdited) ini.value = initialsFrom(e.target.value);
+  });
+  document.getElementById("tf-inicial").addEventListener("input", ()=>{ document.getElementById("tf-inicial")._userEdited=true; });
+
+  container.querySelectorAll(".tf-color-pill").forEach(b=>b.addEventListener("click",()=>{
+    selectedColor = b.dataset.color;
+    container.querySelectorAll(".tf-color-pill").forEach(x=>x.style.borderColor = x.dataset.color===selectedColor?'#3E5449':'transparent');
+  }));
+
+  document.getElementById("save-trav-btn").addEventListener("click", async ()=>{
+    const vj=ensureViaje(); if(!vj.viajeros) vj.viajeros=[];
+    const data = {
+      id: existing?existing.id:uid(),
+      nombre: document.getElementById("tf-nombre").value.trim(),
+      inicial: document.getElementById("tf-inicial").value.trim().toUpperCase() || initialsFrom(document.getElementById("tf-nombre").value),
+      color: selectedColor
+    };
+    if(!data.nombre){ toast("El nombre es obligatorio"); return; }
+    if(existing){ const idx=vj.viajeros.findIndex(x=>x.id===existing.id); if(idx>=0) vj.viajeros[idx]=data; }
+    else vj.viajeros.push(data);
+    await saveViaje();
+    travelerEditId=null; renderTravelersList(); renderResumenTravelers();
+    toast("Viajero guardado");
+  });
+  document.getElementById("cancel-trav-btn").addEventListener("click",()=>{ travelerEditId=null; container.innerHTML=''; });
+}
+
+/* --- Excursions forms --- */
+let excEditId = null;
+
+function renderExcursionsList(){
+  const excs = getEffectiveExcursiones();
+  const wrap = document.getElementById("excursion-cards");
+  let html = '';
+  if(excs.length===0){
+    html += `<div class="card" style="text-align:center;padding:20px;">
+      <div class="subtle" style="margin-bottom:8px;">No hay excursiones registradas</div>
+    </div>`;
+  } else {
+    html += excs.map(e=>`<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <h3 style="margin:0;">${escapeHtml(e.nombre)}</h3>
+          <div class="subtle">${escapeHtml(e.proveedor||'')}${e.fecha?' · '+escapeHtml(e.fecha):''}${e.hora?' '+escapeHtml(e.hora):''}</div>
+          ${e.precio?'<div class="subtle">'+escapeHtml(e.precio)+'</div>':''}
+          ${e.confirmacion?'<div class="subtle">Conf: '+escapeHtml(e.confirmacion)+'</div>':''}
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-secondary btn-sm edit-exc-btn" data-eid="${e.id}" type="button">Editar</button>
+          <button class="btn btn-danger btn-sm del-exc-btn" data-eid="${e.id}" type="button">×</button>
+        </div>
+      </div>
+      ${e.url?'<a href="'+safeHref(e.url)+'" target="_blank" class="btn btn-secondary btn-sm" style="margin-top:8px;">Reservar</a>':''}
+    </div>`).join('');
+  }
+  html += `<button class="btn btn-secondary btn-block" id="add-exc-btn" type="button" style="margin-top:8px;">+ Añadir excursión</button>`;
+  html += `<div id="exc-form-container"></div>`;
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll(".edit-exc-btn").forEach(b=>b.addEventListener("click",()=>{ excEditId=b.dataset.eid; renderExcursionForm(); }));
+  wrap.querySelectorAll(".del-exc-btn").forEach(b=>b.addEventListener("click",()=>{
+    confirmDelete("Eliminar excursión","¿Seguro?",async()=>{
+      const vj=ensureViaje(); vj.excursiones=(vj.excursiones||[]).filter(e=>e.id!==b.dataset.eid);
+      await saveViaje(); renderExcursionsList(); toast("Excursión eliminada");
+    });
+  }));
+  document.getElementById("add-exc-btn").addEventListener("click",()=>{ excEditId=null; renderExcursionForm(); });
+}
+
+function renderExcursionForm(){
+  const container = document.getElementById("exc-form-container");
+  const excs = getEffectiveExcursiones();
+  const existing = excEditId ? excs.find(e=>e.id===excEditId) : null;
+  const e = existing || {id:'',nombre:'',proveedor:'',fecha:'',hora:'',precio:'',url:'',confirmacion:''};
+
+  container.innerHTML = `<div class="card" style="margin-top:12px;">
+    <h3 style="margin:0 0 12px;">${existing?'Editar excursión':'Nueva excursión'}</h3>
+    <div class="field"><label class="field-label">Nombre</label><input type="text" id="ef-nombre" value="${escapeHtml(e.nombre)}" placeholder="Free tour Milán"></div>
+    <div class="field"><label class="field-label">Proveedor (opcional)</label><input type="text" id="ef-proveedor" value="${escapeHtml(e.proveedor)}" placeholder="Civitatis"></div>
+    <div style="display:flex;gap:10px;">
+      <div class="field" style="flex:1;"><label class="field-label">Fecha</label><input type="date" id="ef-fecha" value="${escapeHtml(e.fecha)}"></div>
+      <div class="field" style="flex:1;"><label class="field-label">Hora (opcional)</label><input type="time" id="ef-hora" value="${escapeHtml(e.hora)}"></div>
+    </div>
+    <div class="field"><label class="field-label">Precio</label><input type="text" id="ef-precio" value="${escapeHtml(e.precio)}" placeholder="Gratis"></div>
+    <div class="field"><label class="field-label">URL de reserva (opcional)</label><input type="url" id="ef-url" value="${escapeHtml(e.url)}" placeholder="https://civitatis.com/..."></div>
+    <div class="field"><label class="field-label">Nº de confirmación (opcional)</label><input type="text" id="ef-conf" value="${escapeHtml(e.confirmacion)}" placeholder=""></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary btn-sm" id="save-exc-btn" type="button">Guardar</button>
+      <button class="btn btn-ghost btn-sm" id="cancel-exc-btn" type="button">Cancelar</button>
+    </div>
+  </div>`;
+
+  document.getElementById("save-exc-btn").addEventListener("click", async ()=>{
+    const vj=ensureViaje(); if(!vj.excursiones) vj.excursiones=[];
+    const data = {
+      id: existing?existing.id:uid(),
+      nombre: document.getElementById("ef-nombre").value.trim(),
+      proveedor: document.getElementById("ef-proveedor").value.trim(),
+      fecha: document.getElementById("ef-fecha").value,
+      hora: document.getElementById("ef-hora").value,
+      precio: document.getElementById("ef-precio").value.trim(),
+      url: document.getElementById("ef-url").value.trim(),
+      confirmacion: document.getElementById("ef-conf").value.trim()
+    };
+    if(!data.nombre){ toast("El nombre es obligatorio"); return; }
+    if(existing){ const idx=vj.excursiones.findIndex(x=>x.id===existing.id); if(idx>=0) vj.excursiones[idx]=data; }
+    else vj.excursiones.push(data);
+    await saveViaje();
+    excEditId=null; renderExcursionsList();
+    toast("Excursión guardada");
+  });
+  document.getElementById("cancel-exc-btn").addEventListener("click",()=>{ excEditId=null; container.innerHTML=''; });
+}
+
+/* --- Resumen sub-renderers for manual data --- */
+function renderResumenTravelers(){
+  const travelers = getEffectiveTravelers();
+  document.getElementById("travelers-row").innerHTML = travelers.length ? travelers.map(t=>`
+    <div class="trav-chip">
+      <div class="trav-circle" style="background:${t.color}">${escapeHtml(t.inicial)}</div>
+      <div class="tname">${escapeHtml(t.nombre)}</div>
+    </div>
+  `).join('') : '<div class="subtle">Sin viajeros. Añade desde la sección Vuelo.</div>';
+}
+
+function renderResumenFlights(){
+  const vuelos = getEffectiveVuelos();
+  const wrap = document.getElementById("flight-summary-cards");
+  if(vuelos.length===0){
+    wrap.innerHTML = `<div class="card" style="text-align:center;padding:14px;cursor:pointer;" id="flight-sum-empty">
+      <div class="subtle">Sin vuelos. Toca para añadir.</div>
+    </div>`;
+    document.getElementById("flight-sum-empty").addEventListener("click",()=>switchTab("vuelo"));
+    return;
+  }
+  wrap.innerHTML = vuelos.map(v=>`<div class="card" style="cursor:pointer;" data-goto-vuelo>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div><strong>${escapeHtml(v.origen)} → ${escapeHtml(v.destino)}</strong><div class="subtle">${escapeHtml(v.fecha)} · ${escapeHtml(v.numero||'Sin reservar')}</div></div>
+      <img src="assets/icons/ticket.png" alt="" style="width:28px;height:28px;object-fit:contain;">
+    </div>
+  </div>`).join('');
+  wrap.querySelectorAll("[data-goto-vuelo]").forEach(el=>el.addEventListener("click",()=>switchTab("vuelo")));
+}
+
 /* ============ RENDER: RESUMEN ============ */
 function findNextEvent(){
   const now = new Date();
@@ -1285,114 +1768,68 @@ function findNextEvent(){
 }
 
 function renderResumen(){
-  const next = findNextEvent();
+  // Next event banner (only if TRIP with days)
   const banner = document.getElementById("next-plan-banner");
-  if(next){
-    banner.innerHTML = `<div class="banner">
-      <div class="lbl">Próximo plan</div>
-      <div class="main">${escapeHtml(next.item.desc)}</div>
-      <div class="sub">${escapeHtml(next.day.title)} · ${escapeHtml(next.item.time||"")}</div>
-    </div>`;
+  if(TRIP && TRIP.days){
+    const next = findNextEvent();
+    if(next){
+      banner.innerHTML = `<div class="banner">
+        <div class="lbl">Próximo plan</div>
+        <div class="main">${escapeHtml(next.item.desc)}</div>
+        <div class="sub">${escapeHtml(next.day.title)} · ${escapeHtml(next.item.time||"")}</div>
+      </div>`;
+    } else { banner.innerHTML = ""; }
+  } else { banner.innerHTML = ""; }
+
+  // Facts grid
+  if(TRIP && TRIP.facts){
+    const facts = TRIP.facts;
+    document.getElementById("facts-grid").innerHTML = `
+      <div class="fact-card"><div class="flbl">Destino</div><div class="fval">${escapeHtml(facts.destino)}</div></div>
+      <div class="fact-card"><div class="flbl">Duración</div><div class="fval">${escapeHtml(facts.duracion)}</div></div>
+      <div class="fact-card"><div class="flbl">Alojamiento</div><div class="fval">${escapeHtml(facts.alojamiento)}</div></div>
+      <div class="fact-card"><div class="flbl">Presupuesto</div><div class="fval">${escapeHtml(facts.presupuesto)}</div></div>
+    `;
   } else {
-    banner.innerHTML = "";
+    const h = getEffectiveHotel();
+    const vuelos = getEffectiveVuelos();
+    const destStr = CURRENT_PROFILE && CURRENT_PROFILE.destino && CURRENT_PROFILE.destino.ciudades ? CURRENT_PROFILE.destino.ciudades[0] : "Mi viaje";
+    document.getElementById("facts-grid").innerHTML = `
+      <div class="fact-card"><div class="flbl">Destino</div><div class="fval">${escapeHtml(destStr)}</div></div>
+      <div class="fact-card"><div class="flbl">Vuelos</div><div class="fval">${vuelos.length} registrados</div></div>
+      <div class="fact-card"><div class="flbl">Alojamiento</div><div class="fval">${h?escapeHtml(h.nombre):'Sin hotel'}</div></div>
+      <div class="fact-card"><div class="flbl">Excursiones</div><div class="fval">${getEffectiveExcursiones().length}</div></div>
+    `;
   }
 
-  const facts = TRIP.facts;
-  document.getElementById("facts-grid").innerHTML = `
-    <div class="fact-card"><div class="flbl">Destino</div><div class="fval">${escapeHtml(facts.destino)}</div></div>
-    <div class="fact-card"><div class="flbl">Duración</div><div class="fval">${escapeHtml(facts.duracion)}</div></div>
-    <div class="fact-card"><div class="flbl">Alojamiento</div><div class="fval">${escapeHtml(facts.alojamiento)}</div></div>
-    <div class="fact-card"><div class="flbl">Presupuesto</div><div class="fval">${escapeHtml(facts.presupuesto)}</div></div>
-  `;
+  // Travelers
+  renderResumenTravelers();
 
-  document.getElementById("travelers-row").innerHTML = TRIP.travelers.map(t=>`
-    <div class="trav-chip">
-      <div class="trav-circle" style="background:${t.color}">${escapeHtml(t.initial)}</div>
-      <div class="tname">${escapeHtml(t.name)}</div>
-    </div>
-  `).join("");
+  // Flight summary
+  renderResumenFlights();
 
-  // flight summary
-  const flights = getFlightsData();
-  document.getElementById("flight-summary-cards").innerHTML = `
-    <div class="card" id="flight-sum-out" style="cursor:pointer;">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div><strong>MAD → MXP</strong><div class="subtle">24 dic · ${escapeHtml(flights.outbound.number||"Sin reservar")}</div></div>
-        <img src="assets/icons/ticket.png" alt="" style="width:28px;height:28px;object-fit:contain;">
-      </div>
-    </div>
-    <div class="card" id="flight-sum-ret" style="cursor:pointer;">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div><strong>MXP → MAD</strong><div class="subtle">27 dic · ${escapeHtml(flights.returnF.number||"Sin reservar")}</div></div>
-        <img src="assets/icons/ticket.png" alt="" style="width:28px;height:28px;object-fit:contain;">
-      </div>
-    </div>
-  `;
-  document.getElementById("flight-sum-out").addEventListener("click", ()=>switchTab("vuelo"));
-  document.getElementById("flight-sum-ret").addEventListener("click", ()=>switchTab("vuelo"));
+  // Hotel card (manual forms)
+  renderHotelCard();
 
-  // hotel card
-  const h = TRIP.hotel;
-  const hotelConf = lsGet("hotelConfirmation", "");
-  document.getElementById("hotel-card").innerHTML = `
-    <div class="card">
-      <h3>${escapeHtml(h.name)}</h3>
-      <div class="subtle">${escapeHtml(h.address)}</div>
-      <div style="display:flex; gap:14px; margin-top:10px; font-size:13px;">
-        <div><strong>Check-in</strong><br>${escapeHtml(h.checkIn)}</div>
-        <div><strong>Check-out</strong><br>${escapeHtml(h.checkOut)}</div>
-      </div>
-      <div style="display:flex; gap:8px; margin-top:12px;">
-        <a href="${safeHref(h.mapsUrl)}" target="_blank" class="btn btn-secondary btn-sm"><img src="assets/icons/address.png" alt="" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;"> Maps</a>
-        <a href="tel:${h.phone.replace(/\s/g,'')}" class="btn btn-secondary btn-sm">📞 Llamar</a>
-      </div>
-      <div class="field" style="margin-top:12px;">
-        <label class="field-label">Nº de confirmación</label>
-        <input type="text" id="hotel-conf-input" value="${escapeHtml(hotelConf)}" placeholder="Ej. ABC12345">
-      </div>
-    </div>
-  `;
-  document.getElementById("hotel-conf-input").addEventListener("change", e=>{
-    lsSet("hotelConfirmation", e.target.value);
-    toast("Confirmación guardada");
-  });
+  // Excursions (manual forms)
+  renderExcursionsList();
 
-  // excursions
-  const excConf = lsGet("excConfirmations", {});
-  document.getElementById("excursion-cards").innerHTML = TRIP.excursions.map(exc=>`
-    <div class="card">
-      <h3>${escapeHtml(exc.name)}</h3>
-      <div class="subtle">${escapeHtml(exc.provider)} · ${escapeHtml(exc.when)}</div>
-      <div class="subtle">${escapeHtml(exc.price)}</div>
-      <div style="display:flex; gap:8px; margin-top:10px;">
-        <a href="${safeHref(exc.bookingUrl)}" target="_blank" class="btn btn-secondary btn-sm">Reservar</a>
+  // reservations (only if TRIP has them)
+  if(TRIP && TRIP.reservations){
+    document.getElementById("reservations-card").innerHTML = TRIP.reservations.map(r=>`
+      <div class="row">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:${r.status==='pending'?'var(--orange)':'var(--green)'};display:inline-block;"></span>
+          <span><strong>${escapeHtml(r.strong)}</strong> ${escapeHtml(r.rest)}</span>
+        </div>
       </div>
-      <div class="field" style="margin-top:10px;">
-        <label class="field-label">Nº de confirmación</label>
-        <input type="text" data-exc="${exc.id}" class="exc-conf-input" value="${escapeHtml(excConf[exc.id]||"")}" placeholder="Opcional">
-      </div>
-    </div>
-  `).join("");
-  document.querySelectorAll(".exc-conf-input").forEach(inp=>{
-    inp.addEventListener("change", e=>{
-      const c = lsGet("excConfirmations", {});
-      c[e.target.dataset.exc] = e.target.value;
-      lsSet("excConfirmations", c);
-      toast("Guardado");
-    });
-  });
-
-  // reservations
-  document.getElementById("reservations-card").innerHTML = TRIP.reservations.map(r=>`
-    <div class="row">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <span style="width:8px;height:8px;border-radius:50%;background:${r.status==='pending'?'var(--orange)':'var(--green)'};display:inline-block;"></span>
-        <span><strong>${escapeHtml(r.strong)}</strong> ${escapeHtml(r.rest)}</span>
-      </div>
-    </div>
-  `).join("");
+    `).join("");
+  } else {
+    document.getElementById("reservations-card").innerHTML = '<div class="subtle" style="padding:8px;">Sin reservas adicionales</div>';
+  }
 
   // routes
+  if(!TRIP || !TRIP.gettingAround){ document.getElementById("routes-list").innerHTML = ''; renderCustomRoutes(); return; }
   document.getElementById("routes-list").innerHTML = TRIP.gettingAround.map(route=>{
     let distHtml = "";
     if(geoPos && route.destLat){
@@ -1716,54 +2153,8 @@ function renderFlightCard(key, route, dateLabel){
 }
 
 function renderVuelo(){
-  const wrap = document.getElementById("flights-detail");
-  wrap.innerHTML =
-    renderFlightCard("outbound", {from:"MAD", to:"MXP"}, "24 dic 2026 · Ida") +
-    renderFlightCard("returnF", {from:"MXP", to:"MAD"}, "27 dic 2026 · Vuelta");
-
-  wrap.querySelectorAll("[data-save-flight]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      const key = btn.dataset.saveFlight;
-      const flights = getFlightsData();
-      wrap.querySelectorAll(`[data-flight="${key}"]`).forEach(inp=>{
-        flights[key][inp.dataset.field] = inp.value;
-      });
-      setFlightsData(flights);
-      toast("Vuelo actualizado");
-      renderResumen();
-    });
-  });
-
-  const passInfo = lsGet("passengerInfo", {});
-  document.getElementById("passenger-cards").innerHTML = TRIP.travelers.map(t=>{
-    const info = passInfo[t.id] || {seat:"", eticket:""};
-    return `<div class="card">
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-        <div class="trav-circle" style="background:${t.color}; width:36px; height:36px; font-size:13px;">${escapeHtml(t.initial)}</div>
-        <strong>${escapeHtml(t.name)}</strong>
-      </div>
-      <div style="display:flex; gap:10px;">
-        <div class="field" style="flex:1;">
-          <label class="field-label">Asiento</label>
-          <input type="text" data-pass="${t.id}" data-pfield="seat" value="${escapeHtml(info.seat)}" placeholder="Ej. 12A">
-        </div>
-        <div class="field" style="flex:1;">
-          <label class="field-label">E-ticket</label>
-          <input type="text" data-pass="${t.id}" data-pfield="eticket" value="${escapeHtml(info.eticket)}" placeholder="Ej. 0987654321">
-        </div>
-      </div>
-    </div>`;
-  }).join("");
-  document.querySelectorAll("[data-pass]").forEach(inp=>{
-    inp.addEventListener("change", ()=>{
-      const passInfo = lsGet("passengerInfo", {});
-      const tid = inp.dataset.pass;
-      passInfo[tid] = passInfo[tid] || {};
-      passInfo[tid][inp.dataset.pfield] = inp.value;
-      lsSet("passengerInfo", passInfo);
-      toast("Guardado");
-    });
-  });
+  renderFlightsList();
+  renderTravelersList();
 }
 
 /* ============ RENDER: GUIA ============ */
@@ -2226,7 +2617,7 @@ function renderSeguridad(){
 }
 
 /* ============ SECTION DISPATCH ============ */
-const TRIP_DEPENDENT_SECTIONS = new Set(["resumen","calendario","vuelo","guia","mapas","documentacion","frases","offline","seguridad","clima"]);
+const TRIP_DEPENDENT_SECTIONS = new Set(["calendario","guia","mapas","documentacion","frases","offline","seguridad","clima"]);
 
 function renderNoTripMessage(tab){
   const sec = document.getElementById("sec-"+tab);
