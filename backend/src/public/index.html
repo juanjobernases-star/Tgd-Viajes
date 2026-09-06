@@ -2724,54 +2724,51 @@ document.getElementById("numbers-url-save").addEventListener("click", ()=>{
 
 /* ============ RENDER: MAPAS ============ */
 function renderMap(){
-  const pins = TRIP.mapPins;
-  const colorMap = {brass:"#B08D57", pine:"#3F6B52", ice:"#3E6E92"};
-  const pinsSorted = geoPos ? pins.slice().sort((a,b)=>haversine(geoPos.lat,geoPos.lon,a.lat,a.lon)-haversine(geoPos.lat,geoPos.lon,b.lat,b.lon)) : pins;
-
-  let svgPins = pins.map(p=>`
-    <circle cx="${p.x}" cy="${p.y}" r="14" fill="${colorMap[p.color]||'#007AFF'}" stroke="#fff" stroke-width="2"/>
-    <text x="${p.x}" y="${p.y+5}" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">${p.num}</text>
-  `).join("");
-  // connect pins in order with lines
-  let path = "";
-  for(let i=0;i<pins.length-1;i++){
-    path += `<line x1="${pins[i].x}" y1="${pins[i].y}" x2="${pins[i+1].x}" y2="${pins[i+1].y}" stroke="#C7C7CC" stroke-width="2" stroke-dasharray="4 4"/>`;
+  var lat = 45.464, lon = 9.19, zoom = 13;
+  if(geoPos){ lat = geoPos.lat; lon = geoPos.lon; zoom = 15; }
+  else if(CURRENT_PROFILE && CURRENT_PROFILE.destino && CURRENT_PROFILE.destino.ciudades){
+    var destCoords = {
+      'milán':[45.464,9.19],'roma':[41.902,12.496],'florencia':[43.769,11.255],'venecia':[45.438,12.327],
+      'nápoles':[40.851,14.268],'parís':[48.856,2.352],'londres':[51.507,-0.128],'ámsterdam':[52.370,4.895],
+      'berlín':[52.520,13.405],'múnich':[48.135,11.582],'lisboa':[38.722,-9.139],'oporto':[41.158,-8.629],
+      'atenas':[37.984,23.728],'estambul':[41.009,28.978],'praga':[50.076,14.438],'viena':[48.209,16.373],
+      'barcelona':[41.389,2.159],'madrid':[40.417,-3.704],'sevilla':[37.389,-5.984],
+      'nueva york':[40.713,-74.006],'miami':[25.762,-80.192],'tokio':[35.682,139.692],'bangkok':[13.756,100.502]
+    };
+    var c1 = (CURRENT_PROFILE.destino.ciudades[0]||'').toLowerCase();
+    if(destCoords[c1]){ lat = destCoords[c1][0]; lon = destCoords[c1][1]; }
   }
+
   document.getElementById("map-svg-wrap").innerHTML = `
-    <svg viewBox="0 0 560 400" width="100%" height="260" xmlns="http://www.w3.org/2000/svg">
-      <rect x="0" y="0" width="560" height="400" fill="#EAF2FF" rx="12"/>
-      ${path}
-      ${svgPins}
-    </svg>
+    <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=${lon-0.03},${lat-0.02},${lon+0.03},${lat+0.02}&layer=mapnik&marker=${lat},${lon}"
+      style="width:100%;height:280px;border:none;border-radius:12px;" loading="lazy"></iframe>
+    <div style="text-align:center;margin-top:6px;">
+      <a href="https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=${zoom}/${lat}/${lon}" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);">🗺️ Abrir mapa completo</a>
+    </div>
   `;
 
-  document.getElementById("pin-legend").innerHTML = pinsSorted.map(p=>{
-    const dist = geoPos ? `<div class="tiny"><img src="assets/icons/address.png" alt="" style="width:14px;height:14px;object-fit:contain;vertical-align:middle;"> ${fmtDist(haversine(geoPos.lat,geoPos.lon,p.lat,p.lon))}</div>` : "";
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${p.query}`;
-    const uberUrl = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodeURIComponent(p.name)}`;
-    return `<div class="pin-legend-item">
-      <div class="pin-num">${p.num}</div>
-      <div style="flex:1;">
-        <strong>${escapeHtml(p.name)}</strong>
-        <div class="subtle" style="font-size:12px;">${escapeHtml(p.note)}</div>
-        ${dist}
-        <div style="display:flex; gap:6px; margin-top:6px;">
-          <a href="${safeHref(mapsUrl)}" target="_blank" class="btn btn-secondary btn-sm"><img src="assets/icons/address.png" alt="" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;"> Maps</a>
-          <a href="${safeHref(uberUrl)}" target="_blank" class="btn btn-secondary btn-sm">🚗 Uber</a>
-        </div>
-      </div>
-    </div>`;
-  }).join("");
+  if(TRIP && TRIP.mapPins){
+    var pins = TRIP.mapPins;
+    var pinsSorted = geoPos ? pins.slice().sort(function(a,b){return haversine(geoPos.lat,geoPos.lon,a.lat,a.lon)-haversine(geoPos.lat,geoPos.lon,b.lat,b.lon);}) : pins;
+    document.getElementById("pin-legend").innerHTML = pinsSorted.map(function(p){
+      var dist = geoPos ? '<div class="tiny"><img src="assets/icons/address.png" alt="" style="width:14px;height:14px;object-fit:contain;vertical-align:middle;"> '+fmtDist(haversine(geoPos.lat,geoPos.lon,p.lat,p.lon))+'</div>' : '';
+      var mapsUrl = 'https://www.google.com/maps/search/?api=1&query='+p.query;
+      return '<div class="pin-legend-item"><div class="pin-num">'+p.num+'</div><div style="flex:1;"><strong>'+escapeHtml(p.name)+'</strong><div class="subtle" style="font-size:12px;">'+escapeHtml(p.note)+'</div>'+dist+'<div style="display:flex;gap:6px;margin-top:6px;"><a href="'+safeHref(mapsUrl)+'" target="_blank" class="btn btn-secondary btn-sm">📍 Maps</a></div></div></div>';
+    }).join('');
+  } else {
+    document.getElementById("pin-legend").innerHTML = geoPos
+      ? '<div class="subtle" style="padding:12px;">Tu posición: '+geoPos.lat.toFixed(4)+', '+geoPos.lon.toFixed(4)+'</div>'
+      : '<div class="subtle" style="padding:12px;">Pulsa "Cerca de mí" en Guía para localizar tu posición.</div>';
+  }
 
-  const route = TRIP.route;
-  document.getElementById("alps-route-card").innerHTML = `
-    <div class="row"><span>De</span><strong>${escapeHtml(route.from)}</strong></div>
-    <div class="row"><span>A</span><strong>${escapeHtml(route.to)}</strong></div>
-    <div class="row"><span>Duración</span><strong>${escapeHtml(route.duration)}</strong></div>
-    <div class="row"><span>Precio</span><strong>${escapeHtml(route.price)}</strong></div>
-    <div class="row"><span>Salida</span><strong>${escapeHtml(route.departure)}</strong></div>
-    <div class="warn-box">⚠️ ${escapeHtml(route.warn)}</div>
-  `;
+  var routeCard = document.getElementById("alps-route-card");
+  if(TRIP && TRIP.route){
+    var route = TRIP.route;
+    routeCard.parentElement.style.display = '';
+    routeCard.innerHTML = '<div class="row"><span>De</span><strong>'+escapeHtml(route.from)+'</strong></div><div class="row"><span>A</span><strong>'+escapeHtml(route.to)+'</strong></div><div class="row"><span>Duración</span><strong>'+escapeHtml(route.duration)+'</strong></div><div class="row"><span>Precio</span><strong>'+escapeHtml(route.price)+'</strong></div><div class="row"><span>Salida</span><strong>'+escapeHtml(route.departure)+'</strong></div><div class="warn-box">⚠️ '+escapeHtml(route.warn)+'</div>';
+  } else {
+    routeCard.parentElement.style.display = 'none';
+  }
 }
 
 /* ============ RENDER: DOCUMENTACION ============ */
@@ -3384,7 +3381,7 @@ function renderBuscar(){
 }
 
 /* ============ SECTION DISPATCH ============ */
-const TRIP_DEPENDENT_SECTIONS = new Set(["calendario","guia","mapas","documentacion","frases","offline","clima"]);
+const TRIP_DEPENDENT_SECTIONS = new Set(["calendario","guia","documentacion","frases","offline","clima"]);
 
 function renderNoTripMessage(tab){
   const sec = document.getElementById("sec-"+tab);
