@@ -826,9 +826,133 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 
     <!-- VPN -->
     <section class="section hidden" id="sec-vpn">
+
+      <!-- QUÉ ES -->
       <div class="card" style="margin-bottom:12px;">
-        <h3 style="margin:0 0 6px;">🔐 VPN para tu viaje</h3>
-        <div class="tiny" style="margin-bottom:12px;">Protege tu conexión en WiFi públicas de hoteles, aeropuertos y cafeterías. La VPN cifra todo tu tráfico y te conecta a tu red segura.</div>
+        <h3 style="margin:0 0 10px;">🔐 TGD-VPN · Tu red segura de viaje</h3>
+        <div style="font-size:13px;line-height:1.7;">
+          <p style="margin:0 0 10px;">TGD-VPN es una <strong>VPN propia familiar</strong> construida sobre <strong>WireGuard</strong>, el protocolo más rápido y seguro que existe hoy. No es un servicio comercial: es un servidor que funciona en nuestra red doméstica y al que solo pueden conectarse los dispositivos que demos de alta.</p>
+          <p style="margin:0 0 10px;">Cuando activas la VPN en tu móvil, <strong>todo el tráfico de Internet</strong> (navegación, apps, redes sociales, mensajería) viaja cifrado desde tu dispositivo hasta casa, y desde ahí sale a Internet. Nadie en la WiFi del hotel, el aeropuerto o la cafetería puede ver qué haces ni interceptar tus datos.</p>
+        </div>
+      </div>
+
+      <!-- CÓMO FUNCIONA -->
+      <div class="card" style="margin-bottom:12px;">
+        <h4 style="margin:0 0 8px;">¿Cómo funciona?</h4>
+        <div style="font-size:13px;line-height:1.7;">
+          <div style="display:flex;gap:10px;align-items:start;margin-bottom:10px;">
+            <div style="font-size:20px;flex-shrink:0;">📱</div>
+            <div><strong>1. Tu dispositivo</strong> — La app WireGuard crea un túnel cifrado entre tu móvil y el servidor de casa. Usa criptografía de curva elíptica (Curve25519) y claves únicas por dispositivo.</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:start;margin-bottom:10px;">
+            <div style="font-size:20px;flex-shrink:0;">🔒</div>
+            <div><strong>2. El túnel</strong> — Todo el tráfico se encapsula y cifra. La WiFi del hotel solo ve paquetes WireGuard incomprensibles hacia una IP. No puede leer URLs, contraseñas, fotos ni mensajes.</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:start;margin-bottom:10px;">
+            <div style="font-size:20px;flex-shrink:0;">🏠</div>
+            <div><strong>3. El servidor (casa)</strong> — Los paquetes llegan a nuestro servidor, se descifran y salen a Internet desde nuestra conexión doméstica. Además, pasan por nuestro filtro DNS (AdGuard) que bloquea publicidad, rastreadores y malware.</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:start;">
+            <div style="font-size:20px;flex-shrink:0;">🌍</div>
+            <div><strong>4. Internet</strong> — Los sitios web ven la IP de casa, no la del hotel ni la del país donde estés. Esto te permite acceder a servicios que podrían estar bloqueados en ciertos países.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLASES DE ACCESO -->
+      <div class="card" style="margin-bottom:12px;">
+        <h4 style="margin:0 0 8px;">Clases de acceso</h4>
+        <div style="font-size:13px;line-height:1.6;">
+          <div style="display:flex;gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid var(--border);">
+            <div style="background:#3E6E92;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap;">ROAD</div>
+            <div><strong>Para viajeros</strong> — Cifra tu tráfico y filtra publicidad. Acceso a Internet seguro a través de casa. No ves otros dispositivos de la red.<br><span class="tiny">IP: 10.77.10.x</span></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid var(--border);">
+            <div style="background:#3F6B52;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap;">FULL</div>
+            <div><strong>Acceso completo</strong> — Todo lo de Road más acceso al DNS de casa y servicios internos (Nextcloud, paneles). Solo para administradores.<br><span class="tiny">IP: 10.77.20.x</span></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:start;padding:8px 0;">
+            <div style="background:#B08D57;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap;">MESH</div>
+            <div><strong>Malla entre nodos</strong> — Los dispositivos mesh se ven entre sí. Reservado para equipos que estén fuera de la red doméstica de forma permanente.<br><span class="tiny">IP: 10.77.30.x</span></div>
+          </div>
+        </div>
+        <div class="tiny" style="margin-top:8px;">Para viajes familiares se usa la clase <strong>Road</strong>: la más sencilla y segura.</div>
+      </div>
+
+      <!-- QUÉ PROTEGE Y QUÉ NO -->
+      <div class="card" style="margin-bottom:12px;">
+        <h4 style="margin:0 0 8px;">Qué protege y qué no</h4>
+        <div style="font-size:13px;line-height:1.6;">
+          <div class="do-item"><span class="ico">✓</span><span><strong>Cifra todo el tráfico</strong> — Nadie en la WiFi puede espiar tu navegación, contraseñas o mensajes</span></div>
+          <div class="do-item"><span class="ico">✓</span><span><strong>Bloquea publicidad y rastreadores</strong> — El DNS de casa filtra anuncios, trackers y dominios maliciosos</span></div>
+          <div class="do-item"><span class="ico">✓</span><span><strong>Oculta tu ubicación real</strong> — Los sitios web ven la IP de casa, no la del hotel o país</span></div>
+          <div class="do-item"><span class="ico">✓</span><span><strong>Protege en redes abiertas</strong> — WiFi sin contraseña, portales cautivos de hoteles, redes de aeropuerto</span></div>
+          <div class="do-item"><span class="ico">✓</span><span><strong>Funciona con 4G/5G</strong> — También protege la conexión de datos móviles</span></div>
+          <div style="height:8px;"></div>
+          <div class="dont-item"><span class="ico">×</span><span><strong>No da anonimato</strong> — La IP de salida es la de casa, vinculada a tu nombre. No es Tor</span></div>
+          <div class="dont-item"><span class="ico">×</span><span><strong>No protege contra phishing</strong> — Si introduces tu contraseña en una web falsa, la VPN no lo impide</span></div>
+          <div class="dont-item"><span class="ico">×</span><span><strong>No sustituye las actualizaciones</strong> — Mantén el sistema operativo y las apps actualizadas</span></div>
+        </div>
+      </div>
+
+      <!-- DATOS TÉCNICOS -->
+      <div class="card" style="margin-bottom:12px;">
+        <h4 style="margin:0 0 8px;">Datos técnicos</h4>
+        <div style="font-size:12px;line-height:1.6;color:var(--text2);">
+          <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);"><span>Protocolo</span><strong style="color:var(--text);">WireGuard (UDP)</strong></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);"><span>Puerto</span><strong style="color:var(--text);">51820/UDP</strong></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);"><span>Cifrado</span><strong style="color:var(--text);">ChaCha20-Poly1305</strong></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);"><span>Intercambio de claves</span><strong style="color:var(--text);">Curve25519 (ECDH)</strong></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);"><span>Hash</span><strong style="color:var(--text);">BLAKE2s</strong></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);"><span>Red interna</span><strong style="color:var(--text);">10.77.0.0/16</strong></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);"><span>DNS en túnel</span><strong style="color:var(--text);">AdGuard Home (filtrado)</strong></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);"><span>DDNS</span><strong style="color:var(--text);">DuckDNS (actualización cada 5 min)</strong></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>Aislamiento</span><strong style="color:var(--text);">Peers no se ven entre sí (excepto mesh)</strong></div>
+        </div>
+      </div>
+
+      <!-- CUÁNDO USARLA -->
+      <div class="card" style="margin-bottom:12px;">
+        <h4 style="margin:0 0 8px;">¿Cuándo activar la VPN?</h4>
+        <div style="font-size:13px;line-height:1.6;">
+          <div class="do-item"><span class="ico">✓</span><span><strong>Siempre</strong> que estés fuera de casa — WiFi de hoteles, hostels, Airbnb</span></div>
+          <div class="do-item"><span class="ico">✓</span><span>Aeropuertos, estaciones de tren y autobús</span></div>
+          <div class="do-item"><span class="ico">✓</span><span>Cafeterías, restaurantes, centros comerciales, coworkings</span></div>
+          <div class="do-item"><span class="ico">✓</span><span>Datos móviles en países con censura o vigilancia (China, Rusia, Irán, EAU...)</span></div>
+          <div class="do-item"><span class="ico">✓</span><span>Para acceder a servicios de casa (Nextcloud, app de viajes con backend)</span></div>
+          <div style="height:6px;"></div>
+          <div class="dont-item"><span class="ico">×</span><span>No es necesaria en la WiFi de casa</span></div>
+          <div class="dont-item"><span class="ico">×</span><span>Desactívala si una app local no funciona (algunas apps bancarias detectan VPN)</span></div>
+        </div>
+      </div>
+
+      <!-- iOS ALWAYS-ON -->
+      <div class="card" style="margin-bottom:12px;">
+        <h4 style="margin:0 0 8px;">📱 En iPhone: modo Always-On</h4>
+        <div style="font-size:13px;line-height:1.7;">
+          <p style="margin:0 0 8px;">En dispositivos iOS se puede instalar un <strong>perfil de configuración</strong> (.mobileconfig) que hace que la VPN se active automáticamente cada vez que el móvil se conecta a cualquier red. No hace falta recordar encenderla.</p>
+          <p style="margin:0 0 8px;">El perfil se genera automáticamente al dar de alta el dispositivo. Incluye reconexión automática (On-Demand) para que la VPN vuelva sola si se cae la conexión.</p>
+          <p style="margin:0;color:var(--text2);font-size:12px;"><strong>Nota:</strong> En un iPhone no supervisado, el usuario puede eliminar el perfil manualmente desde Ajustes → General → VPN. Para impedirlo se necesita supervisar el dispositivo con Apple Configurator (una sola vez, con cable USB y un Mac).</p>
+        </div>
+      </div>
+
+      <!-- SEGURIDAD DE CLAVES -->
+      <div class="card" style="margin-bottom:16px;">
+        <h4 style="margin:0 0 8px;">🔑 Seguridad de claves</h4>
+        <div style="font-size:13px;line-height:1.7;">
+          <p style="margin:0 0 8px;">Cada dispositivo tiene un <strong>par de claves único</strong> (pública + privada). La clave privada <strong>nunca sale del dispositivo</strong> y no se almacena en el servidor. Si pierdes un dispositivo:</p>
+          <ol style="padding-left:18px;margin:0;">
+            <li>El administrador ejecuta <code>tgdvpn remove nombre-del-peer</code> y la conexión queda cortada al instante</li>
+            <li>Se genera un nuevo par de claves con <code>tgdvpn rotate</code> para el dispositivo de repuesto</li>
+            <li>No hay «recuperar clave» — solo generar una nueva. Esto es una decisión de seguridad</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- GENERADOR -->
+      <div class="card" style="margin-bottom:12px;border:2px solid var(--accent);">
+        <h4 style="margin:0 0 8px;color:var(--accent);">⚡ Generar configuración</h4>
+        <div class="tiny" style="margin-bottom:10px;">Genera una plantilla de configuración WireGuard para tu dispositivo. El administrador completará los datos del servidor (Endpoint y PublicKey) antes de activarla.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
           <div class="field" style="flex:1;min-width:140px;">
             <label class="field-label">Nombre del dispositivo</label>
@@ -851,25 +975,23 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
           <div class="tiny" style="text-align:center;margin-top:4px;">Escanea con la app WireGuard en tu móvil</div>
         </div>
         <div class="card">
-          <h4 style="margin:0 0 8px;">Cómo instalar</h4>
-          <ol style="font-size:13px;padding-left:18px;line-height:1.7;">
-            <li>Descarga <strong>WireGuard</strong> en tu dispositivo (<a href="https://apps.apple.com/app/wireguard/id1441195209" target="_blank" rel="noopener" style="color:var(--accent);">iOS</a> / <a href="https://play.google.com/store/apps/details?id=com.wireguard.android" target="_blank" rel="noopener" style="color:var(--accent);">Android</a>)</li>
-            <li>Abre WireGuard → <strong>+</strong> → «Crear desde código QR»</li>
-            <li>Escanea el QR de arriba o pega la configuración</li>
-            <li>Activa el túnel antes de conectarte a WiFi públicas</li>
+          <h4 style="margin:0 0 8px;">Cómo instalar paso a paso</h4>
+          <ol style="font-size:13px;padding-left:18px;line-height:1.8;">
+            <li>Descarga <strong>WireGuard</strong> en tu dispositivo:
+              <div style="display:flex;gap:8px;margin:4px 0 6px;">
+                <a href="https://apps.apple.com/app/wireguard/id1441195209" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">🍎 App Store</a>
+                <a href="https://play.google.com/store/apps/details?id=com.wireguard.android" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">🤖 Google Play</a>
+              </div>
+            </li>
+            <li>Abre WireGuard → pulsa <strong>+</strong> → elige «Crear desde código QR»</li>
+            <li>Escanea el QR de arriba (o abre la app → + → «Crear desde archivo o archivo comprimido» → pega la configuración)</li>
+            <li>Dale un nombre al túnel (ej. «TGD Viaje»)</li>
+            <li><strong>Activa el túnel</strong> antes de conectarte a cualquier WiFi fuera de casa</li>
+            <li>Verifica que funciona: abre el navegador y comprueba que cargan las páginas normalmente</li>
           </ol>
         </div>
       </div>
-      <div class="card" style="margin-top:12px;">
-        <h4 style="margin:0 0 6px;">¿Cuándo usar la VPN?</h4>
-        <div style="font-size:13px;line-height:1.6;">
-          <div class="do-item"><span class="ico">✓</span><span>WiFi de hoteles, hostels y Airbnb</span></div>
-          <div class="do-item"><span class="ico">✓</span><span>Aeropuertos y estaciones de tren</span></div>
-          <div class="do-item"><span class="ico">✓</span><span>Cafeterías, restaurantes, centros comerciales</span></div>
-          <div class="do-item"><span class="ico">✓</span><span>Redes móviles en países con censura</span></div>
-          <div class="dont-item"><span class="ico">×</span><span>No es necesaria en tu red doméstica</span></div>
-        </div>
-      </div>
+
     </section>
 
   </div>
