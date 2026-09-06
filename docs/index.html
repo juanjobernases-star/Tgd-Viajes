@@ -6,7 +6,8 @@
 <title>Andanzas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
   --bg:#EAF6F1; --card:#FFF7EC; --card-shadow:0 3px 0 rgba(196,150,110,0.16);
@@ -1018,13 +1019,22 @@ function renderCiudades(){
 
 /* ============ AUTH (backend real) ============ */
 async function apiFetch(path, opts = {}) {
-  const res = await fetch(API_BASE + path, {
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...opts.headers },
-    ...opts
-  });
-  const data = res.headers.get('content-type')?.includes('json') ? await res.json() : null;
-  return { ok: res.ok, status: res.status, data };
+  const ctrl = new AbortController();
+  const timer = setTimeout(function(){ ctrl.abort(); }, 8000);
+  try {
+    const res = await fetch(API_BASE + path, {
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', ...opts.headers },
+      signal: ctrl.signal,
+      ...opts
+    });
+    clearTimeout(timer);
+    var data = res.headers.get('content-type')?.includes('json') ? await res.json() : null;
+    return { ok: res.ok, status: res.status, data: data };
+  } catch(e) {
+    clearTimeout(timer);
+    throw e;
+  }
 }
 
 function initAuthUI(){
@@ -1185,7 +1195,9 @@ async function logout(){
 
 async function tryRestoreSession(){
   try {
-    const r = await apiFetch('/api/sesion');
+    var r = await apiFetch('/api/salud');
+    if(!r.ok || !r.data || !r.data.ok) return false;
+    r = await apiFetch('/api/sesion');
     if(!r.ok) return false;
     CURRENT_USER = r.data.usuario;
     CURRENT_PROFILE = r.data.perfil ? perfilToProfile(r.data.usuario, r.data.perfil) : { name: r.data.usuario, interests: [], destino: null, viaje: null };
