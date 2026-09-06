@@ -8,7 +8,7 @@
 <title>Andanzas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
@@ -378,9 +378,12 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 </style>
 </head>
 <body>
+<script>window.onerror=function(m,s,l){var d=document.getElementById('js-err');if(d){d.style.display='block';d.textContent='Error JS: '+m+' (linea '+l+')';}}</script>
+<div id="js-err" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#D1567A;color:#fff;padding:12px;font-size:13px;text-align:center;"></div>
 <div id="frame-wrap">
 <div id="app-frame">
 
+  <noscript><div style="padding:40px;text-align:center;font-size:18px;color:#3E5449;">Activa JavaScript para usar Andanzas.</div></noscript>
   <!-- AUTH SCREEN -->
   <div id="auth-screen">
     <div class="auth-logo">
@@ -2967,23 +2970,29 @@ const _origRenderSection = null; // handled inline in renderSection
 
 /* ============ INIT ============ */
 async function init(){
-  initAuthUI();
-  const restored = await tryRestoreSession();
+  try {
+    initAuthUI();
+  } catch(e) { console.error('initAuthUI', e); }
+  try {
+    var restored = await tryRestoreSession();
+  } catch(e) { restored = false; console.error('tryRestore', e); }
   if(restored){
-    await loadTripAndRender();
+    try { await loadTripAndRender(); } catch(e) { console.error('loadTrip', e); }
   } else {
-    document.getElementById("demo-banner").classList.remove("hidden");
-    document.getElementById("demo-btn").addEventListener("click", enterDemo);
     try {
-      const r = await fetch("data/trips/milan.json");
+      document.getElementById("demo-banner").classList.remove("hidden");
+      document.getElementById("demo-btn").addEventListener("click", enterDemo);
+    } catch(e) { console.error('demoBanner', e); }
+    try {
+      var r = await fetch("data/trips/milan.json");
       TRIP = await r.json();
-    } catch(err) {
+    } catch(e) {
       TRIP = null;
-      console.error(err);
+      console.error('milan.json', e);
     }
   }
 }
-init();
+init().catch(function(e){ console.error('init fatal', e); });
 
 })();
 </script>
