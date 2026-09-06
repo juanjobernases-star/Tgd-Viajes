@@ -197,8 +197,12 @@ app.post('/api/reset-password', async (req, res) => {
     return { error: 'El envío de correo no está configurado en el servidor' };
   }
   const token = auth.crearTokenReset(usuario);
-  const baseUrl = APP_URL || `${req.protocol}://${req.hostname}`;
-  const enlace = `${baseUrl}?reset=${token}`;
+  if (!APP_URL) {
+    app.log.error('APP_URL no configurada: no se puede enviar enlace de reset seguro');
+    res.code(503);
+    return { error: 'Recuperación de contraseña no disponible (configuración incompleta)' };
+  }
+  const enlace = `${APP_URL}?reset=${token}`;
   try {
     await mailer.sendMail({
       from: SMTP_FROM,
