@@ -443,6 +443,22 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
           <button type="button" class="interest-chip" data-val="tranquilo">Tranquilo</button>
         </div>
       </div>
+      <div class="field" id="destino-field">
+        <label class="field-label">¿A dónde quieres viajar?</label>
+        <div class="interest-chips" id="reg-continentes"></div>
+        <div id="reg-paises-wrap" class="hidden" style="margin-top:10px;">
+          <label class="field-label">País</label>
+          <div class="interest-chips" id="reg-paises"></div>
+        </div>
+        <div id="reg-ciudades-wrap" class="hidden" style="margin-top:10px;">
+          <label class="field-label">Ciudades</label>
+          <div class="interest-chips" id="reg-ciudades"></div>
+          <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+            <input type="text" id="reg-ciudad-custom" placeholder="Otra ciudad" style="flex:1;padding:8px 12px;font-size:13px;">
+            <button type="button" id="reg-ciudad-add" class="btn btn-secondary btn-sm">+</button>
+          </div>
+        </div>
+      </div>
       <button type="submit" class="btn btn-primary btn-block">Crear cuenta</button>
     </form>
   </div>
@@ -770,6 +786,175 @@ function travelerByName(name){
   return TRIP.travelers.find(t=>t.name.toLowerCase()===String(name).toLowerCase());
 }
 
+/* ============ DESTINOS ============ */
+const DESTINOS = {
+  europa: {
+    label: "Europa",
+    paises: {
+      italia: { label: "Italia", ciudades: ["Milán", "Roma", "Florencia", "Venecia", "Nápoles"] },
+      espana: { label: "España", ciudades: ["Barcelona", "Madrid", "Sevilla", "Valencia", "Málaga"] },
+      francia: { label: "Francia", ciudades: ["París", "Marsella", "Lyon", "Niza", "Burdeos"] },
+      alemania: { label: "Alemania", ciudades: ["Berlín", "Múnich", "Hamburgo", "Fráncfort", "Colonia"] },
+      portugal: { label: "Portugal", ciudades: ["Lisboa", "Oporto", "Faro", "Sintra", "Braga"] },
+      grecia: { label: "Grecia", ciudades: ["Atenas", "Santorini", "Mikonos", "Tesalónica", "Creta"] },
+      reinounido: { label: "Reino Unido", ciudades: ["Londres", "Edimburgo", "Manchester", "Liverpool", "Oxford"] },
+      holanda: { label: "Países Bajos", ciudades: ["Ámsterdam", "Róterdam", "La Haya", "Utrecht"] },
+      suiza: { label: "Suiza", ciudades: ["Zúrich", "Ginebra", "Berna", "Lucerna", "Interlaken"] },
+      austria: { label: "Austria", ciudades: ["Viena", "Salzburgo", "Innsbruck", "Graz"] },
+      croacia: { label: "Croacia", ciudades: ["Dubrovnik", "Split", "Zagreb", "Plitvice"] },
+      republica_checa: { label: "República Checa", ciudades: ["Praga", "Český Krumlov", "Brno"] },
+      hungria: { label: "Hungría", ciudades: ["Budapest", "Eger", "Pécs"] },
+      irlanda: { label: "Irlanda", ciudades: ["Dublín", "Galway", "Cork", "Killarney"] },
+      noruega: { label: "Noruega", ciudades: ["Oslo", "Bergen", "Tromsø", "Stavanger"] },
+      suecia: { label: "Suecia", ciudades: ["Estocolmo", "Gotemburgo", "Malmö"] },
+      dinamarca: { label: "Dinamarca", ciudades: ["Copenhague", "Aarhus", "Odense"] },
+      finlandia: { label: "Finlandia", ciudades: ["Helsinki", "Rovaniemi", "Turku"] },
+      islandia: { label: "Islandia", ciudades: ["Reikiavik", "Akureyri", "Vík"] },
+      turquia: { label: "Turquía", ciudades: ["Estambul", "Capadocia", "Antalya", "Éfeso"] },
+      polonia: { label: "Polonia", ciudades: ["Varsovia", "Cracovia", "Gdansk", "Wroclaw"] }
+    }
+  },
+  asia: {
+    label: "Asia",
+    paises: {
+      japon: { label: "Japón", ciudades: ["Tokio", "Kioto", "Osaka", "Hiroshima", "Nara"] },
+      tailandia: { label: "Tailandia", ciudades: ["Bangkok", "Chiang Mai", "Phuket", "Krabi", "Ayutthaya"] },
+      vietnam: { label: "Vietnam", ciudades: ["Hanói", "Ho Chi Minh", "Hoi An", "Ha Long", "Da Nang"] },
+      india: { label: "India", ciudades: ["Delhi", "Jaipur", "Agra", "Varanasi", "Goa", "Mumbai"] },
+      corea: { label: "Corea del Sur", ciudades: ["Seúl", "Busan", "Jeju", "Gyeongju"] },
+      indonesia: { label: "Indonesia", ciudades: ["Bali", "Yakarta", "Yogyakarta", "Lombok"] },
+      china: { label: "China", ciudades: ["Pekín", "Shanghái", "Xi'an", "Guilin", "Hong Kong"] },
+      malasia: { label: "Malasia", ciudades: ["Kuala Lumpur", "Penang", "Langkawi", "Malaca"] },
+      camboya: { label: "Camboya", ciudades: ["Siem Reap", "Phnom Penh", "Sihanoukville"] },
+      nepal: { label: "Nepal", ciudades: ["Katmandú", "Pokhara", "Chitwan"] },
+      sri_lanka: { label: "Sri Lanka", ciudades: ["Colombo", "Kandy", "Galle", "Sigiriya"] },
+      filipinas: { label: "Filipinas", ciudades: ["Manila", "Cebú", "Palawan", "Boracay"] },
+      emiratos: { label: "Emiratos Árabes", ciudades: ["Dubái", "Abu Dabi", "Sharjah"] }
+    }
+  },
+  america: {
+    label: "América",
+    paises: {
+      mexico: { label: "México", ciudades: ["Ciudad de México", "Cancún", "Oaxaca", "Playa del Carmen", "Guadalajara"] },
+      usa: { label: "Estados Unidos", ciudades: ["Nueva York", "Los Ángeles", "San Francisco", "Miami", "Chicago", "Las Vegas"] },
+      argentina: { label: "Argentina", ciudades: ["Buenos Aires", "Mendoza", "Bariloche", "Ushuaia", "Salta"] },
+      colombia: { label: "Colombia", ciudades: ["Bogotá", "Cartagena", "Medellín", "Santa Marta"] },
+      peru: { label: "Perú", ciudades: ["Lima", "Cusco", "Machu Picchu", "Arequipa"] },
+      brasil: { label: "Brasil", ciudades: ["Río de Janeiro", "São Paulo", "Salvador", "Florianópolis", "Foz de Iguazú"] },
+      chile: { label: "Chile", ciudades: ["Santiago", "Valparaíso", "San Pedro de Atacama", "Torres del Paine"] },
+      costa_rica: { label: "Costa Rica", ciudades: ["San José", "Monteverde", "Manuel Antonio", "Arenal"] },
+      cuba: { label: "Cuba", ciudades: ["La Habana", "Trinidad", "Viñales", "Santiago de Cuba"] },
+      canada: { label: "Canadá", ciudades: ["Toronto", "Vancouver", "Montreal", "Quebec", "Banff"] },
+      ecuador: { label: "Ecuador", ciudades: ["Quito", "Galápagos", "Cuenca", "Baños"] },
+      uruguay: { label: "Uruguay", ciudades: ["Montevideo", "Punta del Este", "Colonia del Sacramento"] },
+      republica_dominicana: { label: "República Dominicana", ciudades: ["Punta Cana", "Santo Domingo", "Samaná"] }
+    }
+  },
+  africa: {
+    label: "África",
+    paises: {
+      marruecos: { label: "Marruecos", ciudades: ["Marrakech", "Fez", "Chefchaouen", "Essaouira", "Desierto del Sahara"] },
+      sudafrica: { label: "Sudáfrica", ciudades: ["Ciudad del Cabo", "Johannesburgo", "Kruger", "Durban"] },
+      egipto: { label: "Egipto", ciudades: ["El Cairo", "Luxor", "Asuán", "Alejandría", "Sharm el-Sheij"] },
+      kenia: { label: "Kenia", ciudades: ["Nairobi", "Masái Mara", "Mombasa", "Amboseli"] },
+      tanzania: { label: "Tanzania", ciudades: ["Zanzíbar", "Serengeti", "Kilimanjaro", "Dar es-Salam"] },
+      etiopia: { label: "Etiopía", ciudades: ["Addis Abeba", "Lalibela", "Gondar"] },
+      namibia: { label: "Namibia", ciudades: ["Windhoek", "Sossusvlei", "Etosha", "Swakopmund"] },
+      tunez: { label: "Túnez", ciudades: ["Túnez", "Sidi Bou Said", "Cartago", "Djerba"] }
+    }
+  },
+  oceania: {
+    label: "Oceanía",
+    paises: {
+      australia: { label: "Australia", ciudades: ["Sídney", "Melbourne", "Cairns", "Perth", "Gran Barrera de Coral"] },
+      nueva_zelanda: { label: "Nueva Zelanda", ciudades: ["Auckland", "Queenstown", "Wellington", "Rotorua", "Milford Sound"] },
+      fiyi: { label: "Fiyi", ciudades: ["Nadi", "Suva", "Islas Mamanuca"] },
+      polinesia: { label: "Polinesia Francesa", ciudades: ["Tahití", "Bora Bora", "Moorea"] }
+    }
+  }
+};
+
+let regDestino = { continente: null, pais: null, ciudades: [] };
+
+function slugify(s){ return s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,""); }
+
+function initDestinoSelector(){
+  const contWrap = document.getElementById("reg-continentes");
+  contWrap.innerHTML = Object.entries(DESTINOS).map(([k,v])=>
+    `<button type="button" class="interest-chip" data-cont="${k}">${v.label}</button>`
+  ).join("");
+  contWrap.querySelectorAll(".interest-chip").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      contWrap.querySelectorAll(".interest-chip").forEach(b=>b.classList.remove("selected"));
+      btn.classList.add("selected");
+      regDestino = { continente: btn.dataset.cont, pais: null, ciudades: [] };
+      renderPaises(btn.dataset.cont);
+      document.getElementById("reg-ciudades-wrap").classList.add("hidden");
+    });
+  });
+
+  document.getElementById("reg-ciudad-add").addEventListener("click", addCustomCity);
+  document.getElementById("reg-ciudad-custom").addEventListener("keydown", e=>{
+    if(e.key==="Enter"){ e.preventDefault(); addCustomCity(); }
+  });
+}
+
+function addCustomCity(){
+  const inp = document.getElementById("reg-ciudad-custom");
+  const val = inp.value.trim();
+  if(!val) return;
+  if(!regDestino.ciudades.includes(val)){
+    regDestino.ciudades.push(val);
+    renderCiudades();
+  }
+  inp.value = "";
+}
+
+function renderPaises(contKey){
+  const wrap = document.getElementById("reg-paises");
+  const paisesWrap = document.getElementById("reg-paises-wrap");
+  const cont = DESTINOS[contKey];
+  wrap.innerHTML = Object.entries(cont.paises).map(([k,v])=>
+    `<button type="button" class="interest-chip" data-pais="${k}">${v.label}</button>`
+  ).join("");
+  paisesWrap.classList.remove("hidden");
+  paisesWrap.style.animation = "fadeIn .25s ease";
+  wrap.querySelectorAll(".interest-chip").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      wrap.querySelectorAll(".interest-chip").forEach(b=>b.classList.remove("selected"));
+      btn.classList.add("selected");
+      regDestino.pais = btn.dataset.pais;
+      regDestino.ciudades = [];
+      renderCiudades();
+    });
+  });
+}
+
+function renderCiudades(){
+  const wrap = document.getElementById("reg-ciudades");
+  const ciudadesWrap = document.getElementById("reg-ciudades-wrap");
+  if(!regDestino.continente || !regDestino.pais){ ciudadesWrap.classList.add("hidden"); return; }
+  const paisData = DESTINOS[regDestino.continente].paises[regDestino.pais];
+  const allCities = [...new Set([...paisData.ciudades, ...regDestino.ciudades])];
+  wrap.innerHTML = allCities.map(c=>{
+    const sel = regDestino.ciudades.includes(c) ? "selected" : "";
+    return `<button type="button" class="interest-chip ${sel}" data-ciudad="${escapeHtml(c)}">${escapeHtml(c)}</button>`;
+  }).join("");
+  ciudadesWrap.classList.remove("hidden");
+  ciudadesWrap.style.animation = "fadeIn .25s ease";
+  wrap.querySelectorAll(".interest-chip").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const city = btn.dataset.ciudad;
+      if(regDestino.ciudades.includes(city)){
+        regDestino.ciudades = regDestino.ciudades.filter(c=>c!==city);
+      } else {
+        regDestino.ciudades.push(city);
+      }
+      btn.classList.toggle("selected");
+    });
+  });
+}
+
 /* ============ AUTH (backend real) ============ */
 async function apiFetch(path, opts = {}) {
   const res = await fetch(API_BASE + path, {
@@ -800,6 +985,9 @@ function initAuthUI(){
   const chips = document.querySelectorAll("#reg-interests .interest-chip");
   chips.forEach(c=>c.addEventListener("click", ()=>c.classList.toggle("selected")));
 
+  // --- Destination selector ---
+  initDestinoSelector();
+
   document.getElementById("login-form").addEventListener("submit", async e=>{
     e.preventDefault();
     const usuario = document.getElementById("login-email").value.trim();
@@ -829,10 +1017,15 @@ function initAuthUI(){
       return;
     }
     const intereses = Array.from(document.querySelectorAll("#reg-interests .interest-chip.selected")).map(c=>c.dataset.val);
+    const destino = (regDestino.continente && regDestino.pais) ? {
+      continente: regDestino.continente,
+      pais: regDestino.pais,
+      ciudades: regDestino.ciudades
+    } : undefined;
     try {
       const r = await apiFetch('/api/registro', {
         method: 'POST',
-        body: JSON.stringify({ usuario, password, nombre, email: usuario, intereses })
+        body: JSON.stringify({ usuario, password, nombre, email: usuario, intereses, destino })
       });
       if(!r.ok){ err.textContent = r.data?.error || "Error en el registro."; return; }
       err.textContent = "";
@@ -905,10 +1098,10 @@ function initAuthUI(){
 
 function loginAs(usuario, perfil){
   CURRENT_USER = usuario;
-  CURRENT_PROFILE = { name: perfil.nombre || usuario, interests: perfil.intereses || [] };
+  CURRENT_PROFILE = { name: perfil.nombre || usuario, interests: perfil.intereses || [], destino: perfil.destino || null };
   document.getElementById("auth-screen").classList.add("hidden");
   toast("Bienvenido, " + CURRENT_PROFILE.name);
-  renderAll();
+  loadTripAndRender();
 }
 
 async function logout(){
@@ -925,7 +1118,7 @@ async function tryRestoreSession(){
     const r = await apiFetch('/api/sesion');
     if(!r.ok) return false;
     CURRENT_USER = r.data.usuario;
-    CURRENT_PROFILE = r.data.perfil ? { name: r.data.perfil.nombre || r.data.usuario, interests: r.data.perfil.intereses || [] } : { name: r.data.usuario, interests: [] };
+    CURRENT_PROFILE = r.data.perfil ? { name: r.data.perfil.nombre || r.data.usuario, interests: r.data.perfil.intereses || [], destino: r.data.perfil.destino || null } : { name: r.data.usuario, interests: [], destino: null };
     document.getElementById("auth-screen").classList.add("hidden");
     return true;
   } catch { return false; }
@@ -1713,7 +1906,7 @@ function setExpenses(arr){ lsSet("expenses", arr); }
 function renderGastos(){
   const expenses = getExpenses();
   const total = expenses.reduce((s,e)=>s+parseFloat(e.amount||0),0);
-  const budgetMax = TRIP.budgetCeiling || 0;
+  const budgetMax = (TRIP && TRIP.budgetCeiling) || 0;
   const remaining = budgetMax - total;
   document.getElementById("expense-summary-grid").innerHTML = `
     <div class="fact-card"><div class="flbl">Total gastado</div><div class="fval">${total.toFixed(2)} €</div></div>
@@ -1877,6 +2070,7 @@ function getPackingState(){ return lsGet("packing", {}); }
 function setPackingState(o){ lsSet("packing", o); }
 
 function renderEquipaje(){
+  if(!TRIP){ renderNoTripMessage("equipaje"); return; }
   const items = TRIP.packing;
   const state = getPackingState();
   const total = items.length;
@@ -1908,6 +2102,7 @@ function renderEquipaje(){
 
 /* ============ RENDER: PRESUPUESTO ============ */
 function renderPresupuesto(){
+  if(!TRIP){ renderNoTripMessage("presupuesto"); return; }
   document.getElementById("budget-total").textContent = (TRIP.budgetCeiling||0) + " € (máx.)";
   const colorMap = {brass:"#B08D57", ice:"#3E6E92", pine:"#3F6B52", rust:"#A6472F", est:"#8E8E93"};
   document.getElementById("budget-bar").innerHTML = TRIP.budgetRows.map(r=>
@@ -2031,7 +2226,26 @@ function renderSeguridad(){
 }
 
 /* ============ SECTION DISPATCH ============ */
+const TRIP_DEPENDENT_SECTIONS = new Set(["resumen","calendario","vuelo","guia","mapas","documentacion","frases","offline","seguridad","clima"]);
+
+function renderNoTripMessage(tab){
+  const sec = document.getElementById("sec-"+tab);
+  if(!sec) return;
+  const cityName = tripFailCity || "tu destino";
+  sec.innerHTML = `<div class="section">
+    <div class="card" style="text-align:center;padding:24px;">
+      <div style="font-size:32px;margin-bottom:8px;">✈️</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:6px;">Estamos preparando los datos de tu viaje a ${escapeHtml(cityName)}</div>
+      <div class="subtle">Por ahora puedes usar las secciones de Gastos, Equipaje y Presupuesto.</div>
+    </div>
+  </div>`;
+}
+
 function renderSection(tab){
+  if(!TRIP && TRIP_DEPENDENT_SECTIONS.has(tab)){
+    renderNoTripMessage(tab);
+    return;
+  }
   switch(tab){
     case "resumen": renderResumen(); break;
     case "calendario":
@@ -2057,17 +2271,64 @@ function renderAll(){
   switchTab("resumen");
 }
 
+/* ============ TRIP LOADING ============ */
+function tripUrlForDestino(destino){
+  if(!destino || !destino.pais || !destino.ciudades || destino.ciudades.length===0){
+    return "data/trips/milan.json";
+  }
+  const paisKey = destino.pais;
+  const ciudadSlug = slugify(destino.ciudades[0]);
+  // Special case: Italia + Milán uses the existing file
+  if(paisKey === "italia" && ciudadSlug === "milan") return "data/trips/milan.json";
+  return "data/trips/" + paisKey + "/" + ciudadSlug + ".json";
+}
+
+let tripLoadFailed = false;
+let tripFailCity = "";
+
+async function loadTripData(destino){
+  const url = tripUrlForDestino(destino);
+  tripLoadFailed = false;
+  tripFailCity = "";
+  try {
+    const r = await fetch(url);
+    if(!r.ok) throw new Error("404");
+    TRIP = await r.json();
+  } catch(err) {
+    // Trip data not available — app still works for standalone sections
+    TRIP = null;
+    tripLoadFailed = true;
+    if(destino && destino.ciudades && destino.ciudades.length > 0){
+      tripFailCity = destino.ciudades[0];
+    }
+    console.warn("Trip data not available:", url, err);
+  }
+}
+
+async function loadTripAndRender(){
+  const destino = CURRENT_PROFILE ? CURRENT_PROFILE.destino : null;
+  await loadTripData(destino);
+  renderAll();
+}
+
+/* ============ RENDER OVERRIDE FOR MISSING TRIP ============ */
+const _origRenderSection = null; // handled inline in renderSection
+
 /* ============ INIT ============ */
 async function init(){
   initAuthUI();
   const restored = await tryRestoreSession();
-  try {
-    const r = await fetch("data/trips/milan.json");
-    TRIP = await r.json();
-    if(restored) renderAll();
-  } catch(err) {
-    document.getElementById("app-body").innerHTML = `<div class="section"><div class="card">No se pudieron cargar los datos del viaje.</div></div>`;
-    console.error(err);
+  if(restored){
+    await loadTripAndRender();
+  } else {
+    // Pre-load default trip for when user logs in without destino
+    try {
+      const r = await fetch("data/trips/milan.json");
+      TRIP = await r.json();
+    } catch(err) {
+      TRIP = null;
+      console.error(err);
+    }
   }
 }
 init();

@@ -116,7 +116,7 @@ app.post('/api/registro', async (req, res) => {
     res.code(429);
     return { error: 'Demasiados intentos. Espera unos minutos.' };
   }
-  const { usuario, password, nombre, email, intereses } = req.body ?? {};
+  const { usuario, password, nombre, email, intereses, destino } = req.body ?? {};
   if (!usuario || !password || !nombre) {
     res.code(400);
     return { error: 'Faltan campos obligatorios (usuario, password, nombre)' };
@@ -126,6 +126,15 @@ app.post('/api/registro', async (req, res) => {
     return { error: 'La contraseña debe tener al menos 8 caracteres' };
   }
   const ints = Array.isArray(intereses) ? intereses.filter(i => INTERESES_VALIDOS.has(i)) : [];
+  // Sanitise destination
+  let destinoLimpio = undefined;
+  if (destino && typeof destino === 'object' && typeof destino.continente === 'string' && typeof destino.pais === 'string') {
+    destinoLimpio = {
+      continente: destino.continente.slice(0, 50),
+      pais: destino.pais.slice(0, 50),
+      ciudades: Array.isArray(destino.ciudades) ? destino.ciudades.filter(c => typeof c === 'string').map(c => c.slice(0, 100)).slice(0, 20) : []
+    };
+  }
   try {
     await auth.crearUsuario(usuario, password, nombre);
   } catch (e) {
@@ -136,6 +145,7 @@ app.post('/api/registro', async (req, res) => {
     return { error: e.message };
   }
   const perfil = { nombre, email: email || '', intereses: ints, creado: new Date().toISOString() };
+  if (destinoLimpio) perfil.destino = destinoLimpio;
   try { await nube.guardarPerfil(usuario, perfil); } catch (e) {
     app.log.warn({ usuario, err: e.message }, 'perfil no guardado tras registro');
   }
@@ -230,10 +240,17 @@ app.get('/api/perfil', async (req) => {
 
 app.put('/api/perfil', async (req) => {
   const actual = await nube.leerPerfil(req.usuario) || {};
-  const { nombre, email, intereses } = req.body ?? {};
+  const { nombre, email, intereses, destino } = req.body ?? {};
   if (nombre) actual.nombre = nombre;
   if (email !== undefined) actual.email = email;
   if (Array.isArray(intereses)) actual.intereses = intereses.filter(i => INTERESES_VALIDOS.has(i));
+  if (destino && typeof destino === 'object' && typeof destino.continente === 'string' && typeof destino.pais === 'string') {
+    actual.destino = {
+      continente: destino.continente.slice(0, 50),
+      pais: destino.pais.slice(0, 50),
+      ciudades: Array.isArray(destino.ciudades) ? destino.ciudades.filter(c => typeof c === 'string').map(c => c.slice(0, 100)).slice(0, 20) : []
+    };
+  }
   await nube.guardarPerfil(req.usuario, actual);
   return { usuario: req.usuario, perfil: actual };
 });
