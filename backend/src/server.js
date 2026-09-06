@@ -42,7 +42,7 @@ app.addHook('onSend', async (req, res, cuerpo) => {
 
 // Todo lo que cuelga de /api/viajes exige sesion. Lista blanca explicita: si
 // manana se anade una ruta nueva, nace protegida en vez de nacer abierta.
-const ABIERTAS = new Set(['/api/sesion', '/api/salud', '/api/registro']);
+const ABIERTAS = new Set(['/api/sesion', '/api/salud', '/api/registro', '/api/reset-password', '/api/reset-password/confirmar']);
 app.addHook('onRequest', async (req, res) => {
   if (!req.url.startsWith('/api/')) return;
   const ruta = req.url.split('?')[0];
@@ -148,6 +148,78 @@ app.post('/api/registro', async (req, res) => {
   });
   res.code(201);
   return { usuario, perfil };
+});
+
+// --- Restablecer contraseña -------------------------------------------------
+import { createTransport } from 'nodemailer';
+
+const SMTP_HOST = process.env.SMTP_HOST;
+const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASS = process.env.SMTP_PASSWORD;
+const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER;
+const APP_URL = process.env.APP_URL || '';
+
+const mailer = SMTP_HOST ? createTransport({
+  host: SMTP_HOST, port: SMTP_PORT,
+  secure: SMTP_PORT === 465,
+  auth: SMTP_USER ? { user: SMTP_USER, pass: SMTP_PASS } : undefined
+}) : null;
+
+app.post('/api/reset-password', async (req, res) => {
+  const ip = req.ip;
+  if (auth.bloqueado(ip)) {
+    res.code(429);
+    return { error: 'Demasiados intentos. Espera unos minutos.' };
+  }
+  const { usuario } = req.body ?? {};
+  if (!usuario) { res.code(400); return { error: 'Introduce tu usuario' }; }
+  const email = await auth.obtenerEmailUsuario(usuario);
+  if (!email) {
+    auth.registrarFallo(ip);
+    return { ok: true, mensaje: 'Si el usuario existe y tiene email, recibirás un enlace.' };
+  }
+  if (!mailer) {
+    res.code(503);
+    return { error: 'El envío de correo no está configurado en el servidor' };
+  }
+  const token = auth.crearTokenReset(usuario);
+  const baseUrl = APP_URL || `${req.protocol}://${req.hostname}`;
+  const enlace = `${baseUrl}?reset=${token}`;
+  try {
+    await mailer.sendMail({
+      from: SMTP_FROM,
+      to: email,
+      subject: 'Andanzas — Restablecer contraseña',
+      text: `Hola,\n\nHas solicitado restablecer tu contraseña en Andanzas.\n\nHaz clic en el siguiente enlace (válido 30 minutos):\n${enlace}\n\nSi no fuiste tú, ignora este mensaje.\n\n— Andanzas`,
+      html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+        <h2 style="color:#2F6F65;margin-bottom:8px">Andanzas</h2>
+        <p>Has solicitado restablecer tu contraseña.</p>
+        <p><a href="${enlace}" style="display:inline-block;padding:12px 24px;background:#7FB8B0;color:#1F3F39;border-radius:100px;text-decoration:none;font-weight:600">Restablecer contraseña</a></p>
+        <p style="font-size:13px;color:#6B5642">Este enlace es válido durante 30 minutos. Si no solicitaste este cambio, ignora este mensaje.</p>
+      </div>`
+    });
+  } catch (e) {
+    app.log.error({ err: e.message, usuario }, 'error enviando email de reset');
+    res.code(502);
+    return { error: 'No se pudo enviar el correo' };
+  }
+  app.log.info({ usuario, email: email.replace(/(.{2}).*@/, '$1***@') }, 'email de reset enviado');
+  return { ok: true, mensaje: 'Si el usuario existe y tiene email, recibirás un enlace.' };
+});
+
+app.post('/api/reset-password/confirmar', async (req, res) => {
+  const { token, password } = req.body ?? {};
+  if (!token || !password) { res.code(400); return { error: 'Faltan datos' }; }
+  const usuario = auth.consumirTokenReset(token);
+  if (!usuario) { res.code(400); return { error: 'Enlace inválido o expirado. Solicita uno nuevo.' }; }
+  try {
+    await auth.cambiarPassword(usuario, password);
+  } catch (e) {
+    res.code(400);
+    return { error: e.message };
+  }
+  return { ok: true, mensaje: 'Contraseña cambiada. Ya puedes iniciar sesión.' };
 });
 
 // --- Perfil -----------------------------------------------------------------

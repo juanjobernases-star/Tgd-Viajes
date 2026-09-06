@@ -390,7 +390,35 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
         <input type="password" id="login-password" placeholder="••••" autocomplete="current-password">
       </div>
       <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+      <div style="text-align:center;margin-top:10px;">
+        <a href="#" id="forgot-password-link" style="font-size:13px;color:var(--accent,#2F6F65);">¿Olvidaste tu contraseña?</a>
+      </div>
     </form>
+
+    <div id="reset-request-form" class="hidden">
+      <div class="field">
+        <label class="field-label">Usuario</label>
+        <input type="text" id="reset-usuario" placeholder="tu usuario" autocomplete="username">
+      </div>
+      <button type="button" id="reset-send-btn" class="btn btn-primary btn-block">Enviar enlace por email</button>
+      <div id="reset-msg" style="text-align:center;margin-top:10px;font-size:13px;"></div>
+      <div style="text-align:center;margin-top:10px;">
+        <a href="#" id="reset-back-link" style="font-size:13px;color:var(--accent,#2F6F65);">Volver al login</a>
+      </div>
+    </div>
+
+    <div id="reset-confirm-form" class="hidden">
+      <div class="field">
+        <label class="field-label">Nueva contraseña</label>
+        <input type="password" id="reset-new-password" placeholder="mínimo 8 caracteres">
+      </div>
+      <div class="field">
+        <label class="field-label">Repetir contraseña</label>
+        <input type="password" id="reset-confirm-password" placeholder="mínimo 8 caracteres">
+      </div>
+      <button type="button" id="reset-confirm-btn" class="btn btn-primary btn-block">Cambiar contraseña</button>
+      <div id="reset-confirm-msg" style="text-align:center;margin-top:10px;font-size:13px;"></div>
+    </div>
 
     <form id="register-form" class="hidden">
       <div class="field">
@@ -811,6 +839,68 @@ function initAuthUI(){
       loginAs(r.data.usuario, r.data.perfil || { nombre, intereses });
     } catch { err.textContent = "No se puede conectar con el servidor."; }
   });
+
+  // --- Reset password UI ---
+  function showResetRequest(){
+    document.getElementById("login-form").classList.add("hidden");
+    document.getElementById("register-form").classList.add("hidden");
+    document.getElementById("reset-request-form").classList.remove("hidden");
+    document.getElementById("reset-confirm-form").classList.add("hidden");
+    document.getElementById("auth-error").textContent = "";
+    document.getElementById("reset-msg").textContent = "";
+    document.getElementById("tab-login").classList.remove("active");
+    document.getElementById("tab-register").classList.remove("active");
+  }
+  function showLogin(){
+    document.getElementById("login-form").classList.remove("hidden");
+    document.getElementById("register-form").classList.add("hidden");
+    document.getElementById("reset-request-form").classList.add("hidden");
+    document.getElementById("reset-confirm-form").classList.add("hidden");
+    document.getElementById("tab-login").classList.add("active");
+    document.getElementById("tab-register").classList.remove("active");
+    document.getElementById("auth-error").textContent = "";
+  }
+
+  document.getElementById("forgot-password-link").addEventListener("click", e=>{ e.preventDefault(); showResetRequest(); });
+  document.getElementById("reset-back-link").addEventListener("click", e=>{ e.preventDefault(); showLogin(); });
+
+  document.getElementById("reset-send-btn").addEventListener("click", async ()=>{
+    const usuario = document.getElementById("reset-usuario").value.trim();
+    const msg = document.getElementById("reset-msg");
+    if(!usuario){ msg.style.color="#D1567A"; msg.textContent="Introduce tu usuario."; return; }
+    msg.style.color="var(--accent,#2F6F65)"; msg.textContent="Enviando...";
+    try {
+      const r = await apiFetch('/api/reset-password', { method:'POST', body:JSON.stringify({usuario}) });
+      if(!r.ok){ msg.style.color="#D1567A"; msg.textContent=r.data?.error||"Error"; return; }
+      msg.style.color="var(--accent,#2F6F65)"; msg.textContent=r.data?.mensaje||"Revisa tu correo.";
+    } catch { msg.style.color="#D1567A"; msg.textContent="No se puede conectar con el servidor."; }
+  });
+
+  document.getElementById("reset-confirm-btn").addEventListener("click", async ()=>{
+    const pass = document.getElementById("reset-new-password").value;
+    const pass2 = document.getElementById("reset-confirm-password").value;
+    const msg = document.getElementById("reset-confirm-msg");
+    if(!pass || pass.length < 8){ msg.style.color="#D1567A"; msg.textContent="Mínimo 8 caracteres."; return; }
+    if(pass !== pass2){ msg.style.color="#D1567A"; msg.textContent="Las contraseñas no coinciden."; return; }
+    const params = new URLSearchParams(location.search);
+    const token = params.get("reset");
+    if(!token){ msg.style.color="#D1567A"; msg.textContent="Enlace inválido."; return; }
+    msg.style.color="var(--accent,#2F6F65)"; msg.textContent="Cambiando...";
+    try {
+      const r = await apiFetch('/api/reset-password/confirmar', { method:'POST', body:JSON.stringify({token, password:pass}) });
+      if(!r.ok){ msg.style.color="#D1567A"; msg.textContent=r.data?.error||"Error"; return; }
+      msg.style.color="var(--accent,#2F6F65)"; msg.textContent=r.data?.mensaje||"Contraseña cambiada.";
+      setTimeout(()=>{ history.replaceState(null,"",location.pathname); showLogin(); }, 2000);
+    } catch { msg.style.color="#D1567A"; msg.textContent="No se puede conectar con el servidor."; }
+  });
+
+  // Si la URL tiene ?reset=TOKEN, mostrar formulario de nueva contraseña
+  const resetToken = new URLSearchParams(location.search).get("reset");
+  if(resetToken){
+    document.getElementById("login-form").classList.add("hidden");
+    document.getElementById("reset-confirm-form").classList.remove("hidden");
+    document.getElementById("tab-login").classList.remove("active");
+  }
 }
 
 function loginAs(usuario, perfil){

@@ -119,4 +119,69 @@ export async function crearUsuario(usuario, password, nombre) {
 
 export function registroDisponible() { return !!(NC_ADMIN && NC_ADMIN_PASS); }
 
+// --- Restablecimiento de contraseña -----------------------------------------
+const RESET_TTL = 30 * 60 * 1000; // 30 minutos
+const resetTokens = new Map();
+
+export function crearTokenReset(usuario) {
+  const token = randomBytes(32).toString('hex');
+  resetTokens.set(token, { usuario, exp: Date.now() + RESET_TTL });
+  return token;
+}
+
+export function validarTokenReset(token) {
+  const entry = resetTokens.get(token);
+  if (!entry || entry.exp < Date.now()) { resetTokens.delete(token); return null; }
+  return entry.usuario;
+}
+
+export function consumirTokenReset(token) {
+  const usuario = validarTokenReset(token);
+  if (usuario) resetTokens.delete(token);
+  return usuario;
+}
+
+export async function obtenerEmailUsuario(usuario) {
+  if (!NC_ADMIN || !NC_ADMIN_PASS) return null;
+  try {
+    const res = await fetch(`${BASE}/ocs/v1.php/cloud/users/${encodeURIComponent(usuario)}?format=json`, {
+      headers: {
+        Authorization: 'Basic ' + Buffer.from(`${NC_ADMIN}:${NC_ADMIN_PASS}`).toString('base64'),
+        'OCS-APIRequest': 'true'
+      },
+      signal: AbortSignal.timeout(10000)
+    });
+    if (!res.ok) return null;
+    const j = await res.json();
+    return j?.ocs?.data?.email || null;
+  } catch { return null; }
+}
+
+export async function cambiarPassword(usuario, nuevaPassword) {
+  if (!NC_ADMIN || !NC_ADMIN_PASS) throw new Error('No configurado');
+  if (typeof nuevaPassword !== 'string' || nuevaPassword.length < 8) {
+    throw new Error('La contraseña debe tener al menos 8 caracteres');
+  }
+  const res = await fetch(`${BASE}/ocs/v1.php/cloud/users/${encodeURIComponent(usuario)}?format=json`, {
+    method: 'PUT',
+    headers: {
+      Authorization: 'Basic ' + Buffer.from(`${NC_ADMIN}:${NC_ADMIN_PASS}`).toString('base64'),
+      'OCS-APIRequest': 'true',
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: new URLSearchParams({ key: 'password', value: nuevaPassword }),
+    signal: AbortSignal.timeout(15000)
+  });
+  const j = await res.json();
+  if (j?.ocs?.meta?.statuscode !== 100) {
+    throw new Error(j?.ocs?.meta?.message || 'Error cambiando contraseña');
+  }
+}
+
+// Purga periódica de tokens expirados
+setInterval(() => {
+  const ahora = Date.now();
+  for (const [t, e] of resetTokens) { if (e.exp < ahora) resetTokens.delete(t); }
+}, 5 * 60 * 1000).unref();
+
 export { COOKIE, HORAS, registrarFallo, bloqueado, limpiar };
