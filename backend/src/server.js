@@ -173,7 +173,10 @@ const APP_URL = process.env.APP_URL || '';
 const mailer = SMTP_HOST ? createTransport({
   host: SMTP_HOST, port: SMTP_PORT,
   secure: SMTP_PORT === 465,
-  auth: SMTP_USER ? { user: SMTP_USER, pass: SMTP_PASS } : undefined
+  auth: SMTP_USER ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
+  connectionTimeout: 10_000,
+  greetingTimeout: 10_000,
+  socketTimeout: 15_000
 }) : null;
 
 app.post('/api/reset-password', async (req, res) => {
