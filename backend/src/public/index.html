@@ -330,6 +330,14 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 .weather-card .wico{font-size:32px;}
 .weather-card .wtemp{font-size:15px; font-weight:700; margin-top:4px;}
 
+/* timeline */
+.timeline-wrap{position:relative;padding-left:60px;}
+.tl-item{position:relative;padding:10px 0 16px;border-left:2px solid var(--border);margin-left:-30px;padding-left:30px;}
+.tl-item:last-child{border-left-color:transparent;}
+.tl-time{position:absolute;left:-60px;top:10px;width:50px;text-align:right;font-size:12px;font-weight:600;color:var(--accent);}
+.tl-dot{position:absolute;left:-7px;top:14px;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--card);}
+.tl-done{background:var(--text2);opacity:0.4;}
+.tl-content{position:relative;padding-right:28px;}
 /* phrases */
 .phrase-row{padding:12px 0; border-bottom:1px solid var(--border);}
 .phrase-row:last-child{border-bottom:none;}
@@ -493,6 +501,53 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       </div>
       <button type="submit" class="btn btn-primary btn-block">Crear cuenta</button>
     </form>
+  </div>
+
+  <!-- PRIVACY BANNER -->
+  <div id="privacy-banner" class="hidden" style="position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);padding:14px 16px;z-index:200;box-shadow:0 -2px 12px rgba(0,0,0,0.1);">
+    <div style="max-width:600px;margin:0 auto;">
+      <div style="font-size:13px;line-height:1.5;color:var(--text);margin-bottom:10px;">
+        🔒 <strong>Privacidad</strong> — Tus datos se almacenan <strong>solo en este dispositivo</strong> (cifrados en localStorage). No se envían a servidores externos. Puedes borrar todos tus datos en cualquier momento desde el botón «Salir».
+        <a href="#" id="privacy-more" style="color:var(--accent);font-size:12px;margin-left:4px;">Más info</a>
+      </div>
+      <button class="btn btn-primary btn-sm" id="privacy-accept" type="button" style="width:100%;">Aceptar y continuar</button>
+    </div>
+  </div>
+
+  <!-- PRIVACY DETAIL SHEET -->
+  <div class="sheet-overlay hidden" id="privacy-sheet-overlay">
+    <div class="sheet" style="max-height:80vh;overflow-y:auto;">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Política de Privacidad</div>
+      <div style="font-size:13px;line-height:1.6;color:var(--text);">
+        <p><strong>Andanzas</strong> es una aplicación de gestión de viajes familiar.</p>
+        <h4 style="margin:12px 0 4px;">Datos que se almacenan</h4>
+        <ul style="padding-left:18px;margin:4px 0;">
+          <li>Perfil de viajero (nombre, intereses, destino)</li>
+          <li>Datos del viaje (vuelos, hotel, itinerario, presupuesto)</li>
+          <li>Ubicación (solo cuando pulsas "Cerca de mí", nunca en segundo plano)</li>
+        </ul>
+        <h4 style="margin:12px 0 4px;">Dónde se guardan</h4>
+        <p>En modo demo: <strong>solo en tu dispositivo</strong> (localStorage), cifrados con PBKDF2+XOR de 256 bits. Ningún dato sale de tu navegador.</p>
+        <p>Con servidor privado: en tu nube Nextcloud personal, bajo tu control.</p>
+        <h4 style="margin:12px 0 4px;">APIs externas consultadas</h4>
+        <ul style="padding-left:18px;margin:4px 0;">
+          <li><strong>Open-Meteo</strong> — datos meteorológicos (sin datos personales)</li>
+          <li><strong>Overpass API</strong> — puntos de interés cercanos (solo coordenadas, sin identificación)</li>
+        </ul>
+        <h4 style="margin:12px 0 4px;">Tus derechos</h4>
+        <p>Conforme al RGPD (UE), CCPA (EE.UU.), LGPD (Brasil) y normativas equivalentes:</p>
+        <ul style="padding-left:18px;margin:4px 0;">
+          <li><strong>Acceso</strong>: toda tu información está visible en la app</li>
+          <li><strong>Rectificación</strong>: puedes editar cualquier dato desde la app</li>
+          <li><strong>Supresión</strong>: pulsa «Borrar mis datos» para eliminar todo</li>
+          <li><strong>Portabilidad</strong>: tus datos están en tu dispositivo/nube</li>
+        </ul>
+        <div style="margin-top:12px;">
+          <button class="btn btn-secondary btn-block" id="privacy-delete-all" type="button" style="color:#c0392b;border-color:#c0392b;">🗑️ Borrar todos mis datos</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- HEADER -->
@@ -2311,10 +2366,29 @@ function renderMonthDayDetail(){
   const day = TRIP.days.find(d=>d.date===selectedMonthDay);
   if(!day){ wrap.innerHTML=""; return; }
   const items = getDayItems(day);
+  var sorted = items.slice().sort(function(a,b){ return (a.time||'99:99').localeCompare(b.time||'99:99'); });
+  var timelineHtml = sorted.map(function(it){
+    var checked = isChecked(it.id);
+    return `<div class="tl-item" data-item-id="${it.id}" data-day-id="${day.id}">
+      <div class="tl-time">${escapeHtml(it.time||'')}</div>
+      <div class="tl-dot ${checked?'tl-done':''}"></div>
+      <div class="tl-content">
+        <div class="item-check ${checked?'checked':''}" data-action="toggle-check" style="position:absolute;right:0;top:0;">${checked?'✓':''}</div>
+        <div style="font-weight:600;font-size:14px;${checked?'text-decoration:line-through;opacity:0.5;':''}">${escapeHtml(it.desc)}</div>
+        ${it.note ? `<div class="tiny" style="margin-top:2px;">${escapeHtml(it.note)}</div>` : ''}
+        ${it.mapsUrl ? `<a href="${safeHref(it.mapsUrl)}" target="_blank" class="tiny" style="color:var(--accent);margin-top:2px;display:inline-block;">📍 Ver en Maps</a>` : ''}
+        <div class="item-actions" style="margin-top:4px;">
+          <button class="icon-btn" data-action="edit-item">✎</button>
+          <button class="icon-btn danger" data-action="delete-item">×</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
   wrap.innerHTML = `<div class="card">
-    <h3>${escapeHtml(day.title)}</h3>
-    <div data-day-items="${day.id}">${items.map(it=>renderItemRow(day,it)).join("")}</div>
-    <button class="btn btn-secondary btn-sm btn-block" style="margin-top:10px;" data-add-event="${day.id}">+ Añadir plan</button>
+    <h3 style="margin-bottom:4px;">${escapeHtml(day.title)}</h3>
+    <div class="tiny" style="margin-bottom:12px;">${escapeHtml(day.daynum||'')} ${escapeHtml(day.weekday||'')} ${escapeHtml(day.flag||'')}</div>
+    <div class="timeline-wrap">${timelineHtml}</div>
+    <button class="btn btn-secondary btn-sm btn-block" style="margin-top:12px;" data-add-event="${day.id}">+ Añadir plan</button>
   </div>`;
   bindItemRowEvents(wrap);
   wrap.querySelectorAll("[data-add-event]").forEach(btn=>{
@@ -2487,6 +2561,10 @@ async function fetchNearbyPOIs(lat, lon){
       signal: AbortSignal.timeout(12000)
     });
     var data = await r.json();
+    var interestCatMap = {comida:['restaurant','cafe','bar'],arte:['museum','gallery','monument','memorial'],aventura:['viewpoint','attraction','castle'],compras:['marketplace','shop'],tranquilo:['viewpoint','garden','park']};
+    var ui = userInterests();
+    var boostCats = {};
+    ui.forEach(function(i){ (interestCatMap[i]||[]).forEach(function(c){ boostCats[c]=true; }); });
     nearbyCache = (data.elements||[]).map(function(el){
       var tags = el.tags||{};
       var cat = tags.tourism||tags.historic||tags.amenity||'lugar';
@@ -2494,13 +2572,15 @@ async function fetchNearbyPOIs(lat, lon){
       return {
         name: tags.name || tags['name:es'] || 'Sin nombre',
         cat: catLabels[cat] || cat,
+        rawCat: cat,
         lat: el.lat, lon: el.lon,
         dist: haversine(lat,lon,el.lat,el.lon),
         cuisine: tags.cuisine || '',
-        phone: tags.phone || ''
+        phone: tags.phone || '',
+        boost: boostCats[cat] ? 1 : 0
       };
     }).filter(function(p){ return p.name !== 'Sin nombre'; })
-      .sort(function(a,b){ return a.dist - b.dist; });
+      .sort(function(a,b){ return b.boost - a.boost || a.dist - b.dist; });
     renderNearby();
   } catch(e){ console.warn('Overpass', e); }
 }
@@ -2979,8 +3059,90 @@ function renderOffline(){
 }
 
 /* ============ RENDER: SEGURIDAD ============ */
+var SECURITY_DB = {
+  italia:{
+    risk:[{zone:'Estaciones de tren',when:'Noche y madrugada',level:'mid'},{zone:'Zonas turísticas (carteristas)',when:'Todo el día',level:'mid'}],
+    'do':['Llevar copia del pasaporte separada del original','Usar riñonera bajo la ropa en zonas concurridas','Vigilar pertenencias en terrazas y transporte público','Beber agua embotellada en verano para evitar golpes de calor'],
+    dont:['No dejar bolsos en el respaldo de la silla','No mostrar joyas o electrónicos caros','No aceptar \"regalos\" de desconocidos (timo de la pulsera)','No cambiar dinero en la calle'],
+    contacts:[{label:'Emergencias',value:'112'},{label:'Policía',value:'113'},{label:'Ambulancia',value:'118'},{label:'Consulado España',value:'+39 06 684 0401'}],
+    note:'El consulado de España atiende en horario laboral. Fuera de horario, llamar al 112.'
+  },
+  francia:{
+    risk:[{zone:'Metro (líneas 1, 4, 13)',when:'Hora punta',level:'mid'},{zone:'Trocadéro / Torre Eiffel',when:'Todo el día (carteristas)',level:'mid'},{zone:'Saint-Denis / Stalingrad',when:'Noche',level:'high'}],
+    'do':['Llevar fotocopias del pasaporte','Usar transporte público con precaución nocturna','Guardar el móvil al cruzar torniquetes del metro'],
+    dont:['No firmar peticiones callejeras (timo habitual)','No dejar nada visible en el coche','No caminar solo/a por canales de noche'],
+    contacts:[{label:'Emergencias',value:'112'},{label:'Policía',value:'17'},{label:'SAMU',value:'15'},{label:'Consulado España',value:'+33 1 44 43 18 00'}],
+    note:'Documentación: DNI o pasaporte en vigor. Francia es Schengen.'
+  },
+  'reino unido':{
+    risk:[{zone:'Camden / Brixton',when:'Noche',level:'mid'},{zone:'Zonas turísticas',when:'Todo el día (carteristas)',level:'mid'}],
+    'do':['Cruzar mirando a la derecha primero (conducción izquierda)','Llevar adaptador de enchufe tipo G','Tener la GHIC/TSE para asistencia sanitaria'],
+    dont:['No olvidar que no es zona Schengen — necesitas pasaporte','No dar propina excesiva (servicio incluido en muchos sitios)'],
+    contacts:[{label:'Emergencias',value:'999'},{label:'Policía (no urgente)',value:'101'},{label:'NHS',value:'111'},{label:'Consulado España',value:'+44 20 7235 5555'}],
+    note:'Desde Brexit se necesita pasaporte. La TSE/GHIC cubre urgencias médicas.'
+  },
+  alemania:{
+    risk:[{zone:'Hauptbahnhof (estaciones)',when:'Noche',level:'mid'}],
+    'do':['Llevar efectivo — muchos sitios no aceptan tarjeta','Respetar semáforos peatonales (multa)','Validar billetes de transporte antes de subir'],
+    dont:['No cruzar en rojo (incluso sin tráfico, multan)','No hacer ruido excesivo en domingo'],
+    contacts:[{label:'Emergencias',value:'112'},{label:'Policía',value:'110'},{label:'Consulado España Berlín',value:'+49 30 254 007 0'}],
+    note:'Alemania es muy segura. La puntualidad es importante en citas y transporte.'
+  },
+  portugal:{
+    risk:[{zone:'Alfama / Baixa (carteristas)',when:'Todo el día',level:'mid'},{zone:'Barrio Alto',when:'Madrugada',level:'mid'}],
+    'do':['Cuidado con los tranvías (28E especialmente concurrido)','Usar protección solar en el Algarve','DNI es suficiente (zona Schengen)'],
+    dont:['No dejar objetos en la playa sin vigilancia','No fiarse de \"vendedores\" en Terreiro do Paço'],
+    contacts:[{label:'Emergencias',value:'112'},{label:'Consulado España Lisboa',value:'+351 21 347 2381'}],
+    note:'Portugal es muy seguro y cercano culturalmente. El 112 es el número universal.'
+  },
+  grecia:{
+    risk:[{zone:'Omonia / Exarchia (Atenas)',when:'Noche',level:'high'},{zone:'Zonas turísticas',when:'Verano (carteristas)',level:'mid'}],
+    'do':['Hidratarse constantemente en verano','Llevar calzado cómodo para ruinas','Negociar precio del taxi antes de subir'],
+    dont:['No bañarse en playas con bandera roja (corrientes)','No fotografiar instalaciones militares'],
+    contacts:[{label:'Emergencias',value:'112'},{label:'Policía turística',value:'1571'},{label:'Consulado España Atenas',value:'+30 210 921 3123'}],
+    note:'Grecia es zona Schengen. Las farmacias (con cruz verde) tienen horarios rotativos.'
+  },
+  turquia:{
+    risk:[{zone:'Barrios periféricos',when:'Noche',level:'high'},{zone:'Gran Bazar / Sultanahmet',when:'Todo el día (timos)',level:'mid'}],
+    'do':['Regatear en bazares (es esperado)','Llevar pasaporte (no Schengen)','Respetar las mezquitas (quitarse zapatos, cubrir hombros)'],
+    dont:['No aceptar invitaciones de desconocidos a bares','No criticar públicamente a Atatürk o al gobierno','No beber agua del grifo'],
+    contacts:[{label:'Emergencias',value:'112'},{label:'Policía',value:'155'},{label:'Ambulancia',value:'112'},{label:'Consulado España Estambul',value:'+90 212 270 7410'}],
+    note:'Visado electrónico necesario para estancias >90 días. La lira turca fluctúa — cambiar en oficinas oficiales.'
+  },
+  japon:{
+    risk:[{zone:'Kabukicho (Shinjuku)',when:'Noche',level:'mid'}],
+    'do':['Llevar efectivo (muchos sitios no aceptan tarjeta)','Hacer reverencia al saludar','Quitarse zapatos al entrar en casas y templos','Llevar el Japan Rail Pass si viajas entre ciudades'],
+    dont:['No hablar alto en el transporte público','No dar propina (se considera ofensivo)','No comer caminando por la calle','No señalar con el dedo'],
+    contacts:[{label:'Emergencias',value:'110'},{label:'Bomberos/ambulancia',value:'119'},{label:'Línea turística',value:'050-3816-2787'},{label:'Embajada España Tokio',value:'+81 3 3583 8531'}],
+    note:'Japón es extremadamente seguro. Respetar las normas sociales es más importante que en Europa.'
+  }
+};
+SECURITY_DB['eeuu'] = {
+  risk:[{zone:'Barrios periféricos',when:'Noche',level:'high'},{zone:'Transporte público',when:'Noche',level:'mid'}],
+  'do':['Llevar pasaporte y ESTA aprobado','Dejar propina 18-20% en restaurantes','Tener seguro médico (la sanidad es cara)'],
+  dont:['No cruzar la calle fuera del paso de peatones (jaywalking)','No llevar grandes cantidades de efectivo'],
+  contacts:[{label:'Emergencias',value:'911'},{label:'Consulado España NY',value:'+1 212 355 4080'}],
+  note:'ESTA obligatorio. Seguro médico imprescindible — una urgencia puede costar miles de dólares.'
+};
+SECURITY_DB['estados unidos'] = SECURITY_DB['eeuu'];
+
+function getSecurityData(){
+  if(TRIP && TRIP.security) return TRIP.security;
+  if(!CURRENT_PROFILE || !CURRENT_PROFILE.destino) return null;
+  var pais = (CURRENT_PROFILE.destino.pais||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  return SECURITY_DB[pais] || null;
+}
+
 function renderSeguridad(){
-  const sec = TRIP.security;
+  var sec = getSecurityData();
+  if(!sec){
+    document.getElementById("risk-list").innerHTML = '<div class="subtle" style="padding:12px;">Selecciona un destino para ver información de seguridad.</div>';
+    document.getElementById("do-list").innerHTML = '';
+    document.getElementById("dont-list").innerHTML = '';
+    document.getElementById("contacts-list").innerHTML = '';
+    document.getElementById("consulate-note").textContent = '';
+    return;
+  }
   document.getElementById("risk-list").innerHTML = sec.risk.map(r=>`
     <div class="risk-card">
       <div>
@@ -2990,15 +3152,15 @@ function renderSeguridad(){
       <div class="level-badge ${r.level==='high'?'level-high':'level-mid'}">${r.level==='high'?'Alto':'Medio'}</div>
     </div>
   `).join("");
-  document.getElementById("do-list").innerHTML = sec.do.map(t=>`<div class="do-item"><span class="ico">✓</span><span>${escapeHtml(t)}</span></div>`).join("");
-  document.getElementById("dont-list").innerHTML = sec.dont.map(t=>`<div class="dont-item"><span class="ico">×</span><span>${escapeHtml(t)}</span></div>`).join("");
-  document.getElementById("contacts-list").innerHTML = sec.contacts.map(c=>`
+  document.getElementById("do-list").innerHTML = (sec['do']||[]).map(t=>`<div class="do-item"><span class="ico">✓</span><span>${escapeHtml(t)}</span></div>`).join("");
+  document.getElementById("dont-list").innerHTML = (sec.dont||[]).map(t=>`<div class="dont-item"><span class="ico">×</span><span>${escapeHtml(t)}</span></div>`).join("");
+  document.getElementById("contacts-list").innerHTML = (sec.contacts||[]).map(c=>`
     <div class="contact-row">
       <span>${escapeHtml(c.label)}</span>
       <a href="tel:${escapeHtml(c.value.replace(/\s/g,''))}" class="contact-num">${escapeHtml(c.value)}</a>
     </div>
   `).join("");
-  document.getElementById("consulate-note").textContent = sec.note;
+  document.getElementById("consulate-note").textContent = sec.note||'';
 }
 
 /* ============ RENDER: BUSCAR ============ */
@@ -3112,6 +3274,44 @@ function renderBuscar(){
     wrap.innerHTML = html;
   });
 
+  // Demo hotel data
+  var DEMO_HOTELS_DB = {
+    'milán':[
+      {name:'Hotel Andreola Central',stars:4,zone:'Estación Central',price:95,rating:'8.5 Muy bien',desc:'Reformado, cerca del Duomo en metro'},
+      {name:'NYX Hotel Milan',stars:4,zone:'Estación Central',price:110,rating:'8.7 Fabuloso',desc:'Moderno, rooftop bar con vistas'},
+      {name:'Hotel Milano Scala',stars:4,zone:'Brera',price:135,rating:'9.0 Fantástico',desc:'Boutique ecológico en barrio artístico'},
+      {name:'Ostello Bello Grande',stars:2,zone:'Estación Central',price:35,rating:'8.9 Fabuloso',desc:'Hostel con terraza, ideal familias'},
+      {name:'Palazzo Parigi',stars:5,zone:'Quadrilatero',price:420,rating:'9.6 Excepcional',desc:'Lujo con jardín privado'}
+    ],
+    'roma':[
+      {name:'Hotel Artemide',stars:4,zone:'Via Nazionale',price:145,rating:'9.1 Fantástico',desc:'A pie del Coliseo y Fontana di Trevi'},
+      {name:'Hotel Raffaello',stars:3,zone:'Termini',price:75,rating:'8.2 Muy bien',desc:'Céntrico, terraza en azotea'},
+      {name:'Hotel de Russie',stars:5,zone:'Piazza del Popolo',price:380,rating:'9.4 Excepcional',desc:'Jardín secreto, spa'}
+    ],
+    'parís':[
+      {name:'Hotel Le Marais',stars:3,zone:'Le Marais',price:120,rating:'8.4 Muy bien',desc:'Barrio histórico, cerca del Sena'},
+      {name:'Hôtel des Arts Montmartre',stars:3,zone:'Montmartre',price:95,rating:'8.6 Fabuloso',desc:'Vistas al Sacré-Cœur'},
+      {name:'Le Pavillon de la Reine',stars:4,zone:'Place des Vosges',price:280,rating:'9.2 Fantástico',desc:'Boutique en plaza histórica'}
+    ],
+    'londres':[
+      {name:'Point A Hotel King's Cross',stars:3,zone:'King\'s Cross',price:85,rating:'8.0 Muy bien',desc:'Económico, bien conectado'},
+      {name:'The Hoxton Shoreditch',stars:4,zone:'Shoreditch',price:150,rating:'8.8 Fabuloso',desc:'Diseño moderno, barrio trendy'},
+      {name:'The Savoy',stars:5,zone:'Strand',price:450,rating:'9.5 Excepcional',desc:'Icónico junto al Támesis'}
+    ]
+  };
+  DEMO_HOTELS_DB['milan'] = DEMO_HOTELS_DB['milán'];
+
+  function getDemoHotels(ciudad){
+    var k = ciudad.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    for(var key in DEMO_HOTELS_DB){
+      var kn = key.normalize('NFD').replace(/[̀-ͯ]/g,'');
+      if(kn === k) return DEMO_HOTELS_DB[key];
+    }
+    return [{name:'Hotel Centro '+ciudad,stars:3,zone:'Centro',price:80,rating:'8.0 Muy bien',desc:'Céntrico, bien comunicado'},
+      {name:'Hotel Premium '+ciudad,stars:4,zone:'Centro histórico',price:140,rating:'8.8 Fabuloso',desc:'Reformado, desayuno incluido'},
+      {name:'Hostel '+ciudad,stars:2,zone:'Centro',price:30,rating:'8.5 Muy bien',desc:'Económico, ambiente joven'}];
+  }
+
   // Buscar hoteles
   document.getElementById('buscar-hoteles-btn').addEventListener('click', async ()=>{
     const ciudad = document.getElementById('sh-ciudad').value.trim();
@@ -3125,34 +3325,57 @@ function renderBuscar(){
 
     let html = '';
 
-    if(document.getElementById('sh-amadeus').checked){
-      try {
-        const r = await apiFetch(`/api/buscar/hoteles/amadeus?ciudad=${encodeURIComponent(ciudad)}&checkin=${checkin}&checkout=${checkout}&adultos=${adultos}`);
-        if(r.data?.resultados){
-          for(const h of r.data.resultados){
+    if(DEMO_MODE){
+      var demoHotels = getDemoHotels(ciudad);
+      html = demoHotels.map(function(h){
+        return `<div class="search-result-card">
+          <div style="display:flex;justify-content:space-between;align-items:start;">
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:14px;">${escapeHtml(h.name)}</div>
+              <div class="sr-detail">${'⭐'.repeat(h.stars)} · ${escapeHtml(h.zone)}</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:2px;">${escapeHtml(h.desc)}</div>
+            </div>
+            <div style="text-align:right;white-space:nowrap;margin-left:8px;">
+              <div style="font-weight:700;color:var(--accent);">${h.price}€<span style="font-weight:400;font-size:11px;">/noche</span></div>
+              <div style="font-size:11px;color:var(--text2);">${escapeHtml(h.rating)}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <a href="https://www.booking.com/searchresults.html?ss=${encodeURIComponent(h.name+' '+ciudad)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent);font-weight:600;">🔗 Booking</a>
+            <a href="https://www.google.com/maps/search/${encodeURIComponent(h.name+' '+ciudad)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent);font-weight:600;">📍 Maps</a>
+          </div>
+        </div>`;
+      }).join('');
+    } else {
+      if(document.getElementById('sh-amadeus').checked){
+        try {
+          const r = await apiFetch(`/api/buscar/hoteles/amadeus?ciudad=${encodeURIComponent(ciudad)}&checkin=${checkin}&checkout=${checkout}&adultos=${adultos}`);
+          if(r.data?.resultados){
+            for(const h of r.data.resultados){
+              html += `<div class="search-result-card">
+                <span class="sr-source-tag">Amadeus</span>
+                <div style="font-weight:700;">${escapeHtml(h.nombre)}</div>
+                <div class="sr-detail">${escapeHtml(h.direccion||'')}</div>
+              </div>`;
+            }
+          }
+          if(r.data?.error) html += `<div class="card" style="padding:12px;"><span class="sr-source-tag">Amadeus</span> <span class="subtle">${escapeHtml(r.data.error)}</span></div>`;
+        } catch(e){ html += `<div class="card" style="padding:12px;"><span class="sr-source-tag">Amadeus</span> <span class="subtle">${escapeHtml(e.message)}</span></div>`; }
+      }
+
+      if(document.getElementById('sh-booking').checked){
+        try {
+          const r = await apiFetch(`/api/buscar/hoteles/booking?ciudad=${encodeURIComponent(ciudad)}&checkin=${checkin}&checkout=${checkout}&adultos=${adultos}`);
+          if(r.data?.deepLink){
             html += `<div class="search-result-card">
-              <span class="sr-source-tag">Amadeus</span>
-              <div style="font-weight:700;">${escapeHtml(h.nombre)}</div>
-              <div class="sr-detail">${escapeHtml(h.direccion||'')}</div>
+              <span class="sr-source-tag">Booking.com</span>
+              <div style="font-weight:700;">Buscar en Booking.com</div>
+              <div class="sr-detail">${escapeHtml(r.data.mensaje)}</div>
+              <a href="${safeHref(r.data.deepLink)}" target="_blank" class="sr-book-btn">Abrir en Booking.com</a>
             </div>`;
           }
-        }
-        if(r.data?.error) html += `<div class="card" style="padding:12px;"><span class="sr-source-tag">Amadeus</span> <span class="subtle">${escapeHtml(r.data.error)}</span></div>`;
-      } catch(e){ html += `<div class="card" style="padding:12px;"><span class="sr-source-tag">Amadeus</span> <span class="subtle">${escapeHtml(e.message)}</span></div>`; }
-    }
-
-    if(document.getElementById('sh-booking').checked){
-      try {
-        const r = await apiFetch(`/api/buscar/hoteles/booking?ciudad=${encodeURIComponent(ciudad)}&checkin=${checkin}&checkout=${checkout}&adultos=${adultos}`);
-        if(r.data?.deepLink){
-          html += `<div class="search-result-card">
-            <span class="sr-source-tag">Booking.com</span>
-            <div style="font-weight:700;">Buscar en Booking.com</div>
-            <div class="sr-detail">${escapeHtml(r.data.mensaje)}</div>
-            <a href="${safeHref(r.data.deepLink)}" target="_blank" class="sr-book-btn">Abrir en Booking.com</a>
-          </div>`;
-        }
-      } catch(e){ html += `<div class="card" style="padding:12px;"><span class="sr-source-tag">Booking</span> <span class="subtle">${escapeHtml(e.message)}</span></div>`; }
+        } catch(e){ html += `<div class="card" style="padding:12px;"><span class="sr-source-tag">Booking</span> <span class="subtle">${escapeHtml(e.message)}</span></div>`; }
+      }
     }
 
     if(!html) html = '<div class="card" style="text-align:center;padding:20px;"><div class="subtle">No se encontraron hoteles</div></div>';
@@ -3161,7 +3384,7 @@ function renderBuscar(){
 }
 
 /* ============ SECTION DISPATCH ============ */
-const TRIP_DEPENDENT_SECTIONS = new Set(["calendario","guia","mapas","documentacion","frases","offline","seguridad","clima"]);
+const TRIP_DEPENDENT_SECTIONS = new Set(["calendario","guia","mapas","documentacion","frases","offline","clima"]);
 
 function renderNoTripMessage(tab){
   const sec = document.getElementById("sec-"+tab);
@@ -3250,8 +3473,35 @@ async function loadTripAndRender(){
 /* ============ RENDER OVERRIDE FOR MISSING TRIP ============ */
 const _origRenderSection = null; // handled inline in renderSection
 
+/* ============ PRIVACY ============ */
+function initPrivacy(){
+  if(!localStorage.getItem('andanzas_privacy_ok')){
+    document.getElementById('privacy-banner').classList.remove('hidden');
+  }
+  document.getElementById('privacy-accept').addEventListener('click', function(){
+    localStorage.setItem('andanzas_privacy_ok','1');
+    document.getElementById('privacy-banner').classList.add('hidden');
+  });
+  document.getElementById('privacy-more').addEventListener('click', function(e){
+    e.preventDefault();
+    openSheet('privacy-sheet-overlay');
+  });
+  document.getElementById('privacy-delete-all').addEventListener('click', function(){
+    if(!confirm('¿Borrar TODOS tus datos de Andanzas? Esta acción no se puede deshacer.')) return;
+    var keys = [];
+    for(var i=0;i<localStorage.length;i++){
+      var k = localStorage.key(i);
+      if(k && k.startsWith('andanzas')) keys.push(k);
+    }
+    keys.forEach(function(k){ localStorage.removeItem(k); });
+    toast('Datos borrados');
+    setTimeout(function(){ location.reload(); }, 800);
+  });
+}
+
 /* ============ INIT ============ */
 async function init(){
+  try { initPrivacy(); } catch(e) { console.error('initPrivacy', e); }
   try {
     initAuthUI();
   } catch(e) { console.error('initAuthUI', e); }
