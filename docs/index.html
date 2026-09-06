@@ -672,8 +672,8 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       <div id="search-vuelos">
         <div class="card">
           <div style="display:flex;gap:8px;">
-            <div class="field" style="flex:1;"><label class="field-label">Origen (IATA)</label><input type="text" id="sv-origen" maxlength="3" placeholder="MAD" style="text-transform:uppercase;"></div>
-            <div class="field" style="flex:1;"><label class="field-label">Destino (IATA)</label><input type="text" id="sv-destino" maxlength="3" placeholder="MXP" style="text-transform:uppercase;"></div>
+            <div class="field" style="flex:1;"><label class="field-label">Origen</label><input type="text" id="sv-origen" list="ciudades-list" placeholder="Madrid"></div>
+            <div class="field" style="flex:1;"><label class="field-label">Destino</label><input type="text" id="sv-destino" list="ciudades-list" placeholder="Milán"></div>
           </div>
           <div style="display:flex;gap:8px;">
             <div class="field" style="flex:1;"><label class="field-label">Fecha</label><input type="date" id="sv-fecha"></div>
@@ -691,7 +691,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 
       <div id="search-hoteles" class="hidden">
         <div class="card">
-          <div class="field"><label class="field-label">Ciudad (IATA o nombre)</label><input type="text" id="sh-ciudad" placeholder="MIL o Milán"></div>
+          <div class="field"><label class="field-label">Ciudad</label><input type="text" id="sh-ciudad" list="ciudades-list" placeholder="Milán"></div>
           <div style="display:flex;gap:8px;">
             <div class="field" style="flex:1;"><label class="field-label">Check-in</label><input type="date" id="sh-checkin"></div>
             <div class="field" style="flex:1;"><label class="field-label">Check-out</label><input type="date" id="sh-checkout"></div>
@@ -705,6 +705,43 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
         </div>
         <div id="hoteles-results"></div>
       </div>
+      <datalist id="ciudades-list">
+        <option value="Madrid">
+        <option value="Barcelona">
+        <option value="Sevilla">
+        <option value="Valencia">
+        <option value="Málaga">
+        <option value="Bilbao">
+        <option value="Palma de Mallorca">
+        <option value="Milán">
+        <option value="Roma">
+        <option value="Florencia">
+        <option value="Venecia">
+        <option value="Nápoles">
+        <option value="París">
+        <option value="Lyon">
+        <option value="Niza">
+        <option value="Londres">
+        <option value="Ámsterdam">
+        <option value="Berlín">
+        <option value="Múnich">
+        <option value="Lisboa">
+        <option value="Oporto">
+        <option value="Atenas">
+        <option value="Estambul">
+        <option value="Praga">
+        <option value="Viena">
+        <option value="Dubrovnik">
+        <option value="Nueva York">
+        <option value="Miami">
+        <option value="Los Ángeles">
+        <option value="Cancún">
+        <option value="Buenos Aires">
+        <option value="Tokio">
+        <option value="Bangkok">
+        <option value="Dubái">
+        <option value="Marrakech">
+      </datalist>
     </section>
 
     <section class="section hidden" id="sec-seguridad">
@@ -1077,11 +1114,13 @@ function initAuthUI(){
     const err = document.getElementById("auth-error");
     if(!usuario || !password){ err.textContent = "Introduce usuario y contraseña."; return; }
     try {
+      var hr = await apiFetch('/api/salud');
+      if(!hr.ok) throw new Error('no backend');
       const r = await apiFetch('/api/sesion', { method: 'POST', body: JSON.stringify({ usuario, password }) });
       if(!r.ok){ err.textContent = r.data?.error || "Credenciales incorrectas."; return; }
       err.textContent = "";
       loginAs(r.data.usuario, r.data.perfil || { nombre: r.data.usuario, intereses: [] });
-    } catch { err.textContent = "No se puede conectar con el servidor."; }
+    } catch { err.textContent = ""; enterDemo(); }
   });
 
   document.getElementById("register-form").addEventListener("submit", async e=>{
@@ -1105,6 +1144,8 @@ function initAuthUI(){
       ciudades: regDestino.ciudades
     } : undefined;
     try {
+      var hr2 = await apiFetch('/api/salud');
+      if(!hr2.ok) throw new Error('no backend');
       const r = await apiFetch('/api/registro', {
         method: 'POST',
         body: JSON.stringify({ usuario, password, nombre, email: usuario, intereses, destino })
@@ -1112,7 +1153,7 @@ function initAuthUI(){
       if(!r.ok){ err.textContent = r.data?.error || "Error en el registro."; return; }
       err.textContent = "";
       loginAs(r.data.usuario, r.data.perfil || { nombre, intereses });
-    } catch { err.textContent = "No se puede conectar con el servidor."; }
+    } catch { err.textContent = ""; enterDemo(); }
   });
 
   // --- Reset password UI ---
@@ -1145,10 +1186,12 @@ function initAuthUI(){
     if(!usuario){ msg.style.color="#D1567A"; msg.textContent="Introduce tu usuario."; return; }
     msg.style.color="var(--accent,#2F6F65)"; msg.textContent="Enviando...";
     try {
+      var hr3 = await apiFetch('/api/salud');
+      if(!hr3.ok) throw new Error('no backend');
       const r = await apiFetch('/api/reset-password', { method:'POST', body:JSON.stringify({usuario}) });
       if(!r.ok){ msg.style.color="#D1567A"; msg.textContent=r.data?.error||"Error"; return; }
       msg.style.color="var(--accent,#2F6F65)"; msg.textContent=r.data?.mensaje||"Revisa tu correo.";
-    } catch { msg.style.color="#D1567A"; msg.textContent="No se puede conectar con el servidor."; }
+    } catch { msg.style.color="#D1567A"; msg.textContent="No disponible en modo demo. Pulsa atrás y usa «Explorar en modo demo»."; }
   });
 
   document.getElementById("reset-confirm-btn").addEventListener("click", async ()=>{
@@ -2737,6 +2780,23 @@ function renderSeguridad(){
 }
 
 /* ============ RENDER: BUSCAR ============ */
+var CITY_IATA = {
+  'madrid':'MAD','barcelona':'BCN','sevilla':'SVQ','valencia':'VLC','málaga':'AGP','malaga':'AGP',
+  'bilbao':'BIO','palma de mallorca':'PMI','milán':'MXP','milan':'MXP','roma':'FCO','florencia':'FLR',
+  'venecia':'VCE','nápoles':'NAP','napoles':'NAP','parís':'CDG','paris':'CDG','lyon':'LYS','niza':'NCE',
+  'londres':'LHR','ámsterdam':'AMS','amsterdam':'AMS','berlín':'BER','berlin':'BER','múnich':'MUC','munich':'MUC',
+  'lisboa':'LIS','oporto':'OPO','atenas':'ATH','estambul':'IST','praga':'PRG','viena':'VIE',
+  'dubrovnik':'DBV','nueva york':'JFK','miami':'MIA','los ángeles':'LAX','los angeles':'LAX',
+  'cancún':'CUN','cancun':'CUN','buenos aires':'EZE','tokio':'NRT','bangkok':'BKK','dubái':'DXB',
+  'dubai':'DXB','marrakech':'RAK'
+};
+function cityToIATA(val){
+  if(!val) return val;
+  var v = val.trim();
+  if(/^[A-Z]{3}$/.test(v)) return v;
+  var k = v.toLowerCase();
+  return CITY_IATA[k] || v.toUpperCase().slice(0,3);
+}
 let searchTabInited = false;
 
 function renderBuscar(){
@@ -2754,16 +2814,16 @@ function renderBuscar(){
     });
   });
 
-  // Pre-fill from profile destination
   if(CURRENT_PROFILE && CURRENT_PROFILE.destino && CURRENT_PROFILE.destino.ciudades){
     const city = CURRENT_PROFILE.destino.ciudades[0] || '';
     document.getElementById('sh-ciudad').value = city;
+    document.getElementById('sv-destino').value = city;
   }
 
   // Buscar vuelos
   document.getElementById('buscar-vuelos-btn').addEventListener('click', async ()=>{
-    const origen = document.getElementById('sv-origen').value.trim().toUpperCase();
-    const destino = document.getElementById('sv-destino').value.trim().toUpperCase();
+    const origen = cityToIATA(document.getElementById('sv-origen').value);
+    const destino = cityToIATA(document.getElementById('sv-destino').value);
     const fecha = document.getElementById('sv-fecha').value;
     const adultos = document.getElementById('sv-adultos').value;
     if(!origen || !destino || !fecha){ toast('Rellena origen, destino y fecha'); return; }
