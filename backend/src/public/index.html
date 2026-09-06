@@ -573,6 +573,11 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       <button class="btn btn-secondary btn-block" id="near-me-btn" type="button" style="margin-bottom:14px;"><img src="assets/icons/address.png" alt="" style="width:18px;height:18px;object-fit:contain;vertical-align:middle;"> Cerca de mí</button>
       <div id="geo-status" class="tiny" style="margin-bottom:10px;"></div>
 
+      <div id="nearby-results" class="hidden" style="margin-bottom:16px;">
+        <h3 style="margin:0 0 8px;">📍 Cerca de ti</h3>
+        <div id="nearby-list" class="card"></div>
+      </div>
+
       <h3 style="margin:0 0 8px;">Milán</h3>
       <div class="hscroll" id="guide-milan-hscroll"></div>
 
@@ -837,13 +842,53 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 (function(){
 "use strict";
 
-/* ============ STORAGE HELPERS ============ */
+/* ============ STORAGE HELPERS + CIFRADO LOCAL ============ */
 const LS_PREFIX = "andanzas_";
-function lsGet(key, fallback){
-  try{ const v = localStorage.getItem(LS_PREFIX+key); return v===null?fallback:JSON.parse(v); }
-  catch(e){ return fallback; }
+var _cipherKey = null;
+
+function _xorCipher(text, key){
+  if(!key || !key.length) return text;
+  var out = [];
+  for(var i = 0; i < text.length; i++){
+    out.push(String.fromCharCode(text.charCodeAt(i) ^ key[i % key.length]));
+  }
+  return out.join('');
 }
-function lsSet(key, val){ try{ localStorage.setItem(LS_PREFIX+key, JSON.stringify(val)); }catch(e){} }
+
+async function initCipher(passphrase){
+  var enc = new TextEncoder();
+  var salt = localStorage.getItem(LS_PREFIX+'_salt');
+  if(!salt){
+    var sb = crypto.getRandomValues(new Uint8Array(16));
+    salt = btoa(String.fromCharCode.apply(null, sb));
+    localStorage.setItem(LS_PREFIX+'_salt', salt);
+  }
+  var saltBytes = Uint8Array.from(atob(salt), function(c){ return c.charCodeAt(0); });
+  var km = await crypto.subtle.importKey('raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveBits']);
+  var bits = await crypto.subtle.deriveBits({name:'PBKDF2', salt:saltBytes, iterations:100000, hash:'SHA-256'}, km, 256);
+  _cipherKey = new Uint8Array(bits);
+}
+
+function lsGet(key, fallback){
+  try{
+    var raw = localStorage.getItem(LS_PREFIX+key);
+    if(raw === null) return fallback;
+    if(_cipherKey && raw.charAt(0) === '\x01'){
+      raw = _xorCipher(atob(raw.slice(1)), _cipherKey);
+    }
+    return JSON.parse(raw);
+  } catch(e){ return fallback; }
+}
+
+function lsSet(key, val){
+  try{
+    var json = JSON.stringify(val);
+    if(_cipherKey){
+      json = '\x01' + btoa(_xorCipher(json, _cipherKey));
+    }
+    localStorage.setItem(LS_PREFIX+key, json);
+  } catch(e){}
+}
 
 /* ============ STATE ============ */
 let TRIP = null;
@@ -1258,8 +1303,9 @@ async function logout(){
   document.getElementById("auth-error").textContent = "";
 }
 
-function enterDemo(){
+async function enterDemo(){
   DEMO_MODE = true;
+  await initCipher('andanzas-demo-' + (navigator.userAgent||'').slice(0,20));
   CURRENT_USER = 'demo';
   CURRENT_PROFILE = {
     name: 'Viajero',
@@ -1448,7 +1494,7 @@ function ensureViaje(){
 
 async function saveViaje(){
   if(DEMO_MODE){
-    try { localStorage.setItem('andanzas_demo_viaje', JSON.stringify(CURRENT_PROFILE.viaje || {})); } catch{}
+    lsSet('demo_viaje', CURRENT_PROFILE.viaje || {});
     return;
   }
   const viaje = CURRENT_PROFILE.viaje || {};
@@ -2426,6 +2472,56 @@ function renderGuia(){
   });
 }
 
+var nearbyCache = null;
+async function fetchNearbyPOIs(lat, lon){
+  var radius = 800;
+  var query = `[out:json][timeout:10];(
+    node["amenity"~"restaurant|cafe|bar"](around:${radius},${lat},${lon});
+    node["tourism"~"museum|attraction|viewpoint|gallery"](around:${radius},${lat},${lon});
+    node["historic"](around:${radius},${lat},${lon});
+  );out body 20;`;
+  try {
+    var r = await fetch('https://overpass-api.de/api/interpreter', {
+      method:'POST', body:'data='+encodeURIComponent(query),
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      signal: AbortSignal.timeout(12000)
+    });
+    var data = await r.json();
+    nearbyCache = (data.elements||[]).map(function(el){
+      var tags = el.tags||{};
+      var cat = tags.tourism||tags.historic||tags.amenity||'lugar';
+      var catLabels = {restaurant:'🍽️ Restaurante',cafe:'☕ Café',bar:'🍸 Bar',museum:'🏛️ Museo',attraction:'⭐ Atracción',viewpoint:'🏔️ Mirador',gallery:'🎨 Galería',monument:'🏛️ Monumento',castle:'🏰 Castillo',memorial:'📜 Memorial'};
+      return {
+        name: tags.name || tags['name:es'] || 'Sin nombre',
+        cat: catLabels[cat] || cat,
+        lat: el.lat, lon: el.lon,
+        dist: haversine(lat,lon,el.lat,el.lon),
+        cuisine: tags.cuisine || '',
+        phone: tags.phone || ''
+      };
+    }).filter(function(p){ return p.name !== 'Sin nombre'; })
+      .sort(function(a,b){ return a.dist - b.dist; });
+    renderNearby();
+  } catch(e){ console.warn('Overpass', e); }
+}
+
+function renderNearby(){
+  var wrap = document.getElementById('nearby-results');
+  var list = document.getElementById('nearby-list');
+  if(!nearbyCache || !nearbyCache.length){ wrap.classList.add('hidden'); return; }
+  wrap.classList.remove('hidden');
+  list.innerHTML = nearbyCache.slice(0,10).map(function(p){
+    return `<div class="rest-card">
+      <div style="flex:1;min-width:0;">
+        <strong style="font-size:13px;">${escapeHtml(p.name)}</strong>
+        <div class="tiny">${escapeHtml(p.cat)}${p.cuisine ? ' · '+escapeHtml(p.cuisine) : ''}</div>
+        <div class="tiny">📍 ${fmtDist(p.dist)}</div>
+      </div>
+      <a href="https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}&travelmode=walking" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent);font-weight:600;white-space:nowrap;">🗺️ Ir</a>
+    </div>`;
+  }).join('');
+}
+
 document.getElementById("near-me-btn").addEventListener("click", ()=>{
   if(!navigator.geolocation){
     geoError = "Geolocalización no disponible en este navegador.";
@@ -2440,6 +2536,7 @@ document.getElementById("near-me-btn").addEventListener("click", ()=>{
       renderGuia();
       renderResumen();
       renderMap();
+      fetchNearbyPOIs(geoPos.lat, geoPos.lon);
       toast("Ubicación actualizada");
     },
     err=>{
@@ -2449,6 +2546,7 @@ document.getElementById("near-me-btn").addEventListener("click", ()=>{
           geoPos = {lat:pos2.coords.latitude, lon:pos2.coords.longitude};
           geoError = null;
           renderGuia(); renderResumen(); renderMap();
+          fetchNearbyPOIs(geoPos.lat, geoPos.lon);
         },
         err2=>{
           if(err2.code===1) geoError = "Permiso de ubicación denegado.";
@@ -2768,13 +2866,106 @@ function renderSeasonalWeather(){
 }
 
 /* ============ RENDER: FRASES ============ */
+var PHRASE_DB = {
+  italiano: {lang:'Italiano',phrases:[
+    {l:'Buongiorno',es:'Buenos días'},{l:'Grazie',es:'Gracias'},{l:'Per favore',es:'Por favor'},
+    {l:'Scusi',es:'Disculpe'},{l:'Quanto costa?',es:'¿Cuánto cuesta?'},{l:'Dov\'è il bagno?',es:'¿Dónde está el baño?'},
+    {l:'Il conto, per favore',es:'La cuenta, por favor'},{l:'Mi sono perso',es:'Me he perdido'},
+    {l:'Vorrei prenotare',es:'Quisiera reservar'},{l:'Aiuto!',es:'¡Ayuda!'},
+    {l:'Non capisco',es:'No entiendo'},{l:'Parla spagnolo?',es:'¿Habla español?'},
+    {l:'Un tavolo per due',es:'Mesa para dos'},{l:'Acqua, per favore',es:'Agua, por favor'},
+    {l:'Arrivederci',es:'Hasta luego'}
+  ]},
+  frances: {lang:'Français',phrases:[
+    {l:'Bonjour',es:'Buenos días'},{l:'Merci',es:'Gracias'},{l:'S\'il vous plaît',es:'Por favor'},
+    {l:'Excusez-moi',es:'Disculpe'},{l:'Combien ça coûte?',es:'¿Cuánto cuesta?'},
+    {l:'Où sont les toilettes?',es:'¿Dónde está el baño?'},{l:'L\'addition, s\'il vous plaît',es:'La cuenta, por favor'},
+    {l:'Je suis perdu(e)',es:'Me he perdido'},{l:'Je voudrais réserver',es:'Quisiera reservar'},
+    {l:'Au secours!',es:'¡Ayuda!'},{l:'Je ne comprends pas',es:'No entiendo'},
+    {l:'Parlez-vous espagnol?',es:'¿Habla español?'},{l:'Une table pour deux',es:'Mesa para dos'},
+    {l:'De l\'eau, s\'il vous plaît',es:'Agua, por favor'},{l:'Au revoir',es:'Hasta luego'}
+  ]},
+  ingles: {lang:'English',phrases:[
+    {l:'Hello',es:'Hola'},{l:'Thank you',es:'Gracias'},{l:'Please',es:'Por favor'},
+    {l:'Excuse me',es:'Disculpe'},{l:'How much is it?',es:'¿Cuánto cuesta?'},
+    {l:'Where is the bathroom?',es:'¿Dónde está el baño?'},{l:'The check, please',es:'La cuenta, por favor'},
+    {l:'I\'m lost',es:'Me he perdido'},{l:'I\'d like to book',es:'Quisiera reservar'},
+    {l:'Help!',es:'¡Ayuda!'},{l:'I don\'t understand',es:'No entiendo'},
+    {l:'Do you speak Spanish?',es:'¿Habla español?'},{l:'A table for two',es:'Mesa para dos'},
+    {l:'Water, please',es:'Agua, por favor'},{l:'Goodbye',es:'Hasta luego'}
+  ]},
+  aleman: {lang:'Deutsch',phrases:[
+    {l:'Guten Tag',es:'Buenos días'},{l:'Danke',es:'Gracias'},{l:'Bitte',es:'Por favor'},
+    {l:'Entschuldigung',es:'Disculpe'},{l:'Wie viel kostet das?',es:'¿Cuánto cuesta?'},
+    {l:'Wo ist die Toilette?',es:'¿Dónde está el baño?'},{l:'Die Rechnung, bitte',es:'La cuenta, por favor'},
+    {l:'Ich habe mich verlaufen',es:'Me he perdido'},{l:'Ich möchte reservieren',es:'Quisiera reservar'},
+    {l:'Hilfe!',es:'¡Ayuda!'},{l:'Ich verstehe nicht',es:'No entiendo'},
+    {l:'Sprechen Sie Spanisch?',es:'¿Habla español?'},{l:'Einen Tisch für zwei',es:'Mesa para dos'},
+    {l:'Wasser, bitte',es:'Agua, por favor'},{l:'Auf Wiedersehen',es:'Hasta luego'}
+  ]},
+  portugues: {lang:'Português',phrases:[
+    {l:'Bom dia',es:'Buenos días'},{l:'Obrigado/a',es:'Gracias'},{l:'Por favor',es:'Por favor'},
+    {l:'Com licença',es:'Disculpe'},{l:'Quanto custa?',es:'¿Cuánto cuesta?'},
+    {l:'Onde é o banheiro?',es:'¿Dónde está el baño?'},{l:'A conta, por favor',es:'La cuenta, por favor'},
+    {l:'Estou perdido/a',es:'Me he perdido'},{l:'Gostaria de reservar',es:'Quisiera reservar'},
+    {l:'Socorro!',es:'¡Ayuda!'},{l:'Não entendo',es:'No entiendo'},
+    {l:'Fala espanhol?',es:'¿Habla español?'},{l:'Uma mesa para dois',es:'Mesa para dos'},
+    {l:'Água, por favor',es:'Agua, por favor'},{l:'Tchau',es:'Hasta luego'}
+  ]},
+  holandes: {lang:'Nederlands',phrases:[
+    {l:'Goedendag',es:'Buenos días'},{l:'Dank u',es:'Gracias'},{l:'Alstublieft',es:'Por favor'},
+    {l:'Pardon',es:'Disculpe'},{l:'Hoeveel kost het?',es:'¿Cuánto cuesta?'},
+    {l:'Waar is het toilet?',es:'¿Dónde está el baño?'},{l:'De rekening, alstublieft',es:'La cuenta, por favor'},
+    {l:'Ik ben verdwaald',es:'Me he perdido'},{l:'Help!',es:'¡Ayuda!'},
+    {l:'Ik begrijp het niet',es:'No entiendo'},{l:'Tot ziens',es:'Hasta luego'}
+  ]},
+  griego: {lang:'Ελληνικά',phrases:[
+    {l:'Γεια σας (Yia sas)',es:'Hola'},{l:'Ευχαριστώ (Efjaristó)',es:'Gracias'},
+    {l:'Παρακαλώ (Parakaló)',es:'Por favor'},{l:'Συγγνώμη (Signómi)',es:'Disculpe'},
+    {l:'Πόσο κάνει; (Póso káni?)',es:'¿Cuánto cuesta?'},
+    {l:'Βοήθεια! (Voíthia!)',es:'¡Ayuda!'},{l:'Δεν καταλαβαίνω (Den katalavéno)',es:'No entiendo'},
+    {l:'Αντίο (Adío)',es:'Hasta luego'}
+  ]},
+  turco: {lang:'Türkçe',phrases:[
+    {l:'Merhaba',es:'Hola'},{l:'Teşekkürler',es:'Gracias'},{l:'Lütfen',es:'Por favor'},
+    {l:'Affedersiniz',es:'Disculpe'},{l:'Ne kadar?',es:'¿Cuánto cuesta?'},
+    {l:'Tuvalet nerede?',es:'¿Dónde está el baño?'},{l:'Hesap, lütfen',es:'La cuenta, por favor'},
+    {l:'Yardım!',es:'¡Ayuda!'},{l:'Anlamıyorum',es:'No entiendo'},
+    {l:'Hoşça kalın',es:'Hasta luego'}
+  ]},
+  japones: {lang:'日本語',phrases:[
+    {l:'こんにちは (Konnichiwa)',es:'Hola'},{l:'ありがとう (Arigatō)',es:'Gracias'},
+    {l:'すみません (Sumimasen)',es:'Disculpe'},{l:'いくらですか (Ikura desu ka?)',es:'¿Cuánto cuesta?'},
+    {l:'トイレはどこですか (Toire wa doko desu ka?)',es:'¿Dónde está el baño?'},
+    {l:'助けて (Tasukete!)',es:'¡Ayuda!'},{l:'わかりません (Wakarimasen)',es:'No entiendo'},
+    {l:'さようなら (Sayōnara)',es:'Hasta luego'}
+  ]}
+};
+
+var COUNTRY_LANG = {
+  italia:'italiano',francia:'frances',belgica:'frances',suiza:'frances',
+  'reino unido':'ingles',irlanda:'ingles',eeuu:'ingles','estados unidos':'ingles',
+  canada:'ingles',australia:'ingles','nueva zelanda':'ingles',
+  alemania:'aleman',austria:'aleman',
+  portugal:'portugues',brasil:'portugues',
+  'paises bajos':'holandes',holanda:'holandes',
+  grecia:'griego',turquia:'turco',japon:'japones'
+};
+
+function getDestLang(){
+  if(!CURRENT_PROFILE || !CURRENT_PROFILE.destino) return 'ingles';
+  var pais = (CURRENT_PROFILE.destino.pais||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  return COUNTRY_LANG[pais] || 'ingles';
+}
+
 function renderFrases(){
-  document.getElementById("phrases-list").innerHTML = TRIP.phrases.map(p=>`
-    <div class="phrase-row">
-      <div class="phrase-it">${escapeHtml(p.it)}</div>
-      <div class="phrase-es">${escapeHtml(p.es)}</div>
-    </div>
-  `).join("");
+  var langKey = getDestLang();
+  var db = PHRASE_DB[langKey] || PHRASE_DB.ingles;
+  var list = document.getElementById("phrases-list");
+  var header = '<div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:600;">'+escapeHtml(db.lang)+' → Español</div>';
+  list.innerHTML = header + db.phrases.map(function(p){
+    return '<div class="phrase-row"><div class="phrase-it">'+escapeHtml(p.l)+'</div><div class="phrase-es">'+escapeHtml(p.es)+'</div></div>';
+  }).join("");
 }
 
 /* ============ RENDER: OFFLINE ============ */
