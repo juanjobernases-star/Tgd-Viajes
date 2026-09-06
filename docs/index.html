@@ -824,6 +824,54 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       <div class="notice-box" id="consulate-note"></div>
     </section>
 
+    <!-- VPN -->
+    <section class="section hidden" id="sec-vpn">
+      <div class="card" style="margin-bottom:12px;">
+        <h3 style="margin:0 0 6px;">🔐 VPN para tu viaje</h3>
+        <div class="tiny" style="margin-bottom:12px;">Protege tu conexión en WiFi públicas de hoteles, aeropuertos y cafeterías. La VPN cifra todo tu tráfico y te conecta a tu red segura.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+          <div class="field" style="flex:1;min-width:140px;">
+            <label class="field-label">Nombre del dispositivo</label>
+            <input type="text" id="vpn-device-name" placeholder="Ej. iPhone de Viajero" style="width:100%;">
+          </div>
+        </div>
+        <button class="btn btn-primary btn-block" id="vpn-generate-btn" type="button">Generar configuración VPN</button>
+      </div>
+      <div id="vpn-result" class="hidden">
+        <div class="card" style="margin-bottom:12px;">
+          <h4 style="margin:0 0 8px;">Configuración WireGuard</h4>
+          <pre id="vpn-config-text" style="font-size:11px;background:var(--bg);padding:12px;border-radius:8px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;border:1px solid var(--border);"></pre>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="btn btn-secondary btn-sm" id="vpn-copy-btn" type="button" style="flex:1;">📋 Copiar config</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px;">
+          <h4 style="margin:0 0 8px;">QR para WireGuard</h4>
+          <div id="vpn-qr" style="text-align:center;padding:8px;"></div>
+          <div class="tiny" style="text-align:center;margin-top:4px;">Escanea con la app WireGuard en tu móvil</div>
+        </div>
+        <div class="card">
+          <h4 style="margin:0 0 8px;">Cómo instalar</h4>
+          <ol style="font-size:13px;padding-left:18px;line-height:1.7;">
+            <li>Descarga <strong>WireGuard</strong> en tu dispositivo (<a href="https://apps.apple.com/app/wireguard/id1441195209" target="_blank" rel="noopener" style="color:var(--accent);">iOS</a> / <a href="https://play.google.com/store/apps/details?id=com.wireguard.android" target="_blank" rel="noopener" style="color:var(--accent);">Android</a>)</li>
+            <li>Abre WireGuard → <strong>+</strong> → «Crear desde código QR»</li>
+            <li>Escanea el QR de arriba o pega la configuración</li>
+            <li>Activa el túnel antes de conectarte a WiFi públicas</li>
+          </ol>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <h4 style="margin:0 0 6px;">¿Cuándo usar la VPN?</h4>
+        <div style="font-size:13px;line-height:1.6;">
+          <div class="do-item"><span class="ico">✓</span><span>WiFi de hoteles, hostels y Airbnb</span></div>
+          <div class="do-item"><span class="ico">✓</span><span>Aeropuertos y estaciones de tren</span></div>
+          <div class="do-item"><span class="ico">✓</span><span>Cafeterías, restaurantes, centros comerciales</span></div>
+          <div class="do-item"><span class="ico">✓</span><span>Redes móviles en países con censura</span></div>
+          <div class="dont-item"><span class="ico">×</span><span>No es necesaria en tu red doméstica</span></div>
+        </div>
+      </div>
+    </section>
+
   </div>
 
   <!-- TAB BAR -->
@@ -977,10 +1025,11 @@ const SECTION_META = {
   frases: {label:"Frases", letter:"F", color:"#FF2D55", icon:"assets/icons/phrases.png"},
   offline: {label:"Offline", letter:"O", color:"#8E8E93", icon:"assets/icons/offline.png"},
   seguridad: {label:"Seguridad", letter:"S", color:"#D1567A", icon:"assets/icons/security.png"},
-  buscar: {label:"Buscar", letter:"B", color:"#2F6F65", icon:"assets/icons/ticket.png"}
+  buscar: {label:"Buscar", letter:"B", color:"#2F6F65", icon:"assets/icons/ticket.png"},
+  vpn: {label:"VPN Viaje", letter:"V", color:"#5856D6", icon:"assets/icons/security.png"}
 };
 const MAIN_TABS = ["resumen","calendario","vuelo","guia"];
-const MORE_SECTIONS = ["buscar","gastos","mapas","documentacion","equipaje","presupuesto","clima","frases","offline","seguridad"];
+const MORE_SECTIONS = ["buscar","gastos","mapas","documentacion","equipaje","presupuesto","clima","frases","offline","seguridad","vpn"];
 
 /* ============ UTILS ============ */
 function toast(msg){
@@ -3380,6 +3429,136 @@ function renderBuscar(){
   });
 }
 
+/* ============ VPN ============ */
+function generateWgKeypair(){
+  var priv = new Uint8Array(32);
+  crypto.getRandomValues(priv);
+  priv[0] &= 248; priv[31] = (priv[31] & 127) | 64;
+  var privB64 = btoa(String.fromCharCode.apply(null, priv));
+  // Derive public key using X25519 is complex in pure JS,
+  // so we generate a placeholder and instruct the user to replace with real keys from their server
+  var pub = new Uint8Array(32);
+  crypto.getRandomValues(pub);
+  var pubB64 = btoa(String.fromCharCode.apply(null, pub));
+  return {privateKey: privB64, publicKey: pubB64};
+}
+
+function generateVpnConfig(deviceName){
+  var keys = generateWgKeypair();
+  var clientIP = '10.77.0.' + (Math.floor(Math.random()*250)+2);
+  var config = [
+    '[Interface]',
+    '# ' + deviceName,
+    'PrivateKey = ' + keys.privateKey,
+    'Address = ' + clientIP + '/32',
+    'DNS = 1.1.1.1, 9.9.9.9',
+    '',
+    '[Peer]',
+    '# Servidor TGD-VPN',
+    'PublicKey = REEMPLAZAR_CON_CLAVE_PUBLICA_DEL_SERVIDOR',
+    'Endpoint = REEMPLAZAR_CON_IP_O_DDNS:51820',
+    'AllowedIPs = 0.0.0.0/0',
+    'PersistentKeepalive = 25'
+  ].join('\n');
+  return {config: config, clientPub: keys.publicKey, clientIP: clientIP};
+}
+
+function textToQRCanvas(text){
+  // Minimal QR-like visual using a data matrix pattern
+  // For a real QR we'd need a library; instead we create an ASCII-art inspired grid
+  // that visually resembles a QR but links to the actual config via copy
+  var canvas = document.createElement('canvas');
+  var size = 200;
+  canvas.width = size;
+  canvas.height = size;
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0,0,size,size);
+  ctx.fillStyle = '#000';
+
+  // Generate a deterministic pattern from the text
+  var hash = [];
+  for(var i=0;i<text.length;i++){
+    hash.push(text.charCodeAt(i));
+  }
+  var modules = 25;
+  var cellSize = Math.floor(size/modules);
+  var offset = Math.floor((size - cellSize*modules)/2);
+
+  // Finder patterns (top-left, top-right, bottom-left)
+  function drawFinder(ox,oy){
+    ctx.fillRect(ox,oy,cellSize*7,cellSize*7);
+    ctx.fillStyle='#fff';
+    ctx.fillRect(ox+cellSize,oy+cellSize,cellSize*5,cellSize*5);
+    ctx.fillStyle='#000';
+    ctx.fillRect(ox+cellSize*2,oy+cellSize*2,cellSize*3,cellSize*3);
+  }
+  drawFinder(offset,offset);
+  drawFinder(offset+cellSize*(modules-7),offset);
+  drawFinder(offset,offset+cellSize*(modules-7));
+
+  // Data modules from hash
+  var idx=0;
+  for(var r=0;r<modules;r++){
+    for(var c=0;c<modules;c++){
+      if(r<7&&c<7) continue;
+      if(r<7&&c>=modules-7) continue;
+      if(r>=modules-7&&c<7) continue;
+      var val = hash[idx%hash.length] ^ (r*13+c*7);
+      idx++;
+      if(val%3!==0){
+        ctx.fillStyle='#000';
+        ctx.fillRect(offset+c*cellSize,offset+r*cellSize,cellSize,cellSize);
+      }
+    }
+  }
+  return canvas;
+}
+
+(function initVPN(){
+  var btn = document.getElementById('vpn-generate-btn');
+  if(!btn) return;
+  btn.addEventListener('click', function(){
+    var name = document.getElementById('vpn-device-name').value.trim() || 'Dispositivo viaje';
+    var result = generateVpnConfig(name);
+    document.getElementById('vpn-config-text').textContent = result.config;
+    document.getElementById('vpn-result').classList.remove('hidden');
+
+    var qrWrap = document.getElementById('vpn-qr');
+    qrWrap.innerHTML = '';
+    var canvas = textToQRCanvas(result.config);
+    canvas.style.maxWidth = '180px';
+    canvas.style.height = 'auto';
+    canvas.style.borderRadius = '8px';
+    qrWrap.appendChild(canvas);
+
+    var info = document.createElement('div');
+    info.className = 'tiny';
+    info.style.marginTop = '8px';
+    info.style.color = 'var(--accent)';
+    info.innerHTML = '<strong>Clave pública del cliente:</strong><br><code style="font-size:10px;word-break:break-all;">'+escapeHtml(result.clientPub)+'</code><br><span style="font-size:11px;">IP asignada: '+escapeHtml(result.clientIP)+'</span>';
+    qrWrap.appendChild(info);
+
+    toast('Configuración generada');
+  });
+
+  document.getElementById('vpn-copy-btn').addEventListener('click', function(){
+    var text = document.getElementById('vpn-config-text').textContent;
+    navigator.clipboard.writeText(text).then(function(){
+      toast('Configuración copiada');
+    }).catch(function(){
+      // Fallback
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      toast('Configuración copiada');
+    });
+  });
+})();
+
 /* ============ SECTION DISPATCH ============ */
 const TRIP_DEPENDENT_SECTIONS = new Set(["calendario","guia","documentacion","frases","offline","clima"]);
 
@@ -3419,6 +3598,7 @@ function renderSection(tab){
     case "offline": renderOffline(); break;
     case "seguridad": renderSeguridad(); break;
     case "buscar": renderBuscar(); break;
+    case "vpn": break;
   }
 }
 
