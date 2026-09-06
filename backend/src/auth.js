@@ -86,4 +86,37 @@ export async function credencialesValidas(usuario, password) {
   } catch { return false; }
 }
 
+// --- Auto-registro: crear usuario en Nextcloud via API OCS ----------------
+const NC_ADMIN = process.env.NC_ADMIN_USER;
+const NC_ADMIN_PASS = process.env.NC_ADMIN_PASSWORD;
+
+export async function crearUsuario(usuario, password, nombre) {
+  if (!NC_ADMIN || !NC_ADMIN_PASS) {
+    throw new Error('Auto-registro no configurado (faltan NC_ADMIN_USER/NC_ADMIN_PASSWORD)');
+  }
+  if (typeof usuario !== 'string' || usuario.length < 3) {
+    throw new Error('El usuario debe tener al menos 3 caracteres');
+  }
+  if (typeof password !== 'string' || password.length < 8) {
+    throw new Error('La contraseña debe tener al menos 8 caracteres');
+  }
+  const res = await fetch(`${BASE}/ocs/v1.php/cloud/users?format=json`, {
+    method: 'POST',
+    headers: {
+      Authorization: 'Basic ' + Buffer.from(`${NC_ADMIN}:${NC_ADMIN_PASS}`).toString('base64'),
+      'OCS-APIRequest': 'true',
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: new URLSearchParams({ userid: usuario, password, displayName: nombre || usuario }),
+    signal: AbortSignal.timeout(15000)
+  });
+  const j = await res.json();
+  const code = j?.ocs?.meta?.statuscode;
+  if (code === 102) throw new Error('El usuario ya existe');
+  if (code !== 100) throw new Error(j?.ocs?.meta?.message || 'Error creando usuario en la nube');
+  return true;
+}
+
+export function registroDisponible() { return !!(NC_ADMIN && NC_ADMIN_PASS); }
+
 export { COOKIE, HORAS, registrarFallo, bloqueado, limpiar };

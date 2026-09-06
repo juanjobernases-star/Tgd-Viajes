@@ -42,7 +42,7 @@ app.addHook('onSend', async (req, res, cuerpo) => {
 
 // Todo lo que cuelga de /api/viajes exige sesion. Lista blanca explicita: si
 // manana se anade una ruta nueva, nace protegida en vez de nacer abierta.
-const ABIERTAS = new Set(['/api/sesion', '/api/salud']);
+const ABIERTAS = new Set(['/api/sesion', '/api/salud', '/api/registro']);
 app.addHook('onRequest', async (req, res) => {
   if (!req.url.startsWith('/api/')) return;
   const ruta = req.url.split('?')[0];
@@ -79,21 +79,21 @@ app.post('/api/sesion', async (req, res) => {
   }
   auth.limpiar(ip);
   res.setCookie(auth.COOKIE, auth.crearTestigo(usuario), {
-    httpOnly: true,          // fuera del alcance de cualquier script en la pagina
-    sameSite: 'strict',      // el navegador no la envia desde otros origenes: corta CSRF
+    httpOnly: true,
+    sameSite: 'strict',
     secure: process.env.COOKIE_SEGURA !== 'no',
-    // Acotada al prefijo donde vive la app: asi no viaja en cada peticion a
-    // Nextcloud, que comparte host detras del mismo proxy.
     path: process.env.COOKIE_PATH || '/',
     maxAge: auth.HORAS * 3600
   });
-  return { usuario };
+  const perfil = await nube.leerPerfil(usuario);
+  return { usuario, perfil };
 });
 
 app.get('/api/sesion', async (req, res) => {
   const usuario = auth.verificarTestigo(req.cookies?.[auth.COOKIE]);
   if (!usuario) { res.code(401); return { error: 'Sin sesion' }; }
-  return { usuario };
+  const perfil = await nube.leerPerfil(usuario);
+  return { usuario, perfil };
 });
 
 app.delete('/api/sesion', async (_req, res) => {
@@ -101,7 +101,70 @@ app.delete('/api/sesion', async (_req, res) => {
   res.code(204);
 });
 
-app.get('/api/salud', async () => ({ ok: true }));
+app.get('/api/salud', async () => ({ ok: true, registro: auth.registroDisponible() }));
+
+// --- Registro ---------------------------------------------------------------
+const INTERESES_VALIDOS = new Set(['arte','comida','aventura','compras','tranquilo']);
+
+app.post('/api/registro', async (req, res) => {
+  if (!auth.registroDisponible()) {
+    res.code(503);
+    return { error: 'El registro no está habilitado en este servidor' };
+  }
+  const ip = req.ip;
+  if (auth.bloqueado(ip)) {
+    res.code(429);
+    return { error: 'Demasiados intentos. Espera unos minutos.' };
+  }
+  const { usuario, password, nombre, email, intereses } = req.body ?? {};
+  if (!usuario || !password || !nombre) {
+    res.code(400);
+    return { error: 'Faltan campos obligatorios (usuario, password, nombre)' };
+  }
+  if (typeof password !== 'string' || password.length < 8) {
+    res.code(400);
+    return { error: 'La contraseña debe tener al menos 8 caracteres' };
+  }
+  const ints = Array.isArray(intereses) ? intereses.filter(i => INTERESES_VALIDOS.has(i)) : [];
+  try {
+    await auth.crearUsuario(usuario, password, nombre);
+  } catch (e) {
+    if (e.message.includes('ya existe')) { res.code(409); return { error: e.message }; }
+    auth.registrarFallo(ip);
+    app.log.warn({ ip, usuario, err: e.message }, 'fallo en registro');
+    res.code(400);
+    return { error: e.message };
+  }
+  const perfil = { nombre, email: email || '', intereses: ints, creado: new Date().toISOString() };
+  try { await nube.guardarPerfil(usuario, perfil); } catch (e) {
+    app.log.warn({ usuario, err: e.message }, 'perfil no guardado tras registro');
+  }
+  auth.limpiar(ip);
+  res.setCookie(auth.COOKIE, auth.crearTestigo(usuario), {
+    httpOnly: true, sameSite: 'strict',
+    secure: process.env.COOKIE_SEGURA !== 'no',
+    path: process.env.COOKIE_PATH || '/',
+    maxAge: auth.HORAS * 3600
+  });
+  res.code(201);
+  return { usuario, perfil };
+});
+
+// --- Perfil -----------------------------------------------------------------
+app.get('/api/perfil', async (req) => {
+  const perfil = await nube.leerPerfil(req.usuario);
+  return { usuario: req.usuario, perfil };
+});
+
+app.put('/api/perfil', async (req) => {
+  const actual = await nube.leerPerfil(req.usuario) || {};
+  const { nombre, email, intereses } = req.body ?? {};
+  if (nombre) actual.nombre = nombre;
+  if (email !== undefined) actual.email = email;
+  if (Array.isArray(intereses)) actual.intereses = intereses.filter(i => INTERESES_VALIDOS.has(i));
+  await nube.guardarPerfil(req.usuario, actual);
+  return { usuario: req.usuario, perfil: actual };
+});
 
 // --- Vuelos en directo (proxy a AviationStack) ------------------------------
 // La clave se queda en el servidor; el navegador solo ve el resultado filtrado.
@@ -190,5 +253,6 @@ const puerto = Number(process.env.PORT || 3010);
 const host = process.env.HOST || '127.0.0.1';
 await nube.asegurarRaiz();
 await nube.asegurarCategorias();
+await nube.asegurarPerfiles();
 await app.listen({ port: puerto, host });
 app.log.info(`documentos de viaje -> ${nube.info.base}/${nube.info.raiz}`);

@@ -170,4 +170,41 @@ export async function borrarDocumento(categoria, fichero) {
   await peticion('DELETE', url(c, f), { aceptar: [204] });
 }
 
+// --- Perfiles de usuario (JSON en Nextcloud) --------------------------------
+const PERFILES_DIR = 'perfiles';
+
+export async function asegurarPerfiles() {
+  const res = await fetch(url(PERFILES_DIR), { method: 'MKCOL', headers: { Authorization: AUTH } });
+  if (![201, 405].includes(res.status)) {
+    throw new ErrorNube(`No se pudo preparar la carpeta de perfiles (${res.status})`, 502);
+  }
+}
+
+export async function existePerfil(usuario) {
+  const nombre = validarNombre(usuario, 'usuario');
+  try {
+    const res = await fetch(url(PERFILES_DIR, `${nombre}.json`), {
+      method: 'HEAD', headers: { Authorization: AUTH }, signal: AbortSignal.timeout(10000)
+    });
+    return res.ok;
+  } catch { return false; }
+}
+
+export async function guardarPerfil(usuario, datos) {
+  const nombre = validarNombre(usuario, 'usuario');
+  await peticion('PUT', url(PERFILES_DIR, `${nombre}.json`), {
+    body: JSON.stringify(datos),
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+export async function leerPerfil(usuario) {
+  const nombre = validarNombre(usuario, 'usuario');
+  try {
+    const res = await peticion('GET', url(PERFILES_DIR, `${nombre}.json`), { aceptar: [200, 404] });
+    if (res.status === 404) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
 export const info = { base: BASE, usuario: USER, raiz: ROOT };
