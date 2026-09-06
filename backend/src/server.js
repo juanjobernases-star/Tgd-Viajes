@@ -23,7 +23,7 @@ const cookie = (await import('@fastify/cookie')).default;
 const estaticos = (await import('@fastify/static')).default;
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL || 'info' } });
-await app.register(multipart, { limits: { fileSize: 512 * 1024 * 1024, files: 1 } });
+await app.register(multipart, { limits: { fileSize: 50 * 1024 * 1024, files: 1 } });
 await app.register(cookie);
 await app.register(estaticos, { root: join(aqui, 'public'), prefix: '/' });
 
@@ -361,6 +361,11 @@ app.get('/api/flight-status', async (req, res) => {
 });
 
 // --- Búsqueda de vuelos y hoteles (proxies) --------------------------------
+const IATA_RE = /^[A-Z]{3}$/;
+const FECHA_RE = /^\d{4}-\d{2}-\d{2}$/;
+function validarIATA(v) { return typeof v === 'string' && IATA_RE.test(v.toUpperCase().trim()); }
+function validarFecha(v) { return typeof v === 'string' && FECHA_RE.test(v.trim()); }
+
 const AMADEUS_KEY = process.env.AMADEUS_API_KEY;
 const AMADEUS_SECRET = process.env.AMADEUS_API_SECRET;
 const SKYSCANNER_KEY = process.env.SKYSCANNER_API_KEY;
@@ -388,14 +393,14 @@ async function getAmadeusToken() {
 // Amadeus: buscar vuelos
 app.get('/api/buscar/vuelos/amadeus', async (req, res) => {
   const { origen, destino, fecha, adultos } = req.query;
-  if (!origen || !destino || !fecha) { res.code(400); return { error: 'Faltan parámetros (origen, destino, fecha)' }; }
+  if (!validarIATA(origen) || !validarIATA(destino) || !validarFecha(fecha)) { res.code(400); return { error: 'Origen/destino deben ser códigos IATA (3 letras) y fecha YYYY-MM-DD' }; }
   if (!AMADEUS_KEY || !AMADEUS_SECRET) { res.code(503); return { error: 'Amadeus no configurado' }; }
   try {
     const token = await getAmadeusToken();
     const params = new URLSearchParams({
-      originLocationCode: origen.toUpperCase().slice(0, 3),
-      destinationLocationCode: destino.toUpperCase().slice(0, 3),
-      departureDate: fecha.slice(0, 10),
+      originLocationCode: origen.toUpperCase().trim(),
+      destinationLocationCode: destino.toUpperCase().trim(),
+      departureDate: fecha.trim(),
       adults: String(Math.min(Number(adultos) || 1, 9)),
       max: '5', currencyCode: 'EUR'
     });
@@ -430,11 +435,11 @@ app.get('/api/buscar/vuelos/amadeus', async (req, res) => {
 // Amadeus: buscar hoteles
 app.get('/api/buscar/hoteles/amadeus', async (req, res) => {
   const { ciudad, checkin, checkout, adultos } = req.query;
-  if (!ciudad) { res.code(400); return { error: 'Falta el código de ciudad' }; }
+  if (!validarIATA(ciudad)) { res.code(400); return { error: 'Ciudad debe ser código IATA (3 letras)' }; }
   if (!AMADEUS_KEY || !AMADEUS_SECRET) { res.code(503); return { error: 'Amadeus no configurado' }; }
   try {
     const token = await getAmadeusToken();
-    const params = new URLSearchParams({ cityCode: ciudad.toUpperCase().slice(0, 3) });
+    const params = new URLSearchParams({ cityCode: ciudad.toUpperCase().trim() });
     const r = await fetch(`https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city?${params}`, {
       headers: { Authorization: `Bearer ${token}` },
       signal: AbortSignal.timeout(15000)
@@ -458,10 +463,10 @@ app.get('/api/buscar/hoteles/amadeus', async (req, res) => {
 // Skyscanner (RapidAPI): buscar vuelos
 app.get('/api/buscar/vuelos/skyscanner', async (req, res) => {
   const { origen, destino, fecha } = req.query;
-  if (!origen || !destino || !fecha) { res.code(400); return { error: 'Faltan parámetros' }; }
+  if (!validarIATA(origen) || !validarIATA(destino) || !validarFecha(fecha)) { res.code(400); return { error: 'Origen/destino IATA (3 letras), fecha YYYY-MM-DD' }; }
   if (!SKYSCANNER_KEY) { res.code(503); return { error: 'Skyscanner no configurado' }; }
   try {
-    const url = `https://sky-scanner3.p.rapidapi.com/flights/search-one-way?fromEntityId=${encodeURIComponent(origen)}&toEntityId=${encodeURIComponent(destino)}&departDate=${fecha.slice(0, 10)}`;
+    const url = `https://sky-scanner3.p.rapidapi.com/flights/search-one-way?fromEntityId=${encodeURIComponent(origen.toUpperCase().trim())}&toEntityId=${encodeURIComponent(destino.toUpperCase().trim())}&departDate=${fecha.trim()}`;
     const r = await fetch(url, {
       headers: { 'x-rapidapi-key': SKYSCANNER_KEY, 'x-rapidapi-host': 'sky-scanner3.p.rapidapi.com' },
       signal: AbortSignal.timeout(15000)
@@ -490,13 +495,14 @@ app.get('/api/buscar/vuelos/skyscanner', async (req, res) => {
 // Kiwi Tequila: buscar vuelos con deep link
 app.get('/api/buscar/vuelos/kiwi', async (req, res) => {
   const { origen, destino, fecha } = req.query;
-  if (!origen || !destino || !fecha) { res.code(400); return { error: 'Faltan parámetros' }; }
+  if (!validarIATA(origen) || !validarIATA(destino) || !validarFecha(fecha)) { res.code(400); return { error: 'Origen/destino IATA (3 letras), fecha YYYY-MM-DD' }; }
   if (!KIWI_KEY) { res.code(503); return { error: 'Kiwi no configurado' }; }
+  const o = origen.toUpperCase().trim(), d = destino.toUpperCase().trim(), f = fecha.trim();
   try {
     const params = new URLSearchParams({
-      fly_from: origen.toUpperCase(), fly_to: destino.toUpperCase(),
-      date_from: fecha.slice(5, 7) + '/' + fecha.slice(8, 10) + '/' + fecha.slice(0, 4),
-      date_to: fecha.slice(5, 7) + '/' + fecha.slice(8, 10) + '/' + fecha.slice(0, 4),
+      fly_from: o, fly_to: d,
+      date_from: f.slice(5, 7) + '/' + f.slice(8, 10) + '/' + f.slice(0, 4),
+      date_to: f.slice(5, 7) + '/' + f.slice(8, 10) + '/' + f.slice(0, 4),
       curr: 'EUR', limit: '5', sort: 'price'
     });
     const r = await fetch(`https://api.tequila.kiwi.com/v2/search?${params}`, {
@@ -576,4 +582,5 @@ await nube.asegurarRaiz();
 await nube.asegurarCategorias();
 await nube.asegurarPerfiles();
 await app.listen({ port: puerto, host });
-app.log.info(`documentos de viaje -> ${nube.info.base}/${nube.info.raiz}`);
+if (nube.configurado) app.log.info(`documentos de viaje -> ${nube.info.base}/${nube.info.raiz}`);
+else app.log.warn('Nextcloud no configurado — solo login, registro y reset disponibles');

@@ -141,6 +141,7 @@ export async function asegurarCategorias() {
 }
 
 export async function listarTodo() {
+  exigir();
   const salida = [];
   for (const c of CATEGORIAS) {
     const ficheros = (await listar(c.id)).filter((e) => !e.esCarpeta);
@@ -178,6 +179,7 @@ export async function borrarDocumento(categoria, fichero) {
 const PERFILES_DIR = 'perfiles';
 
 export async function asegurarPerfiles() {
+  if (!CONFIGURADO) return;
   const res = await fetch(url(PERFILES_DIR), { method: 'MKCOL', headers: { Authorization: AUTH } });
   if (![201, 405].includes(res.status)) {
     throw new ErrorNube(`No se pudo preparar la carpeta de perfiles (${res.status})`, 502);
@@ -195,6 +197,7 @@ export async function existePerfil(usuario) {
 }
 
 export async function guardarPerfil(usuario, datos) {
+  exigir();
   const nombre = validarNombre(usuario, 'usuario');
   await peticion('PUT', url(PERFILES_DIR, `${nombre}.json`), {
     body: JSON.stringify(datos),
@@ -203,6 +206,7 @@ export async function guardarPerfil(usuario, datos) {
 }
 
 export async function leerPerfil(usuario) {
+  if (!CONFIGURADO) return null;
   const nombre = validarNombre(usuario, 'usuario');
   try {
     const res = await peticion('GET', url(PERFILES_DIR, `${nombre}.json`), { aceptar: [200, 404] });
@@ -211,4 +215,5 @@ export async function leerPerfil(usuario) {
   } catch { return null; }
 }
 
-export const info = { base: BASE, usuario: USER, raiz: ROOT };
+export const info = { base: BASE || '(no configurado)', usuario: USER || '', raiz: ROOT };
+export { CONFIGURADO as configurado };
