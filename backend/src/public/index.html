@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icons/app-icon-64.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#2F6F65">
 <title>Andanzas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -257,14 +262,14 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 
 /* guide cards */
 .guide-card{
-  min-width:220px; scroll-snap-align:start; background:var(--card); border-radius:22px; overflow:hidden;
-  box-shadow:var(--card-shadow); flex-shrink:0; padding:14px; position:relative;
+  min-width:150px; max-width:180px; scroll-snap-align:start; background:var(--card); border-radius:16px; overflow:hidden;
+  box-shadow:var(--card-shadow); flex-shrink:0; padding:10px; position:relative;
 }
-.guide-card .gtitle{font-size:15px; font-weight:700; margin-bottom:2px; padding-right:50px;}
+.guide-card .gtitle{font-size:13px; font-weight:700; margin-bottom:2px; padding-right:40px; line-height:1.3;}
 .foryou-badge{position:absolute; top:12px; right:12px; background:var(--orange); color:#fff; font-size:10px; font-weight:700; padding:3px 7px; border-radius:100px;}
 .visited-badge{position:absolute; top:12px; right:12px; background:var(--green); color:#fff; font-size:14px; width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
 .rating-badge{display:inline-block; background:rgba(255,149,0,0.12); color:var(--orange); font-size:11px; font-weight:700; padding:2px 6px; border-radius:6px; margin-bottom:6px;}
-.guide-meta{display:flex; gap:10px; margin-top:8px; font-size:11px; color:var(--text2); flex-wrap:wrap;}
+.guide-meta{display:flex; gap:6px; margin-top:6px; font-size:10px; color:var(--text2); flex-wrap:wrap;}
 
 .rest-card{display:flex; justify-content:space-between; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--border);}
 .rest-card:last-child{border-bottom:none;}
@@ -622,7 +627,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 
     <!-- DOCUMENTACION -->
     <section class="section hidden" id="sec-documentacion">
-      <div class="notice-box">La gestión de documentos requiere conexión al servidor privado (LAN/VPN). Aquí puedes consultar la lista de documentos recomendados por viajero.</div>
+      <div class="notice-box" id="doc-notice">La gestión de documentos requiere conexión al servidor privado (LAN/VPN). Aquí puedes consultar la lista de documentos recomendados por viajero.</div>
       <div class="pill-row" id="doc-traveler-pills"></div>
       <div class="card" id="doc-checklist"></div>
     </section>
@@ -639,8 +644,11 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
     <!-- PRESUPUESTO -->
     <section class="section hidden" id="sec-presupuesto">
       <div class="card" style="text-align:center;">
-        <div class="subtle">Presupuesto total estimado</div>
-        <div style="font-size:28px; font-weight:700; margin-top:4px;" id="budget-total"></div>
+        <div class="subtle">Presupuesto total</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;">
+          <input type="number" id="budget-ceiling-input" min="0" step="50" style="width:100px;font-size:22px;font-weight:700;text-align:center;border:1px solid var(--border);border-radius:8px;padding:4px;background:transparent;color:var(--text);">
+          <span style="font-size:18px;font-weight:600;">€</span>
+        </div>
         <div class="budget-bar" id="budget-bar"></div>
       </div>
       <div class="card" id="budget-breakdown"></div>
@@ -706,41 +714,41 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
         <div id="hoteles-results"></div>
       </div>
       <datalist id="ciudades-list">
-        <option value="Madrid">
-        <option value="Barcelona">
-        <option value="Sevilla">
-        <option value="Valencia">
-        <option value="Málaga">
-        <option value="Bilbao">
-        <option value="Palma de Mallorca">
-        <option value="Milán">
-        <option value="Roma">
-        <option value="Florencia">
-        <option value="Venecia">
-        <option value="Nápoles">
-        <option value="París">
-        <option value="Lyon">
-        <option value="Niza">
-        <option value="Londres">
         <option value="Ámsterdam">
-        <option value="Berlín">
-        <option value="Múnich">
-        <option value="Lisboa">
-        <option value="Oporto">
         <option value="Atenas">
-        <option value="Estambul">
-        <option value="Praga">
-        <option value="Viena">
-        <option value="Dubrovnik">
-        <option value="Nueva York">
-        <option value="Miami">
-        <option value="Los Ángeles">
-        <option value="Cancún">
-        <option value="Buenos Aires">
-        <option value="Tokio">
         <option value="Bangkok">
+        <option value="Barcelona">
+        <option value="Berlín">
+        <option value="Bilbao">
+        <option value="Buenos Aires">
+        <option value="Cancún">
         <option value="Dubái">
+        <option value="Dubrovnik">
+        <option value="Estambul">
+        <option value="Florencia">
+        <option value="Lisboa">
+        <option value="Londres">
+        <option value="Los Ángeles">
+        <option value="Lyon">
+        <option value="Madrid">
+        <option value="Málaga">
         <option value="Marrakech">
+        <option value="Miami">
+        <option value="Milán">
+        <option value="Múnich">
+        <option value="Nápoles">
+        <option value="Niza">
+        <option value="Nueva York">
+        <option value="Oporto">
+        <option value="Palma de Mallorca">
+        <option value="París">
+        <option value="Praga">
+        <option value="Roma">
+        <option value="Sevilla">
+        <option value="Tokio">
+        <option value="Valencia">
+        <option value="Venecia">
+        <option value="Viena">
       </datalist>
     </section>
 
@@ -1191,7 +1199,7 @@ function initAuthUI(){
       const r = await apiFetch('/api/reset-password', { method:'POST', body:JSON.stringify({usuario}) });
       if(!r.ok){ msg.style.color="#D1567A"; msg.textContent=r.data?.error||"Error"; return; }
       msg.style.color="var(--accent,#2F6F65)"; msg.textContent=r.data?.mensaje||"Revisa tu correo.";
-    } catch { msg.style.color="#D1567A"; msg.textContent="No disponible en modo demo. Pulsa atrás y usa «Explorar en modo demo»."; }
+    } catch { msg.textContent=""; showLogin(); enterDemo(); }
   });
 
   document.getElementById("reset-confirm-btn").addEventListener("click", async ()=>{
@@ -1264,9 +1272,8 @@ function enterDemo(){
         { id:'v2', tipo:'vuelta', numero:'FR1235', origen:'MXP', destino:'MAD', fecha:'2025-07-20', hora:'18:00', aerolinea:'Ryanair', confirmacion:'RYN-DEF' }
       ],
       viajeros: [
-        { id:'t1', nombre:'Papá', inicial:'PA', color:'#3E6E92' },
-        { id:'t2', nombre:'Mamá', inicial:'MA', color:'#D1567A' },
-        { id:'t3', nombre:'Leo', inicial:'LE', color:'#3E9C6B' }
+        { id:'t1', nombre:'Viajero 1', inicial:'V1', color:'#3E6E92' },
+        { id:'t2', nombre:'Viajero 2', inicial:'V2', color:'#D1567A' }
       ],
       excursiones: [
         { id:'e1', nombre:'Catedral del Duomo', proveedor:'GetYourGuide', fecha:'2025-07-16', hora:'10:00', precio:'25 €', url:'', confirmacion:'GYG-111' },
@@ -2398,13 +2405,16 @@ function renderGuia(){
 
   document.getElementById("restaurants-list").innerHTML = rests.map(r=>`
     <div class="rest-card">
-      <div>
+      <div style="flex:1;min-width:0;">
         <strong>${escapeHtml(r.name)}</strong>
         <div class="subtle" style="font-size:12px;">${escapeHtml(r.zone)}</div>
         <div class="subtle" style="font-size:12px; margin-top:2px;">${escapeHtml(r.desc)}</div>
         ${geoPos ? `<div class="tiny" style="margin-top:2px;"><img src="assets/icons/address.png" alt="" style="width:14px;height:14px;object-fit:contain;vertical-align:middle;"> ${fmtDist(haversine(geoPos.lat,geoPos.lon,r.lat,r.lon))}</div>` : ""}
       </div>
-      <div style="font-weight:700;">${escapeHtml(r.price)}</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <div style="font-weight:700;">${escapeHtml(r.price)}</div>
+        <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.name+' '+r.zone)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent);font-weight:600;">📍 Maps</a>
+      </div>
     </div>
   `).join("");
 
@@ -2591,6 +2601,8 @@ function getDocsState(){ return lsGet("docsChecked", {}); }
 function setDocsState(o){ lsSet("docsChecked", o); }
 
 function renderDocumentacion(){
+  var dn = document.getElementById("doc-notice");
+  if(dn) dn.style.display = DEMO_MODE ? 'none' : '';
   const wrap = document.getElementById("doc-traveler-pills");
   const travs = TRIP.travelers;
   wrap.innerHTML = travs.map(t=>`<button class="pill-btn ${selectedDocTraveler===t.id?'active':''}" data-doc-trav="${t.id}">${escapeHtml(t.name)}</button>`).join("");
@@ -2655,13 +2667,24 @@ function renderEquipaje(){
 }
 
 /* ============ RENDER: PRESUPUESTO ============ */
+function getBudgetCeiling(){ return lsGet("budget_ceiling", (TRIP && TRIP.budgetCeiling) || 0); }
+function setBudgetCeiling(v){ lsSet("budget_ceiling", v); }
+
 function renderPresupuesto(){
   if(!TRIP){ renderNoTripMessage("presupuesto"); return; }
-  document.getElementById("budget-total").textContent = (TRIP.budgetCeiling||0) + " € (máx.)";
+  var ceiling = getBudgetCeiling();
+  var inp = document.getElementById("budget-ceiling-input");
+  inp.value = ceiling;
+  inp.onchange = function(){ setBudgetCeiling(parseInt(inp.value)||0); renderPresupuesto(); };
+  const expenses = getExpenses();
+  const spent = expenses.reduce(function(s,e){ return s+parseFloat(e.amount||0); },0);
   const colorMap = {brass:"#B08D57", ice:"#3E6E92", pine:"#3F6B52", rust:"#A6472F", est:"#8E8E93"};
-  document.getElementById("budget-bar").innerHTML = TRIP.budgetRows.map(r=>
-    `<div style="width:${r.pct}%; background:${colorMap[r.color]||'#999'};"></div>`
-  ).join("");
+  if(ceiling > 0){
+    var pct = Math.min(100, Math.round(spent/ceiling*100));
+    document.getElementById("budget-bar").innerHTML = `<div style="width:${pct}%; background:${pct>90?'#D1567A':'#3E9C6B'};"></div>`;
+  } else {
+    document.getElementById("budget-bar").innerHTML = '';
+  }
   document.getElementById("budget-breakdown").innerHTML = TRIP.budgetRows.map(r=>`
     <div class="budget-row">
       <div class="swatch" style="background:${colorMap[r.color]||'#999'}"></div>
@@ -2671,7 +2694,10 @@ function renderPresupuesto(){
       </div>
       <div style="font-weight:700;">${escapeHtml(r.value)}</div>
     </div>
-  `).join("");
+  `).join("") + `<div class="budget-row" style="border-top:1px solid var(--border);padding-top:8px;margin-top:8px;">
+    <div style="flex:1;font-weight:700;">Gastado</div>
+    <div style="font-weight:700;">${spent.toFixed(2)} €</div>
+  </div>`;
 }
 
 /* ============ RENDER: CLIMA ============ */
@@ -2703,18 +2729,23 @@ function renderClima(){
     const lat = TRIP.coords.lat, lon = TRIP.coords.lon;
     const start = TRIP.dateStart.slice(0,10);
     const end = TRIP.dateEnd.slice(0,10);
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto&start_date=${start}&end_date=${end}`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weathercode,sunrise,sunset,precipitation_probability_max&timezone=auto&start_date=${start}&end_date=${end}`;
     fetch(url).then(r=>r.json()).then(data=>{
       if(!data.daily){ throw new Error("no data"); }
       const days = data.daily.time;
       let html = `<div class="weather-grid">`;
       days.forEach((d,i)=>{
         const code = data.daily.weathercode[i];
+        var sr = (data.daily.sunrise||[])[i]; sr = sr ? sr.slice(11,16) : '';
+        var ss = (data.daily.sunset||[])[i]; ss = ss ? ss.slice(11,16) : '';
+        var pp = (data.daily.precipitation_probability_max||[])[i];
         html += `<div class="weather-card">
           <div class="tiny">${d}</div>
           <div class="wico">${weatherIcon(code)}</div>
           <div class="wtemp">${Math.round(data.daily.temperature_2m_max[i])}° / ${Math.round(data.daily.temperature_2m_min[i])}°</div>
           <div class="tiny">${weatherDesc(code)}</div>
+          ${sr ? `<div class="tiny">🌅 ${sr} · 🌇 ${ss}</div>` : ''}
+          ${pp!=null ? `<div class="tiny">💧 ${pp}%</div>` : ''}
         </div>`;
       });
       html += `</div>`;

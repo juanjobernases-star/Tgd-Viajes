@@ -1,0 +1,16 @@
+{
+  "name": "Andanzas",
+  "short_name": "Andanzas",
+  "description": "Tu viaje en familia, en un solo sitio",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#EAF6F1",
+  "theme_color": "#2F6F65",
+  "icons": [
+    {
+      "src": "assets/icons/app-icon-64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    }
+  ]
+}
