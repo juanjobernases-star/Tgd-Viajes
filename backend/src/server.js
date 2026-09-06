@@ -360,6 +360,183 @@ app.get('/api/flight-status', async (req, res) => {
   }
 });
 
+// --- Búsqueda de vuelos y hoteles (proxies) --------------------------------
+const AMADEUS_KEY = process.env.AMADEUS_API_KEY;
+const AMADEUS_SECRET = process.env.AMADEUS_API_SECRET;
+const SKYSCANNER_KEY = process.env.SKYSCANNER_API_KEY;
+const KIWI_KEY = process.env.KIWI_API_KEY;
+const BOOKING_AID = process.env.BOOKING_AFFILIATE_ID;
+
+let amadeusToken = null;
+let amadeusTokenExp = 0;
+
+async function getAmadeusToken() {
+  if (amadeusToken && Date.now() < amadeusTokenExp) return amadeusToken;
+  const r = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=client_credentials&client_id=${encodeURIComponent(AMADEUS_KEY)}&client_secret=${encodeURIComponent(AMADEUS_SECRET)}`,
+    signal: AbortSignal.timeout(10000)
+  });
+  const j = await r.json();
+  if (!j.access_token) throw new Error('Amadeus auth failed');
+  amadeusToken = j.access_token;
+  amadeusTokenExp = Date.now() + (j.expires_in - 60) * 1000;
+  return amadeusToken;
+}
+
+// Amadeus: buscar vuelos
+app.get('/api/buscar/vuelos/amadeus', async (req, res) => {
+  const { origen, destino, fecha, adultos } = req.query;
+  if (!origen || !destino || !fecha) { res.code(400); return { error: 'Faltan parámetros (origen, destino, fecha)' }; }
+  if (!AMADEUS_KEY || !AMADEUS_SECRET) { res.code(503); return { error: 'Amadeus no configurado' }; }
+  try {
+    const token = await getAmadeusToken();
+    const params = new URLSearchParams({
+      originLocationCode: origen.toUpperCase().slice(0, 3),
+      destinationLocationCode: destino.toUpperCase().slice(0, 3),
+      departureDate: fecha.slice(0, 10),
+      adults: String(Math.min(Number(adultos) || 1, 9)),
+      max: '5', currencyCode: 'EUR'
+    });
+    const r = await fetch(`https://test.api.amadeus.com/v2/shopping/flight-offers?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(15000)
+    });
+    const j = await r.json();
+    if (j.errors) throw new Error(j.errors[0]?.detail || 'Error Amadeus');
+    const results = (j.data || []).map(o => ({
+      precio: o.price?.total,
+      moneda: o.price?.currency,
+      aerolinea: o.validatingAirlineCodes?.[0],
+      segmentos: (o.itineraries || []).map(it => ({
+        duracion: it.duration,
+        tramos: (it.segments || []).map(s => ({
+          origen: s.departure?.iataCode,
+          destino: s.arrival?.iataCode,
+          salida: s.departure?.at,
+          llegada: s.arrival?.at,
+          vuelo: (s.carrierCode || '') + (s.number || '')
+        }))
+      }))
+    }));
+    return { fuente: 'amadeus', resultados: results };
+  } catch (e) {
+    app.log.warn({ err: e.message }, 'amadeus flights');
+    res.code(502); return { error: e.message };
+  }
+});
+
+// Amadeus: buscar hoteles
+app.get('/api/buscar/hoteles/amadeus', async (req, res) => {
+  const { ciudad, checkin, checkout, adultos } = req.query;
+  if (!ciudad) { res.code(400); return { error: 'Falta el código de ciudad' }; }
+  if (!AMADEUS_KEY || !AMADEUS_SECRET) { res.code(503); return { error: 'Amadeus no configurado' }; }
+  try {
+    const token = await getAmadeusToken();
+    const params = new URLSearchParams({ cityCode: ciudad.toUpperCase().slice(0, 3) });
+    const r = await fetch(`https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(15000)
+    });
+    const j = await r.json();
+    if (j.errors) throw new Error(j.errors[0]?.detail || 'Error Amadeus');
+    const results = (j.data || []).slice(0, 10).map(h => ({
+      nombre: h.name,
+      hotelId: h.hotelId,
+      latitud: h.geoCode?.latitude,
+      longitud: h.geoCode?.longitude,
+      direccion: [h.address?.countryCode].filter(Boolean).join(', ')
+    }));
+    return { fuente: 'amadeus', resultados: results };
+  } catch (e) {
+    app.log.warn({ err: e.message }, 'amadeus hotels');
+    res.code(502); return { error: e.message };
+  }
+});
+
+// Skyscanner (RapidAPI): buscar vuelos
+app.get('/api/buscar/vuelos/skyscanner', async (req, res) => {
+  const { origen, destino, fecha } = req.query;
+  if (!origen || !destino || !fecha) { res.code(400); return { error: 'Faltan parámetros' }; }
+  if (!SKYSCANNER_KEY) { res.code(503); return { error: 'Skyscanner no configurado' }; }
+  try {
+    const url = `https://sky-scanner3.p.rapidapi.com/flights/search-one-way?fromEntityId=${encodeURIComponent(origen)}&toEntityId=${encodeURIComponent(destino)}&departDate=${fecha.slice(0, 10)}`;
+    const r = await fetch(url, {
+      headers: { 'x-rapidapi-key': SKYSCANNER_KEY, 'x-rapidapi-host': 'sky-scanner3.p.rapidapi.com' },
+      signal: AbortSignal.timeout(15000)
+    });
+    const j = await r.json();
+    const itineraries = j.data?.itineraries || [];
+    const results = itineraries.slice(0, 5).map(it => ({
+      precio: it.price?.formatted,
+      deepLink: it.legs?.[0]?.segments?.[0]?.marketingCarrier?.name || '',
+      tramos: (it.legs || []).map(l => ({
+        origen: l.origin?.displayCode,
+        destino: l.destination?.displayCode,
+        salida: l.departure,
+        llegada: l.arrival,
+        duracion: l.durationInMinutes + ' min',
+        aerolinea: l.carriers?.marketing?.[0]?.name
+      }))
+    }));
+    return { fuente: 'skyscanner', resultados: results };
+  } catch (e) {
+    app.log.warn({ err: e.message }, 'skyscanner');
+    res.code(502); return { error: e.message };
+  }
+});
+
+// Kiwi Tequila: buscar vuelos con deep link
+app.get('/api/buscar/vuelos/kiwi', async (req, res) => {
+  const { origen, destino, fecha } = req.query;
+  if (!origen || !destino || !fecha) { res.code(400); return { error: 'Faltan parámetros' }; }
+  if (!KIWI_KEY) { res.code(503); return { error: 'Kiwi no configurado' }; }
+  try {
+    const params = new URLSearchParams({
+      fly_from: origen.toUpperCase(), fly_to: destino.toUpperCase(),
+      date_from: fecha.slice(5, 7) + '/' + fecha.slice(8, 10) + '/' + fecha.slice(0, 4),
+      date_to: fecha.slice(5, 7) + '/' + fecha.slice(8, 10) + '/' + fecha.slice(0, 4),
+      curr: 'EUR', limit: '5', sort: 'price'
+    });
+    const r = await fetch(`https://api.tequila.kiwi.com/v2/search?${params}`, {
+      headers: { apikey: KIWI_KEY },
+      signal: AbortSignal.timeout(15000)
+    });
+    const j = await r.json();
+    const results = (j.data || []).map(f => ({
+      precio: f.price + ' €',
+      deepLink: f.deep_link,
+      aerolinea: f.airlines?.join(', '),
+      duracion: Math.round((f.duration?.total || 0) / 3600) + 'h',
+      origen: f.flyFrom,
+      destino: f.flyTo,
+      salida: f.local_departure,
+      llegada: f.local_arrival
+    }));
+    return { fuente: 'kiwi', resultados: results };
+  } catch (e) {
+    app.log.warn({ err: e.message }, 'kiwi');
+    res.code(502); return { error: e.message };
+  }
+});
+
+// Booking.com: deep link generator (no API needed, just affiliate link)
+app.get('/api/buscar/hoteles/booking', async (req, res) => {
+  const { ciudad, checkin, checkout, adultos } = req.query;
+  if (!ciudad) { res.code(400); return { error: 'Falta la ciudad' }; }
+  const aid = BOOKING_AID || '0';
+  const params = new URLSearchParams({
+    ss: ciudad, checkin: checkin || '', checkout: checkout || '',
+    group_adults: String(adultos || 2), no_rooms: '1', aid
+  });
+  return {
+    fuente: 'booking',
+    deepLink: `https://www.booking.com/searchresults.html?${params}`,
+    mensaje: 'Busca y reserva directamente en Booking.com'
+  };
+});
+
 app.get('/api/categorias', async () => ({ categorias: nube.CATEGORIAS }));
 
 // Una sola llamada devuelve la pantalla entera: la interfaz no encadena

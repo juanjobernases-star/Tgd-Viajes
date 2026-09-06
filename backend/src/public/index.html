@@ -237,6 +237,20 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 .month-cell.tripday{background:rgba(0,122,255,0.12); color:var(--blue); font-weight:700; cursor:pointer;}
 .month-cell.tripday.selected{background:var(--blue); color:#fff;}
 
+/* search section */
+.search-tabs{display:flex;gap:4px;margin-bottom:12px;background:rgba(120,95,74,0.08);border-radius:100px;padding:3px;}
+.stab{flex:1;padding:8px 0;border-radius:100px;font-size:13px;font-weight:700;color:var(--text2);transition:all .2s;}
+.stab.active{background:var(--card);color:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+.search-src-check{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:4px;cursor:pointer;}
+.search-src-check input{width:14px;height:14px;}
+.search-result-card{background:var(--card);border-radius:16px;padding:14px;margin-bottom:8px;box-shadow:var(--card-shadow);}
+.search-result-card .sr-price{font-size:18px;font-weight:800;color:var(--accent);}
+.search-result-card .sr-airline{font-size:12px;color:var(--text2);font-weight:600;}
+.search-result-card .sr-route{font-size:14px;font-weight:700;margin:4px 0;}
+.search-result-card .sr-detail{font-size:12px;color:var(--text2);}
+.sr-book-btn{display:inline-block;padding:6px 14px;border-radius:100px;background:var(--cta);color:var(--cta-text);font-size:12px;font-weight:700;text-decoration:none;margin-top:8px;}
+.sr-source-tag{display:inline-block;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700;background:rgba(47,111,101,0.12);color:var(--accent);margin-bottom:6px;}
+
 /* guide cards */
 .guide-card{
   min-width:220px; scroll-snap-align:start; background:var(--card); border-radius:22px; overflow:hidden;
@@ -635,6 +649,51 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
     </section>
 
     <!-- SEGURIDAD -->
+    <!-- BUSCAR -->
+    <section class="section hidden" id="sec-buscar">
+      <div class="search-tabs" id="search-tabs">
+        <button class="stab active" data-stab="vuelos" type="button">✈️ Vuelos</button>
+        <button class="stab" data-stab="hoteles" type="button">🏨 Hoteles</button>
+      </div>
+
+      <div id="search-vuelos">
+        <div class="card">
+          <div style="display:flex;gap:8px;">
+            <div class="field" style="flex:1;"><label class="field-label">Origen (IATA)</label><input type="text" id="sv-origen" maxlength="3" placeholder="MAD" style="text-transform:uppercase;"></div>
+            <div class="field" style="flex:1;"><label class="field-label">Destino (IATA)</label><input type="text" id="sv-destino" maxlength="3" placeholder="MXP" style="text-transform:uppercase;"></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <div class="field" style="flex:1;"><label class="field-label">Fecha</label><input type="date" id="sv-fecha"></div>
+            <div class="field" style="flex:0 0 70px;"><label class="field-label">Adultos</label><input type="number" id="sv-adultos" min="1" max="9" value="1"></div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+            <label class="search-src-check"><input type="checkbox" id="sv-amadeus" checked> Amadeus</label>
+            <label class="search-src-check"><input type="checkbox" id="sv-skyscanner"> Skyscanner</label>
+            <label class="search-src-check"><input type="checkbox" id="sv-kiwi"> Kiwi</label>
+          </div>
+          <button class="btn btn-primary btn-block" id="buscar-vuelos-btn" type="button">Buscar vuelos</button>
+        </div>
+        <div id="vuelos-results"></div>
+      </div>
+
+      <div id="search-hoteles" class="hidden">
+        <div class="card">
+          <div class="field"><label class="field-label">Ciudad (IATA o nombre)</label><input type="text" id="sh-ciudad" placeholder="MIL o Milán"></div>
+          <div style="display:flex;gap:8px;">
+            <div class="field" style="flex:1;"><label class="field-label">Check-in</label><input type="date" id="sh-checkin"></div>
+            <div class="field" style="flex:1;"><label class="field-label">Check-out</label><input type="date" id="sh-checkout"></div>
+          </div>
+          <div class="field" style="max-width:100px;"><label class="field-label">Adultos</label><input type="number" id="sh-adultos" min="1" max="9" value="2"></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+            <label class="search-src-check"><input type="checkbox" id="sh-amadeus" checked> Amadeus</label>
+            <label class="search-src-check"><input type="checkbox" id="sh-booking" checked> Booking</label>
+          </div>
+          <button class="btn btn-primary btn-block" id="buscar-hoteles-btn" type="button">Buscar hoteles</button>
+        </div>
+        <div id="hoteles-results"></div>
+      </div>
+    </section>
+
     <section class="section hidden" id="sec-seguridad">
       <h3 style="margin:0 0 8px;">Zonas de riesgo</h3>
       <div class="card" id="risk-list"></div>
@@ -759,10 +818,11 @@ const SECTION_META = {
   clima: {label:"Clima", letter:"C", color:"#30B0C7", icon:"assets/icons/climate.png"},
   frases: {label:"Frases", letter:"F", color:"#FF2D55", icon:"assets/icons/phrases.png"},
   offline: {label:"Offline", letter:"O", color:"#8E8E93", icon:"assets/icons/offline.png"},
-  seguridad: {label:"Seguridad", letter:"S", color:"#D1567A", icon:"assets/icons/security.png"}
+  seguridad: {label:"Seguridad", letter:"S", color:"#D1567A", icon:"assets/icons/security.png"},
+  buscar: {label:"Buscar", letter:"B", color:"#2F6F65", icon:"assets/icons/ticket.png"}
 };
 const MAIN_TABS = ["resumen","calendario","vuelo","guia"];
-const MORE_SECTIONS = ["gastos","mapas","documentacion","equipaje","presupuesto","clima","frases","offline","seguridad"];
+const MORE_SECTIONS = ["buscar","gastos","mapas","documentacion","equipaje","presupuesto","clima","frases","offline","seguridad"];
 
 /* ============ UTILS ============ */
 function toast(msg){
@@ -2616,6 +2676,148 @@ function renderSeguridad(){
   document.getElementById("consulate-note").textContent = sec.note;
 }
 
+/* ============ RENDER: BUSCAR ============ */
+let searchTabInited = false;
+
+function renderBuscar(){
+  if(searchTabInited) return;
+  searchTabInited = true;
+
+  // Sub-tab toggle
+  document.querySelectorAll('#search-tabs .stab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#search-tabs .stab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const t = btn.dataset.stab;
+      document.getElementById('search-vuelos').classList.toggle('hidden', t!=='vuelos');
+      document.getElementById('search-hoteles').classList.toggle('hidden', t!=='hoteles');
+    });
+  });
+
+  // Pre-fill from profile destination
+  if(CURRENT_PROFILE && CURRENT_PROFILE.destino && CURRENT_PROFILE.destino.ciudades){
+    const city = CURRENT_PROFILE.destino.ciudades[0] || '';
+    document.getElementById('sh-ciudad').value = city;
+  }
+
+  // Buscar vuelos
+  document.getElementById('buscar-vuelos-btn').addEventListener('click', async ()=>{
+    const origen = document.getElementById('sv-origen').value.trim().toUpperCase();
+    const destino = document.getElementById('sv-destino').value.trim().toUpperCase();
+    const fecha = document.getElementById('sv-fecha').value;
+    const adultos = document.getElementById('sv-adultos').value;
+    if(!origen || !destino || !fecha){ toast('Rellena origen, destino y fecha'); return; }
+
+    const wrap = document.getElementById('vuelos-results');
+    wrap.innerHTML = '<div class="card" style="text-align:center;padding:20px;"><div class="subtle">Buscando vuelos...</div></div>';
+
+    const fuentes = [];
+    if(document.getElementById('sv-amadeus').checked) fuentes.push('amadeus');
+    if(document.getElementById('sv-skyscanner').checked) fuentes.push('skyscanner');
+    if(document.getElementById('sv-kiwi').checked) fuentes.push('kiwi');
+    if(!fuentes.length){ toast('Selecciona al menos una fuente'); return; }
+
+    const promises = fuentes.map(f =>
+      apiFetch(`/api/buscar/vuelos/${f}?origen=${origen}&destino=${destino}&fecha=${fecha}&adultos=${adultos}`)
+        .then(r => r.data)
+        .catch(e => ({ fuente: f, error: e.message }))
+    );
+    const responses = await Promise.allSettled(promises);
+    let html = '';
+
+    for(const r of responses){
+      const data = r.status === 'fulfilled' ? r.value : { error: 'Error de conexión' };
+      if(data.error){
+        html += `<div class="card" style="padding:12px;"><span class="sr-source-tag">${escapeHtml(data.fuente||'?')}</span> <span class="subtle">${escapeHtml(data.error)}</span></div>`;
+        continue;
+      }
+      if(data.fuente === 'kiwi'){
+        for(const v of (data.resultados||[])){
+          html += `<div class="search-result-card">
+            <span class="sr-source-tag">Kiwi</span>
+            <div class="sr-price">${escapeHtml(v.precio)}</div>
+            <div class="sr-route">${escapeHtml(v.origen)} → ${escapeHtml(v.destino)}</div>
+            <div class="sr-detail">${escapeHtml(v.aerolinea||'')} · ${escapeHtml(v.duracion||'')}</div>
+            <div class="sr-detail">${escapeHtml((v.salida||'').slice(0,16).replace('T',' '))}</div>
+            ${v.deepLink ? `<a href="${safeHref(v.deepLink)}" target="_blank" class="sr-book-btn">Reservar en Kiwi</a>` : ''}
+          </div>`;
+        }
+      } else if(data.fuente === 'skyscanner'){
+        for(const v of (data.resultados||[])){
+          const tramo = v.tramos?.[0] || {};
+          html += `<div class="search-result-card">
+            <span class="sr-source-tag">Skyscanner</span>
+            <div class="sr-price">${escapeHtml(v.precio||'')}</div>
+            <div class="sr-route">${escapeHtml(tramo.origen||'')} → ${escapeHtml(tramo.destino||'')}</div>
+            <div class="sr-detail">${escapeHtml(tramo.aerolinea||'')} · ${escapeHtml(tramo.duracion||'')}</div>
+            <div class="sr-detail">${escapeHtml((tramo.salida||'').slice(0,16).replace('T',' '))}</div>
+          </div>`;
+        }
+      } else {
+        for(const v of (data.resultados||[])){
+          const seg = v.segmentos?.[0]?.tramos?.[0] || {};
+          html += `<div class="search-result-card">
+            <span class="sr-source-tag">Amadeus</span>
+            <div class="sr-price">${escapeHtml((v.precio||''))} ${escapeHtml(v.moneda||'')}</div>
+            <div class="sr-route">${escapeHtml(seg.origen||'')} → ${escapeHtml(seg.destino||'')}</div>
+            <div class="sr-airline">${escapeHtml(v.aerolinea||'')} · ${escapeHtml(seg.vuelo||'')}</div>
+            <div class="sr-detail">${escapeHtml((seg.salida||'').slice(0,16).replace('T',' '))} → ${escapeHtml((seg.llegada||'').slice(0,16).replace('T',' '))}</div>
+          </div>`;
+        }
+      }
+    }
+    if(!html) html = '<div class="card" style="text-align:center;padding:20px;"><div class="subtle">No se encontraron vuelos</div></div>';
+    wrap.innerHTML = html;
+  });
+
+  // Buscar hoteles
+  document.getElementById('buscar-hoteles-btn').addEventListener('click', async ()=>{
+    const ciudad = document.getElementById('sh-ciudad').value.trim();
+    const checkin = document.getElementById('sh-checkin').value;
+    const checkout = document.getElementById('sh-checkout').value;
+    const adultos = document.getElementById('sh-adultos').value;
+    if(!ciudad){ toast('Introduce la ciudad'); return; }
+
+    const wrap = document.getElementById('hoteles-results');
+    wrap.innerHTML = '<div class="card" style="text-align:center;padding:20px;"><div class="subtle">Buscando hoteles...</div></div>';
+
+    let html = '';
+
+    if(document.getElementById('sh-amadeus').checked){
+      try {
+        const r = await apiFetch(`/api/buscar/hoteles/amadeus?ciudad=${encodeURIComponent(ciudad)}&checkin=${checkin}&checkout=${checkout}&adultos=${adultos}`);
+        if(r.data?.resultados){
+          for(const h of r.data.resultados){
+            html += `<div class="search-result-card">
+              <span class="sr-source-tag">Amadeus</span>
+              <div style="font-weight:700;">${escapeHtml(h.nombre)}</div>
+              <div class="sr-detail">${escapeHtml(h.direccion||'')}</div>
+            </div>`;
+          }
+        }
+        if(r.data?.error) html += `<div class="card" style="padding:12px;"><span class="sr-source-tag">Amadeus</span> <span class="subtle">${escapeHtml(r.data.error)}</span></div>`;
+      } catch(e){ html += `<div class="card" style="padding:12px;"><span class="sr-source-tag">Amadeus</span> <span class="subtle">${escapeHtml(e.message)}</span></div>`; }
+    }
+
+    if(document.getElementById('sh-booking').checked){
+      try {
+        const r = await apiFetch(`/api/buscar/hoteles/booking?ciudad=${encodeURIComponent(ciudad)}&checkin=${checkin}&checkout=${checkout}&adultos=${adultos}`);
+        if(r.data?.deepLink){
+          html += `<div class="search-result-card">
+            <span class="sr-source-tag">Booking.com</span>
+            <div style="font-weight:700;">Buscar en Booking.com</div>
+            <div class="sr-detail">${escapeHtml(r.data.mensaje)}</div>
+            <a href="${safeHref(r.data.deepLink)}" target="_blank" class="sr-book-btn">Abrir en Booking.com</a>
+          </div>`;
+        }
+      } catch(e){ html += `<div class="card" style="padding:12px;"><span class="sr-source-tag">Booking</span> <span class="subtle">${escapeHtml(e.message)}</span></div>`; }
+    }
+
+    if(!html) html = '<div class="card" style="text-align:center;padding:20px;"><div class="subtle">No se encontraron hoteles</div></div>';
+    wrap.innerHTML = html;
+  });
+}
+
 /* ============ SECTION DISPATCH ============ */
 const TRIP_DEPENDENT_SECTIONS = new Set(["calendario","guia","mapas","documentacion","frases","offline","seguridad","clima"]);
 
@@ -2654,6 +2856,7 @@ function renderSection(tab){
     case "frases": renderFrases(); break;
     case "offline": renderOffline(); break;
     case "seguridad": renderSeguridad(); break;
+    case "buscar": renderBuscar(); break;
   }
 }
 

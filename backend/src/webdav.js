@@ -6,12 +6,14 @@ const USER = process.env.NC_USER;
 const PASS = process.env.NC_APP_PASSWORD;
 const ROOT = (process.env.NC_ROOT || 'Viajes').replace(/^\/+|\/+$/g, '');
 
-if (!BASE || !USER || !PASS) {
-  throw new Error('Faltan NC_URL, NC_USER o NC_APP_PASSWORD en el entorno');
+const CONFIGURADO = !!(BASE && USER && PASS);
+
+function exigir() {
+  if (!CONFIGURADO) throw new ErrorNube('Nextcloud no configurado (faltan NC_URL, NC_USER o NC_APP_PASSWORD)', 503);
 }
 
-const DAV = `${BASE}/remote.php/dav/files/${encodeURIComponent(USER)}`;
-const AUTH = 'Basic ' + Buffer.from(`${USER}:${PASS}`).toString('base64');
+const DAV = CONFIGURADO ? `${BASE}/remote.php/dav/files/${encodeURIComponent(USER)}` : '';
+const AUTH = CONFIGURADO ? 'Basic ' + Buffer.from(`${USER}:${PASS}`).toString('base64') : '';
 
 // La documentacion de viaje es casi siempre la misma, asi que las categorias
 // son una lista cerrada. Ademas de ordenar la interfaz, actua como lista blanca:
@@ -120,6 +122,7 @@ async function listar(...segmentos) {
 }
 
 export async function asegurarRaiz() {
+  if (!CONFIGURADO) return;
   const res = await fetch(url(), { method: 'MKCOL', headers: { Authorization: AUTH } });
   // 201 creada, 405 ya existia: ambas correctas.
   if (![201, 405].includes(res.status)) {
@@ -128,6 +131,7 @@ export async function asegurarRaiz() {
 }
 
 export async function asegurarCategorias() {
+  if (!CONFIGURADO) return;
   for (const c of CATEGORIAS) {
     const res = await fetch(url(c.id), { method: 'MKCOL', headers: { Authorization: AUTH } });
     if (![201, 405].includes(res.status)) {
