@@ -411,6 +411,12 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       </div>
     </form>
 
+    <div id="demo-banner" class="hidden" style="margin-top:16px;text-align:center;">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">— o —</div>
+      <button type="button" id="demo-btn" class="btn btn-block" style="background:rgba(127,184,176,0.18);color:var(--accent);font-weight:700;padding:12px;border-radius:14px;">Explorar en modo demo</button>
+      <div style="font-size:11px;color:var(--text2);margin-top:6px;">Sin conexión al servidor. Los datos no se guardan.</div>
+    </div>
+
     <div id="reset-request-form" class="hidden">
       <div class="field">
         <label class="field-label">Usuario</label>
@@ -1184,13 +1190,45 @@ function loginAs(usuario, perfil){
   loadTripAndRender();
 }
 
+let DEMO_MODE = false;
+
 async function logout(){
-  try { await apiFetch('/api/sesion', { method: 'DELETE' }); } catch {}
+  if(!DEMO_MODE){ try { await apiFetch('/api/sesion', { method: 'DELETE' }); } catch {} }
   CURRENT_USER = null;
   CURRENT_PROFILE = null;
+  DEMO_MODE = false;
   document.getElementById("auth-screen").classList.remove("hidden");
   document.getElementById("login-form").reset();
   document.getElementById("auth-error").textContent = "";
+}
+
+function enterDemo(){
+  DEMO_MODE = true;
+  CURRENT_USER = 'demo';
+  CURRENT_PROFILE = {
+    name: 'Viajero',
+    interests: ['arte','comida','aventura'],
+    destino: { continente:'europa', pais:'italia', ciudades:['Milán'] },
+    viaje: {
+      hotel: { nombre:'Hotel Andreola Central', direccion:'Via Scarlatti 24, Milano', telefono:'+39 02 6698 1610', checkIn:'2025-07-15', horaCheckIn:'14:00', checkOut:'2025-07-20', horaCheckOut:'11:00', confirmacion:'AND-2025-1234', mapsUrl:'https://maps.google.com/?q=Hotel+Andreola+Central+Milano' },
+      vuelos: [
+        { id:'v1', tipo:'ida', numero:'FR1234', origen:'MAD', destino:'MXP', fecha:'2025-07-15', hora:'08:30', aerolinea:'Ryanair', confirmacion:'RYN-ABC' },
+        { id:'v2', tipo:'vuelta', numero:'FR1235', origen:'MXP', destino:'MAD', fecha:'2025-07-20', hora:'18:00', aerolinea:'Ryanair', confirmacion:'RYN-DEF' }
+      ],
+      viajeros: [
+        { id:'t1', nombre:'Papá', inicial:'PA', color:'#3E6E92' },
+        { id:'t2', nombre:'Mamá', inicial:'MA', color:'#D1567A' },
+        { id:'t3', nombre:'Leo', inicial:'LE', color:'#3E9C6B' }
+      ],
+      excursiones: [
+        { id:'e1', nombre:'Catedral del Duomo', proveedor:'GetYourGuide', fecha:'2025-07-16', hora:'10:00', precio:'25 €', url:'', confirmacion:'GYG-111' },
+        { id:'e2', nombre:'Lago de Como', proveedor:'Civitatis', fecha:'2025-07-18', hora:'09:00', precio:'45 €', url:'', confirmacion:'CIV-222' }
+      ]
+    }
+  };
+  document.getElementById("auth-screen").classList.add("hidden");
+  toast("Modo demo — explora la app");
+  loadTripAndRender();
 }
 
 async function tryRestoreSession(){
@@ -1354,6 +1392,10 @@ function ensureViaje(){
 }
 
 async function saveViaje(){
+  if(DEMO_MODE){
+    try { localStorage.setItem('andanzas_demo_viaje', JSON.stringify(CURRENT_PROFILE.viaje || {})); } catch{}
+    return;
+  }
   const viaje = CURRENT_PROFILE.viaje || {};
   try {
     await apiFetch('/api/perfil', { method:'PUT', body:JSON.stringify({ viaje }) });
@@ -2928,7 +2970,8 @@ async function init(){
   if(restored){
     await loadTripAndRender();
   } else {
-    // Pre-load default trip for when user logs in without destino
+    document.getElementById("demo-banner").classList.remove("hidden");
+    document.getElementById("demo-btn").addEventListener("click", enterDemo);
     try {
       const r = await fetch("data/trips/milan.json");
       TRIP = await r.json();
