@@ -30,12 +30,12 @@ await app.register(estaticos, { root: join(aqui, 'public'), prefix: '/' });
 // Cabeceras de la propia pagina. La CSP evita que un fichero servido desde
 // aqui pueda cargar codigo de fuera: todo lo que ejecuta la interfaz es local.
 app.addHook('onSend', async (req, res, cuerpo) => {
+  res.header('X-Content-Type-Options', 'nosniff');
+  res.header('Referrer-Policy', 'no-referrer');
   if (!req.url.startsWith('/api/')) {
     res.header('Content-Security-Policy',
       "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; " +
       "form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
-    res.header('X-Content-Type-Options', 'nosniff');
-    res.header('Referrer-Policy', 'no-referrer');
   }
   return cuerpo;
 });
@@ -315,6 +315,7 @@ app.put('/api/perfil', async (req) => {
 const AVIATION_KEY = process.env.AVIATION_API_KEY;
 const vueloCache = new Map();
 const VUELO_TTL = 5 * 60 * 1000;
+const VUELO_CACHE_MAX = 500;
 
 app.get('/api/flight-status', async (req, res) => {
   const flight = (req.query.flight || '').trim().toUpperCase();
@@ -351,6 +352,10 @@ app.get('/api/flight-status', async (req, res) => {
       estDeparture: data.departure?.estimated ?? null
     };
 
+    if (vueloCache.size >= VUELO_CACHE_MAX) {
+      const oldest = vueloCache.keys().next().value;
+      vueloCache.delete(oldest);
+    }
     vueloCache.set(cacheKey, { ts: Date.now(), data: result });
     return result;
   } catch (e) {
