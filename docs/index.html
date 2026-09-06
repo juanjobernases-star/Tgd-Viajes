@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Andanzas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -164,7 +165,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 
 /* ===== Auth ===== */
 #auth-screen{
-  position:absolute; inset:0; z-index:100; background:#EAF6F1;
+  position:absolute; top:0;right:0;bottom:0;left:0; z-index:100; background:#EAF6F1;
   display:flex; flex-direction:column; padding:calc(env(safe-area-inset-top,0px) + 80px) 24px calc(env(safe-area-inset-bottom,0px) + 40px); overflow-y:auto;
 }
 .auth-logo{text-align:center; margin-bottom:10px;}
@@ -329,7 +330,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 
 /* ===== Bottom sheets / modals ===== */
 .sheet-overlay{
-  position:absolute; inset:0; background:rgba(0,0,0,0.35); z-index:200;
+  position:absolute; top:0;right:0;bottom:0;left:0; background:rgba(0,0,0,0.35); z-index:200;
   display:flex; align-items:flex-end; opacity:0; pointer-events:none; transition:opacity .2s;
 }
 .sheet-overlay.open{opacity:1; pointer-events:auto;}
@@ -349,7 +350,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 .more-chevron{color:var(--text3); font-size:16px;}
 
 .alert-overlay{
-  position:absolute; inset:0; background:rgba(0,0,0,0.35); z-index:300;
+  position:absolute; top:0;right:0;bottom:0;left:0; background:rgba(0,0,0,0.35); z-index:300;
   display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .15s;
 }
 .alert-overlay.open{opacity:1; pointer-events:auto;}
