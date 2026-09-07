@@ -3825,6 +3825,31 @@ async function init(){
 }
 init().catch(function(e){ console.error('init fatal', e); });
 
+/* ============ SERVICE WORKER (anti-caché PWA) ============ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function(reg){
+      reg.addEventListener('updatefound', function(){
+        var newWorker = reg.installing;
+        if(!newWorker) return;
+        newWorker.addEventListener('statechange', function(){
+          if(newWorker.state === 'activated'){
+            // Hay una versión nueva ya activa: recargamos para servirla.
+            window.location.reload();
+          }
+        });
+      });
+    }).catch(function(e){ console.error('sw register', e); });
+
+    var refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function(){
+      if(refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+  });
+}
+
 })();
 </script>
 </body>
