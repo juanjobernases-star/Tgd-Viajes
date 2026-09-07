@@ -200,31 +200,73 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 .interest-chip.selected{background:#2F6F65; color:#fff; border-color:#2F6F65;}
 .auth-error{color:#D1567A; font-size:13px; margin-bottom:8px; min-height:16px;}
 
-/* ===== Onboarding wizard ===== */
+/* ===== Onboarding wizard (cinematic redesign) ===== */
 #onboarding-screen{
   position:absolute; top:0;right:0;bottom:0;left:0; z-index:110;
-  background:linear-gradient(180deg,#EAF6F1 0%,#F6EFE1 100%);
+  background:var(--bg);
   display:flex; flex-direction:column;
+  overflow:hidden;
   padding:calc(env(safe-area-inset-top,0px) + 20px) 0 calc(env(safe-area-inset-bottom,0px) + 20px);
 }
-.ob-progress{display:flex; justify-content:center; gap:7px; margin-bottom:6px; flex-shrink:0;}
-.ob-dot{width:8px; height:8px; border-radius:50%; background:rgba(120,95,74,0.18); transition:background .3s ease, transform .3s ease;}
-.ob-dot.done{background:var(--accent);}
-.ob-dot.active{background:var(--accent); transform:scale(1.35);}
-.ob-body{flex:1; overflow-y:auto; padding:20px 24px 8px; display:flex; flex-direction:column;}
-.ob-step{animation:obIn .38s cubic-bezier(.22,1,.36,1);}
-.ob-step.ob-leaving{animation:obOut .22s ease forwards;}
-@keyframes obIn{from{opacity:0; transform:translateX(18px);} to{opacity:1; transform:translateX(0);}}
-@keyframes obOut{from{opacity:1; transform:translateX(0);} to{opacity:0; transform:translateX(-18px);}}
+
+/* --- Fondo aurora: blobs de color en movimiento lento, full-bleed --- */
+.ob-aurora{position:absolute; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
+.ob-blob{position:absolute; border-radius:50%; filter:blur(70px); opacity:.4; will-change:transform;}
+.ob-blob-1{width:360px; height:360px; background:#7FB8B0; top:-100px; left:-80px; animation:obDrift1 24s ease-in-out infinite alternate;}
+.ob-blob-2{width:320px; height:320px; background:#D1567A; bottom:-90px; right:-70px; animation:obDrift2 28s ease-in-out infinite alternate;}
+.ob-blob-3{width:280px; height:280px; background:#C77A2E; top:38%; left:55%; animation:obDrift3 32s ease-in-out infinite alternate;}
+@keyframes obDrift1{from{transform:translate3d(0,0,0) scale(1);}to{transform:translate3d(50px,70px,0) scale(1.2);}}
+@keyframes obDrift2{from{transform:translate3d(0,0,0) scale(1);}to{transform:translate3d(-60px,-40px,0) scale(1.12);}}
+@keyframes obDrift3{from{transform:translate3d(-50%,-50%,0) rotate(0deg);}to{transform:translate3d(-50%,-50%,0) rotate(28deg) scale(1.25);}}
+@media (prefers-reduced-motion: reduce){ .ob-blob{animation:none;} }
+
+/* --- Progreso: barra premium que se rellena --- */
+.ob-progress{position:relative; z-index:1; padding:0 24px; margin-bottom:8px; flex-shrink:0;}
+.ob-bar-track{height:5px; border-radius:100px; background:rgba(120,95,74,0.14); overflow:hidden;}
+.ob-bar-fill{
+  height:100%; border-radius:100px; width:4%;
+  background:linear-gradient(90deg,#7FB8B0,var(--accent));
+  box-shadow:0 0 12px rgba(127,184,176,0.65);
+  transition:width .6s cubic-bezier(.22,1,.36,1);
+}
+@media (prefers-reduced-motion: reduce){ .ob-bar-fill{transition:none;} }
+
+.ob-body{position:relative; z-index:1; flex:1; overflow-y:auto; padding:22px 24px 8px; display:flex; flex-direction:column;}
+
+/* --- Transición cinematográfica entre pasos --- */
+.ob-step{animation:obIn .55s cubic-bezier(.22,1,.36,1);}
+.ob-step.ob-leaving{animation:obOut .24s cubic-bezier(.4,0,1,1) forwards;}
+@keyframes obIn{from{opacity:0; transform:translateX(30px) scale(.97);} to{opacity:1; transform:translateX(0) scale(1);}}
+@keyframes obOut{from{opacity:1; transform:translateX(0) scale(1);} to{opacity:0; transform:translateX(-30px) scale(.97);}}
+
+/* --- Entrada escalonada de cada bloque del paso --- */
+.ob-step > *{opacity:0; transform:translateY(16px); animation:obRise .6s cubic-bezier(.22,1,.36,1) forwards;}
+.ob-step > *:nth-child(1){animation-delay:.04s}
+.ob-step > *:nth-child(2){animation-delay:.10s}
+.ob-step > *:nth-child(3){animation-delay:.16s}
+.ob-step > *:nth-child(4){animation-delay:.22s}
+.ob-step > *:nth-child(5){animation-delay:.28s}
+.ob-step > *:nth-child(6){animation-delay:.34s}
+.ob-step > *:nth-child(7){animation-delay:.40s}
+.ob-step > *:nth-child(n+8){animation-delay:.46s}
+@keyframes obRise{to{opacity:1; transform:translateY(0);}}
 @media (prefers-reduced-motion: reduce){
   .ob-step{animation:none;}
   .ob-step.ob-leaving{animation:none;}
-  .ob-dot{transition:none;}
+  .ob-step > *{opacity:1; transform:none; animation:none;}
 }
-.ob-eyebrow{font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--accent); margin-bottom:6px;}
-.ob-title{font-size:23px; font-weight:800; color:var(--text); line-height:1.25; margin-bottom:6px;}
-.ob-sub{font-size:14px; color:var(--text2); margin-bottom:20px; line-height:1.4;}
-.ob-actions{display:flex; flex-direction:column; gap:8px; padding:14px 24px 4px; flex-shrink:0;}
+
+/* --- Tipografía protagonista --- */
+.ob-eyebrow{font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:8px;}
+.ob-title{
+  font-size:30px; font-weight:800; line-height:1.16; margin-bottom:10px; letter-spacing:-.01em;
+  color:var(--text);
+  background:linear-gradient(100deg, var(--text) 40%, var(--accent) 100%);
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+}
+.ob-sub{font-size:15px; color:var(--text2); margin-bottom:22px; line-height:1.5;}
+
+.ob-actions{position:relative; z-index:1; display:flex; flex-direction:column; gap:8px; padding:14px 24px 4px; flex-shrink:0;}
 .ob-skip{text-align:center; font-size:13px; color:var(--text2); padding:6px; font-weight:600;}
 .ob-skip:focus-visible, .btn:focus-visible, .interest-chip:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 .ob-mini-card{background:var(--card); border-radius:16px; padding:14px; margin-bottom:10px; box-shadow:0 3px 0 rgba(196,150,110,0.12); display:flex; justify-content:space-between; align-items:center; gap:10px;}
@@ -232,14 +274,12 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 .ob-mini-card .obmc-title{font-weight:700; font-size:14px;}
 .ob-mini-card .obmc-sub{font-size:12px; color:var(--text2); margin-top:2px;}
 .ob-avatar{width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:14px; flex-shrink:0;}
-.ob-welcome-emoji{font-size:52px; text-align:center; margin-bottom:8px; animation:obBounce 1.4s ease infinite;}
-@keyframes obBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+
+.ob-welcome-emoji{font-size:56px; text-align:center; margin-bottom:10px; animation:obBounce 1.6s ease infinite;}
+@keyframes obBounce{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-10px) rotate(-4deg);}}
 @media (prefers-reduced-motion: reduce){ .ob-welcome-emoji{animation:none;} }
+
 .ob-final{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; position:relative; overflow:hidden;}
-.ob-final-emoji{font-size:64px; margin-bottom:14px;}
-.ob-confetti{position:absolute; top:-10%; width:8px; height:14px; border-radius:2px; opacity:0.9; animation:obFall 2.6s ease-in forwards;}
-@keyframes obFall{to{transform:translateY(115vh) rotate(340deg); opacity:0;}}
-@media (prefers-reduced-motion: reduce){ .ob-confetti{display:none;} }
 
 /* Traveler details for flights/passengers */
 .dark-card{
@@ -616,6 +656,11 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 
   <!-- ONBOARDING WIZARD -->
   <div id="onboarding-screen" class="hidden">
+    <div class="ob-aurora" id="ob-aurora" aria-hidden="true">
+      <span class="ob-blob ob-blob-1"></span>
+      <span class="ob-blob ob-blob-2"></span>
+      <span class="ob-blob ob-blob-3"></span>
+    </div>
     <div class="ob-progress" id="ob-progress"></div>
     <div class="ob-body" id="ob-body"></div>
     <div class="ob-actions" id="ob-actions"></div>
@@ -1373,12 +1418,8 @@ function startOnboarding(){
 function obProgressRender(){
   const wrap = document.getElementById('ob-progress');
   if(obStep >= OB_STEP_COUNT){ wrap.innerHTML = ''; return; }
-  wrap.innerHTML = Array.from({length:OB_STEP_COUNT}).map((_,i)=>{
-    let cls = 'ob-dot';
-    if(i < obStep) cls += ' done';
-    else if(i === obStep) cls += ' active';
-    return `<div class="${cls}"></div>`;
-  }).join('');
+  const pct = Math.max(4, Math.round((obStep / OB_STEP_COUNT) * 100));
+  wrap.innerHTML = `<div class="ob-bar-track"><div class="ob-bar-fill" style="width:${pct}%"></div></div>`;
 }
 
 function obSetActions(html){ document.getElementById('ob-actions').innerHTML = html; }
@@ -1390,7 +1431,7 @@ function obGoTo(step){
   const doRender = ()=>{ obStep = step; renderObStep(); };
   if(current && !reduceMotion){
     current.classList.add('ob-leaving');
-    setTimeout(doRender, 180);
+    setTimeout(doRender, 230);
   } else {
     doRender();
   }
