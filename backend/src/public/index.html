@@ -281,6 +281,27 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 
 .ob-final{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; position:relative; overflow:hidden;}
 
+/* --- Microinteracciones (chips y botones), acotadas al wizard --- */
+#onboarding-screen .interest-chip{
+  transition:transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease, background .15s ease, border-color .15s ease;
+}
+#onboarding-screen .interest-chip:active{transform:scale(.92);}
+#onboarding-screen .interest-chip.selected{
+  transform:scale(1.05);
+  box-shadow:0 0 0 3px rgba(47,111,101,0.16), 0 4px 14px rgba(47,111,101,0.3);
+}
+#onboarding-screen .btn{transition:transform .12s ease, box-shadow .12s ease;}
+#onboarding-screen .btn:active{transform:scale(.96);}
+#onboarding-screen .btn-primary{box-shadow:0 6px 20px rgba(127,184,176,0.4);}
+#onboarding-screen .btn-primary:active{box-shadow:0 3px 10px rgba(127,184,176,0.3);}
+#onboarding-screen .ob-mini-card{transition:transform .15s ease, box-shadow .15s ease;}
+#onboarding-screen .ob-mini-card:active{transform:scale(.98);}
+@media (prefers-reduced-motion: reduce){
+  #onboarding-screen .interest-chip, #onboarding-screen .btn, #onboarding-screen .ob-mini-card{transition:none;}
+  #onboarding-screen .interest-chip:active, #onboarding-screen .interest-chip.selected,
+  #onboarding-screen .btn:active, #onboarding-screen .ob-mini-card:active{transform:none;}
+}
+
 /* Traveler details for flights/passengers */
 .dark-card{
   border-radius:20px; padding:18px; margin-bottom:14px; color:#5B4636;
