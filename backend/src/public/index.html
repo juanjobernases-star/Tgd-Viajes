@@ -1451,7 +1451,9 @@ function viajeNecesitaOnboarding(viaje){
   if(viaje.onboardingDone) return false;
   const hasHotel = !!(viaje.hotel && viaje.hotel.nombre);
   const hasVuelos = !!(viaje.vuelos && viaje.vuelos.length);
-  const hasViajeros = !!(viaje.viajeros && viaje.viajeros.length);
+  // Un solo viajero (el titular auto-precargado) sigue contando como "vacío":
+  // solo cuenta como dato real a partir del segundo viajero añadido.
+  const hasViajeros = !!(viaje.viajeros && viaje.viajeros.length > 1);
   return !hasHotel && !hasVuelos && !hasViajeros;
 }
 
