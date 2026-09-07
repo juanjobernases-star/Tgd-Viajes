@@ -3105,6 +3105,48 @@ function formatFechaCorta(fecha){
   } catch(e){ return fecha; }
 }
 
+// Estado de reservas: solo hotel/vuelos/excursiones que el usuario ha
+// metido de verdad (viaje.*) — nunca TRIP.reservations, que es contenido
+// de ejemplo del destino, no algo confirmado por el usuario.
+function renderReservationsCard(){
+  const viaje = getViaje();
+  const rows = [];
+  if(viaje.hotel && viaje.hotel.nombre){
+    rows.push({
+      status: viaje.hotel.confirmacion ? "confirmed" : "pending",
+      strong: viaje.hotel.nombre,
+      rest: viaje.hotel.confirmacion ? ` — confirmación ${viaje.hotel.confirmacion}` : " — pendiente de confirmar"
+    });
+  }
+  (viaje.vuelos||[]).forEach(v=>{
+    rows.push({
+      status: v.confirmacion ? "confirmed" : "pending",
+      strong: `Vuelo ${v.origen||"?"} → ${v.destino||"?"}`,
+      rest: v.confirmacion ? ` — confirmación ${v.confirmacion}` : " — pendiente de confirmar"
+    });
+  });
+  (viaje.excursiones||[]).forEach(e=>{
+    rows.push({
+      status: e.confirmacion ? "confirmed" : "pending",
+      strong: e.nombre || "Excursión",
+      rest: e.confirmacion ? ` — confirmación ${e.confirmacion}` : " — pendiente de confirmar"
+    });
+  });
+  const card = document.getElementById("reservations-card");
+  if(!rows.length){
+    card.innerHTML = '<div class="subtle" style="padding:8px;">Sin reservas todavía — añade tu hotel, vuelos o excursiones desde sus pestañas.</div>';
+    return;
+  }
+  card.innerHTML = rows.map(r=>`
+    <div class="row">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:${r.status==='pending'?'var(--orange)':'var(--green)'};display:inline-block;"></span>
+        <span><strong>${escapeHtml(r.strong)}</strong>${escapeHtml(r.rest)}</span>
+      </div>
+    </div>
+  `).join("");
+}
+
 function renderResumen(){
   // Próximo plan: solo datos reales del usuario, nunca el itinerario de
   // ejemplo de TRIP (evita mostrar vuelos/planes que no existen).
@@ -3150,19 +3192,8 @@ function renderResumen(){
   // Excursions (manual forms)
   renderExcursionsList();
 
-  // reservations (only if TRIP has them)
-  if(TRIP && TRIP.reservations){
-    document.getElementById("reservations-card").innerHTML = TRIP.reservations.map(r=>`
-      <div class="row">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <span style="width:8px;height:8px;border-radius:50%;background:${r.status==='pending'?'var(--orange)':'var(--green)'};display:inline-block;"></span>
-          <span><strong>${escapeHtml(r.strong)}</strong> ${escapeHtml(r.rest)}</span>
-        </div>
-      </div>
-    `).join("");
-  } else {
-    document.getElementById("reservations-card").innerHTML = '<div class="subtle" style="padding:8px;">Sin reservas adicionales</div>';
-  }
+  // Estado de reservas: solo datos reales del usuario, nunca el ejemplo de TRIP
+  renderReservationsCard();
 
   // routes
   if(!TRIP || !TRIP.gettingAround){ document.getElementById("routes-list").innerHTML = ''; renderCustomRoutes(); return; }
