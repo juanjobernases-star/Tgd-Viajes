@@ -3058,43 +3058,71 @@ function renderResumenFlights(){
 }
 
 /* ============ RENDER: RESUMEN ============ */
-function findNextEvent(){
+// Busca el próximo plan SOLO entre datos reales del usuario (viaje.vuelos/
+// hotel/excursiones) — nunca en TRIP, que es contenido de ejemplo del
+// destino, no algo que el usuario haya reservado.
+function findNextRealEvent(){
+  const viaje = getViaje();
+  const candidates = [];
+  (viaje.vuelos||[]).forEach(v=>{
+    if(!v.fecha) return;
+    candidates.push({
+      date: v.fecha, time: v.hora||"",
+      desc: `Vuelo ${v.origen||"?"} → ${v.destino||"?"}`,
+      sub: [v.aerolinea, v.hora].filter(Boolean).join(" · ")
+    });
+  });
+  if(viaje.hotel && viaje.hotel.checkIn){
+    candidates.push({
+      date: viaje.hotel.checkIn, time: viaje.hotel.horaCheckIn||"",
+      desc: `Check-in: ${viaje.hotel.nombre||"hotel"}`,
+      sub: viaje.hotel.horaCheckIn ? ("Desde las "+viaje.hotel.horaCheckIn) : ""
+    });
+  }
+  (viaje.excursiones||[]).forEach(e=>{
+    if(!e.fecha) return;
+    candidates.push({
+      date: e.fecha, time: e.hora||"",
+      desc: e.nombre||"Excursión",
+      sub: [e.hora, e.precio].filter(Boolean).join(" · ")
+    });
+  });
+  if(!candidates.length) return null;
+  candidates.sort((a,b)=> (a.date+(a.time||"00:00")).localeCompare(b.date+(b.time||"00:00")));
   const now = new Date();
-  for(const day of TRIP.days){
-    const items = getDayItems(day);
-    for(const it of items){
-      // rough parse of time HH:MM at start
-      const m = (it.time||"").match(/(\d{1,2}):(\d{2})/);
-      let dt = new Date(day.date+"T00:00:00");
-      if(m) dt.setHours(parseInt(m[1]), parseInt(m[2]));
-      if(dt >= now || true){ // fallback: just return first upcoming by date comparison loosely
-      }
-      if(dt >= now){
-        return {day, item:it};
-      }
-    }
-  }
-  // if trip passed or none found, return first item of first day
-  if(TRIP.days.length){
-    const items = getDayItems(TRIP.days[0]);
-    if(items.length) return {day:TRIP.days[0], item:items[0]};
-  }
-  return null;
+  const upcoming = candidates.find(c=>{
+    const dt = new Date(c.date+"T"+(c.time||"00:00"));
+    return !isNaN(dt) && dt >= now;
+  });
+  return upcoming || candidates[0];
+}
+
+function formatFechaCorta(fecha){
+  try{
+    const dt = new Date(fecha+"T00:00:00");
+    if(isNaN(dt)) return fecha;
+    return dt.toLocaleDateString("es-ES", {day:"numeric", month:"short"});
+  } catch(e){ return fecha; }
 }
 
 function renderResumen(){
-  // Next event banner (only if TRIP with days)
+  // Próximo plan: solo datos reales del usuario, nunca el itinerario de
+  // ejemplo de TRIP (evita mostrar vuelos/planes que no existen).
   const banner = document.getElementById("next-plan-banner");
-  if(TRIP && TRIP.days){
-    const next = findNextEvent();
-    if(next){
-      banner.innerHTML = `<div class="banner">
-        <div class="lbl">Próximo plan</div>
-        <div class="main">${escapeHtml(next.item.desc)}</div>
-        <div class="sub">${escapeHtml(next.day.title)} · ${escapeHtml(next.item.time||"")}</div>
-      </div>`;
-    } else { banner.innerHTML = ""; }
-  } else { banner.innerHTML = ""; }
+  const next = findNextRealEvent();
+  if(next){
+    banner.innerHTML = `<div class="banner">
+      <div class="lbl">Próximo plan</div>
+      <div class="main">${escapeHtml(next.desc)}</div>
+      <div class="sub">${escapeHtml(formatFechaCorta(next.date))}${next.sub?(' · '+escapeHtml(next.sub)):''}</div>
+    </div>`;
+  } else {
+    banner.innerHTML = `<div class="banner">
+      <div class="lbl">Próximo plan</div>
+      <div class="main">Aún no hay planes</div>
+      <div class="sub">Añade tu primer vuelo desde la pestaña Vuelo</div>
+    </div>`;
+  }
 
   // Facts grid: siempre datos reales del usuario (viaje.*), nunca el resumen
   // de ejemplo de TRIP — así no aparenta tener hotel/vuelos ya reservados.
