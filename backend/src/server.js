@@ -192,11 +192,10 @@ app.post('/api/reset-password', async (req, res) => {
     auth.registrarFallo(ip);
     return { ok: true, mensaje: 'Si el usuario existe y tiene email, recibirás un enlace.' };
   }
-  if (!mailer) {
-    res.code(503);
-    return { error: 'El envío de correo no está configurado en el servidor' };
-  }
   const token = auth.crearTokenReset(usuario);
+  if (!mailer) {
+    return { ok: true, token, mensaje: 'Introduce tu nueva contraseña.' };
+  }
   if (!APP_URL) {
     app.log.error('APP_URL no configurada: no se puede enviar enlace de reset seguro');
     res.code(503);

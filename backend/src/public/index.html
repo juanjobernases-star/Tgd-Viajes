@@ -1449,6 +1449,16 @@ function initAuthUI(){
   });
 
   // --- Reset password UI ---
+  var pendingResetToken = null;
+  function showResetConfirm(){
+    document.getElementById("login-form").classList.add("hidden");
+    document.getElementById("register-form").classList.add("hidden");
+    document.getElementById("reset-request-form").classList.add("hidden");
+    document.getElementById("reset-confirm-form").classList.remove("hidden");
+    document.getElementById("reset-confirm-msg").textContent = "";
+    document.getElementById("tab-login").classList.remove("active");
+    document.getElementById("tab-register").classList.remove("active");
+  }
   function showResetRequest(){
     document.getElementById("login-form").classList.add("hidden");
     document.getElementById("register-form").classList.add("hidden");
@@ -1482,6 +1492,11 @@ function initAuthUI(){
       if(!hr3.ok) throw new Error('no backend');
       const r = await apiFetch('/api/reset-password', { method:'POST', body:JSON.stringify({usuario}) });
       if(!r.ok){ msg.style.color="#D1567A"; msg.textContent=r.data?.error||"Error"; return; }
+      if(r.data?.token){
+        pendingResetToken = r.data.token;
+        showResetConfirm();
+        return;
+      }
       msg.style.color="var(--accent,#2F6F65)"; msg.textContent=r.data?.mensaje||"Revisa tu correo.";
     } catch { msg.style.color="#D1567A"; msg.textContent="No hay conexión al servidor. El cambio de contraseña requiere acceso al servidor privado."; }
   });
@@ -1492,13 +1507,13 @@ function initAuthUI(){
     const msg = document.getElementById("reset-confirm-msg");
     if(!pass || pass.length < 8){ msg.style.color="#D1567A"; msg.textContent="Mínimo 8 caracteres."; return; }
     if(pass !== pass2){ msg.style.color="#D1567A"; msg.textContent="Las contraseñas no coinciden."; return; }
-    const params = new URLSearchParams(location.search);
-    const token = params.get("reset");
+    var token = pendingResetToken || new URLSearchParams(location.search).get("reset");
     if(!token){ msg.style.color="#D1567A"; msg.textContent="Enlace inválido."; return; }
     msg.style.color="var(--accent,#2F6F65)"; msg.textContent="Cambiando...";
     try {
       const r = await apiFetch('/api/reset-password/confirmar', { method:'POST', body:JSON.stringify({token, password:pass}) });
       if(!r.ok){ msg.style.color="#D1567A"; msg.textContent=r.data?.error||"Error"; return; }
+      pendingResetToken = null;
       msg.style.color="var(--accent,#2F6F65)"; msg.textContent=r.data?.mensaje||"Contraseña cambiada.";
       setTimeout(()=>{ history.replaceState(null,"",location.pathname); showLogin(); }, 2000);
     } catch { msg.style.color="#D1567A"; msg.textContent="No se puede conectar con el servidor."; }
