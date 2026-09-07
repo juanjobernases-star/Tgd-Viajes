@@ -348,18 +348,27 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 }
 
 /* --- Cierre espectacular --- */
+.ob-final::before{
+  content:''; position:absolute; inset:-15%; z-index:-1; pointer-events:none;
+  background:radial-gradient(circle at 50% 42%, rgba(255,71,87,0.4), transparent 62%);
+  animation:obBurst 2.1s ease-out;
+}
+.ob-final .ob-title{font-size:34px;}
 .ob-final-emoji{
-  font-size:76px; margin-bottom:16px; position:relative;
+  font-size:80px; margin-bottom:16px; position:relative;
   animation:obPop .65s cubic-bezier(.34,1.56,.64,1);
+  filter:drop-shadow(0 10px 30px rgba(255,71,87,0.55));
 }
 .ob-final-emoji::after{
-  content:''; position:absolute; inset:-34px; border-radius:50%; z-index:-1;
-  background:radial-gradient(circle, rgba(127,184,176,0.5), transparent 70%);
+  content:''; position:absolute; inset:-36px; border-radius:50%; z-index:-1;
+  background:radial-gradient(circle, rgba(255,209,102,0.55), transparent 70%);
   animation:obGlow 1.7s ease-out;
 }
 @keyframes obPop{0%{transform:scale(.35); opacity:0;}55%{transform:scale(1.18); opacity:1;}100%{transform:scale(1);}}
 @keyframes obGlow{0%{transform:scale(.3); opacity:0;}40%{opacity:.85;}100%{transform:scale(1.7); opacity:0;}}
+@keyframes obBurst{0%{transform:scale(.4); opacity:0;}35%{opacity:1;}100%{transform:scale(1.4); opacity:0;}}
 @media (prefers-reduced-motion: reduce){
+  .ob-final::before{animation:none; opacity:0;}
   .ob-final-emoji{animation:none;}
   .ob-final-emoji::after{animation:none; opacity:0;}
 }
@@ -1893,7 +1902,7 @@ async function obRenderFinal(body){
 function obSpawnConfetti(){
   const wrap = document.getElementById('ob-confetti-wrap');
   if(!wrap) return;
-  const colors = ['#2F6F65','#D1567A','#C77A2E','#3E9C6B','#7FB8B0'];
+  const colors = ['#FF4757','#FFD166','#00D2C6','#2E5CFF','#FF9F1C'];
   const anims = ['obFallA','obFallB'];
   const shapes = ['round','square'];
   for(let i=0;i<40;i++){
