@@ -656,13 +656,13 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
   </div>
 
   <!-- PRIVACY BANNER -->
-  <div id="privacy-banner" class="hidden" style="position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);padding:14px 16px;z-index:200;box-shadow:0 -2px 12px rgba(0,0,0,0.1);">
+  <div id="privacy-banner" class="hidden" style="position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);padding:14px 16px;z-index:200;box-shadow:0 -2px 12px rgba(0,0,0,0.1);pointer-events:none;">
     <div style="max-width:600px;margin:0 auto;">
       <div style="font-size:13px;line-height:1.5;color:var(--text);margin-bottom:10px;">
         🔒 <strong>Privacidad</strong> — Tus datos se almacenan <strong>solo en este dispositivo</strong> (cifrados en localStorage). No se envían a servidores externos. Puedes borrar todos tus datos en cualquier momento desde el botón «Salir».
-        <a href="#" id="privacy-more" style="color:var(--accent);font-size:12px;margin-left:4px;">Más info</a>
+        <a href="#" id="privacy-more" style="color:var(--accent);font-size:12px;margin-left:4px;pointer-events:auto;">Más info</a>
       </div>
-      <button class="btn btn-primary btn-sm" id="privacy-accept" type="button" style="width:100%;">Aceptar y continuar</button>
+      <button class="btn btn-primary btn-sm" id="privacy-accept" type="button" style="width:100%;pointer-events:auto;">Aceptar y continuar</button>
     </div>
   </div>
 
