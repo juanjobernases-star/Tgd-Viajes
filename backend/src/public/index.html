@@ -1523,6 +1523,180 @@ function obUpdateNextEnabled(){
   if(btn) btn.disabled = !obDestino.ciudades.length;
 }
 
+/* --- Paso 2: vuelos --- */
+function obRenderVuelos(body){
+  body.innerHTML = `<div class="ob-step">
+    <div class="ob-eyebrow">Paso 2 de 5</div>
+    <div class="ob-title">¿Ya tenéis vuelo? ✈️</div>
+    <div class="ob-sub">Añadid los vuelos que ya tengáis reservados. Podéis añadir más luego desde la pestaña Vuelo.</div>
+    <div id="ob-vuelos-list"></div>
+    <div id="ob-vuelo-form"></div>
+    <button type="button" class="btn btn-secondary btn-block" id="ob-add-vuelo">+ Añadir vuelo</button>
+  </div>`;
+  obRenderVuelosList();
+  document.getElementById('ob-add-vuelo').addEventListener('click', obRenderVueloForm);
+  obSetActions(`
+    <button class="btn btn-primary btn-block" id="ob-next-1" type="button">Continuar</button>
+    <button class="ob-skip" id="ob-skip-1" type="button">Lo añado después</button>
+  `);
+  document.getElementById('ob-next-1').addEventListener('click', ()=>obGoTo(2));
+  document.getElementById('ob-skip-1').addEventListener('click', ()=>obGoTo(2));
+}
+
+function obRenderVuelosList(){
+  const wrap = document.getElementById('ob-vuelos-list');
+  if(!wrap) return;
+  wrap.innerHTML = obVuelos.map((v,i)=>`
+    <div class="ob-mini-card">
+      <div class="obmc-main">
+        <div class="obmc-title">${escapeHtml(v.origen||'?')} → ${escapeHtml(v.destino||'?')}</div>
+        <div class="obmc-sub">${escapeHtml(v.aerolinea||'')} ${escapeHtml(v.numero||'')} · ${escapeHtml(v.fecha||'')}</div>
+      </div>
+      <button type="button" class="icon-btn danger" data-idx="${i}" aria-label="Eliminar vuelo">×</button>
+    </div>`).join('');
+  wrap.querySelectorAll('[data-idx]').forEach(b=>b.addEventListener('click', ()=>{
+    obVuelos.splice(Number(b.dataset.idx),1);
+    obRenderVuelosList();
+  }));
+}
+
+function obRenderVueloForm(){
+  const container = document.getElementById('ob-vuelo-form');
+  let tipo = obVuelos.length===0 ? 'ida' : 'vuelta';
+  container.innerHTML = `<div class="ob-mini-card" style="flex-direction:column;align-items:stretch;">
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <button type="button" class="btn btn-sm obf-tipo" data-tipo="ida">Ida</button>
+      <button type="button" class="btn btn-sm obf-tipo" data-tipo="vuelta">Vuelta</button>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <div class="field" style="flex:1;"><label class="field-label">Origen</label><input type="text" id="obf-origen" maxlength="3" placeholder="MAD" style="text-transform:uppercase;"></div>
+      <div class="field" style="flex:1;"><label class="field-label">Destino</label><input type="text" id="obf-destino" maxlength="3" placeholder="MXP" style="text-transform:uppercase;"></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <div class="field" style="flex:1;"><label class="field-label">Fecha</label><input type="date" id="obf-fecha"></div>
+      <div class="field" style="flex:1;"><label class="field-label">Hora</label><input type="time" id="obf-hora"></div>
+    </div>
+    <div class="field"><label class="field-label">Aerolínea y nº de vuelo</label>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="obf-aerolinea" placeholder="Ryanair" style="flex:2;">
+        <input type="text" id="obf-numero" placeholder="FR1234" style="flex:1;">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button type="button" class="btn btn-primary btn-sm" id="obf-save">Guardar vuelo</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="obf-cancel">Cancelar</button>
+    </div>
+  </div>`;
+  const paintTipo = ()=>{
+    container.querySelectorAll('.obf-tipo').forEach(x=>{
+      x.classList.toggle('btn-primary', x.dataset.tipo===tipo);
+      x.classList.toggle('btn-ghost', x.dataset.tipo!==tipo);
+    });
+  };
+  paintTipo();
+  container.querySelectorAll('.obf-tipo').forEach(b=>{
+    b.addEventListener('click', ()=>{ tipo = b.dataset.tipo; paintTipo(); });
+  });
+  document.getElementById('obf-save').addEventListener('click', ()=>{
+    obVuelos.push({
+      id: uid(), tipo,
+      origen: document.getElementById('obf-origen').value.trim().toUpperCase(),
+      destino: document.getElementById('obf-destino').value.trim().toUpperCase(),
+      fecha: document.getElementById('obf-fecha').value,
+      hora: document.getElementById('obf-hora').value,
+      aerolinea: document.getElementById('obf-aerolinea').value.trim(),
+      numero: document.getElementById('obf-numero').value.trim(),
+      confirmacion: ''
+    });
+    container.innerHTML = '';
+    obRenderVuelosList();
+  });
+  document.getElementById('obf-cancel').addEventListener('click', ()=>{ container.innerHTML=''; });
+}
+
+/* --- Paso 3: hotel --- */
+function obRenderHotel(body){
+  const h = obHotelData;
+  body.innerHTML = `<div class="ob-step">
+    <div class="ob-eyebrow">Paso 3 de 5</div>
+    <div class="ob-title">¿Dónde os alojáis? 🏨</div>
+    <div class="ob-sub">Con esto ya tendréis la dirección y las fechas de check-in/out siempre a mano.</div>
+    <div class="field"><label class="field-label">Nombre del hotel</label><input type="text" id="obh-nombre" value="${escapeHtml(h?h.nombre:'')}" placeholder="Hotel Andreola Central"></div>
+    <div class="field"><label class="field-label">Dirección</label><input type="text" id="obh-direccion" value="${escapeHtml(h?h.direccion:'')}" placeholder="Via Scarlatti 24, Milano"></div>
+    <div style="display:flex;gap:10px;">
+      <div class="field" style="flex:1;"><label class="field-label">Check-in</label><input type="date" id="obh-checkin" value="${escapeHtml(h?h.checkIn:(obFechaInicio||''))}"></div>
+      <div class="field" style="flex:1;"><label class="field-label">Check-out</label><input type="date" id="obh-checkout" value="${escapeHtml(h?h.checkOut:(obFechaFin||''))}"></div>
+    </div>
+  </div>`;
+  obSetActions(`
+    <button class="btn btn-primary btn-block" id="ob-next-2" type="button">Continuar</button>
+    <button class="ob-skip" id="ob-skip-2" type="button">Lo añado después</button>
+  `);
+  document.getElementById('ob-next-2').addEventListener('click', ()=>{
+    const nombre = document.getElementById('obh-nombre').value.trim();
+    if(nombre){
+      obHotelData = {
+        nombre, direccion: document.getElementById('obh-direccion').value.trim(),
+        telefono:'', checkIn: document.getElementById('obh-checkin').value, horaCheckIn:'',
+        checkOut: document.getElementById('obh-checkout').value, horaCheckOut:'',
+        confirmacion:'', mapsUrl:''
+      };
+    }
+    obGoTo(3);
+  });
+  document.getElementById('ob-skip-2').addEventListener('click', ()=>obGoTo(3));
+}
+
+/* --- Paso 4: viajeros --- */
+function obRenderViajeros(body){
+  body.innerHTML = `<div class="ob-step">
+    <div class="ob-eyebrow">Paso 4 de 5</div>
+    <div class="ob-title">¿Quién viaja? 👨‍👩‍👧</div>
+    <div class="ob-sub">Así podréis repartir gastos y planes entre todos.</div>
+    <div id="ob-viajeros-list"></div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <input type="text" id="ob-viajero-nombre" placeholder="Nombre" aria-label="Nombre del viajero">
+      <button type="button" class="btn btn-secondary btn-sm" id="ob-add-viajero">+ Añadir</button>
+    </div>
+  </div>`;
+  obRenderViajerosList();
+  document.getElementById('ob-add-viajero').addEventListener('click', obAddViajero);
+  document.getElementById('ob-viajero-nombre').addEventListener('keydown', e=>{
+    if(e.key==='Enter'){ e.preventDefault(); obAddViajero(); }
+  });
+  obSetActions(`
+    <button class="btn btn-primary btn-block" id="ob-next-3" type="button">Continuar</button>
+    <button class="ob-skip" id="ob-skip-3" type="button">Saltar por ahora</button>
+  `);
+  document.getElementById('ob-next-3').addEventListener('click', ()=>obGoTo(4));
+  document.getElementById('ob-skip-3').addEventListener('click', ()=>obGoTo(4));
+}
+
+function obAddViajero(){
+  const inp = document.getElementById('ob-viajero-nombre');
+  const nombre = inp.value.trim();
+  if(!nombre) return;
+  obTravelers.push({ id:uid(), nombre, inicial:initialsFrom(nombre), color:TRAVELER_COLORS[obTravelers.length % TRAVELER_COLORS.length] });
+  inp.value = '';
+  obRenderViajerosList();
+}
+
+function obRenderViajerosList(){
+  const wrap = document.getElementById('ob-viajeros-list');
+  wrap.innerHTML = obTravelers.map((t,i)=>`
+    <div class="ob-mini-card">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+        <div class="ob-avatar" style="background:${t.color}">${escapeHtml(t.inicial)}</div>
+        <div class="obmc-title">${escapeHtml(t.nombre)}</div>
+      </div>
+      ${obTravelers.length>1?`<button type="button" class="icon-btn danger" data-idx="${i}" aria-label="Eliminar viajero">×</button>`:''}
+    </div>`).join('');
+  wrap.querySelectorAll('[data-idx]').forEach(b=>b.addEventListener('click', ()=>{
+    obTravelers.splice(Number(b.dataset.idx),1);
+    obRenderViajerosList();
+  }));
+}
+
 function initDestinoSelector(){
   const contWrap = document.getElementById("reg-continentes");
   contWrap.innerHTML = Object.entries(DESTINOS).map(([k,v])=>
