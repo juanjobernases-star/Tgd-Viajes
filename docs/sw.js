@@ -4,7 +4,7 @@
 // IMPORTANTE: sube este número en CADA deploy que quieras que los móviles
 // con la app instalada refresquen. Si no lo subes, el SW considera que no
 // hay nada nuevo y no dispara la actualización.
-const CACHE_VERSION = 'v12';
+const CACHE_VERSION = 'v13';
 const CACHE_NAME = 'andanzas-' + CACHE_VERSION;
 
 // Solo cacheamos el HTML principal como fallback offline. Todo lo demás
