@@ -649,6 +649,10 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       </div>
       <button type="submit" class="btn btn-primary btn-block">Crear cuenta</button>
     </form>
+
+    <div style="text-align:center;margin-top:18px;">
+      <a href="#" id="auth-privacy-link" style="font-size:12px;color:var(--text2);">Privacidad</a>
+    </div>
   </div>
 
   <!-- PRIVACY BANNER -->
@@ -1171,6 +1175,11 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       <div class="sheet-handle"></div>
       <div class="sheet-title">Más secciones</div>
       <div id="more-sheet-list"></div>
+      <div class="more-item" id="more-privacy-item">
+        <div class="more-icon" style="background:rgba(120,95,74,0.14);">🔒</div>
+        <div class="more-label">Privacidad</div>
+        <div class="more-chevron">›</div>
+      </div>
     </div>
   </div>
 
@@ -4510,6 +4519,14 @@ function initPrivacy(){
     document.getElementById('privacy-banner').classList.add('hidden');
   });
   document.getElementById('privacy-more').addEventListener('click', function(e){
+    e.preventDefault();
+    openSheet('privacy-sheet-overlay');
+  });
+  document.getElementById('more-privacy-item').addEventListener('click', function(){
+    closeSheet('more-sheet-overlay');
+    openSheet('privacy-sheet-overlay');
+  });
+  document.getElementById('auth-privacy-link').addEventListener('click', function(e){
     e.preventDefault();
     openSheet('privacy-sheet-overlay');
   });
