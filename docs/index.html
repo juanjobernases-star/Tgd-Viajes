@@ -321,17 +321,24 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 
 /* --- Microinteracciones (chips y botones), acotadas al wizard --- */
 #onboarding-screen .interest-chip{
+  background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.85); border:1.5px solid rgba(255,255,255,0.16);
   transition:transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease, background .15s ease, border-color .15s ease;
 }
 #onboarding-screen .interest-chip:active{transform:scale(.92);}
 #onboarding-screen .interest-chip.selected{
   transform:scale(1.05);
-  box-shadow:0 0 0 3px rgba(47,111,101,0.16), 0 4px 14px rgba(47,111,101,0.3);
+  background:linear-gradient(135deg,#FF4757,#FF7A45); color:#fff; border-color:transparent;
+  box-shadow:0 0 0 3px rgba(255,71,87,0.25), 0 6px 18px rgba(255,71,87,0.45);
 }
 #onboarding-screen .btn{transition:transform .12s ease, box-shadow .12s ease;}
 #onboarding-screen .btn:active{transform:scale(.96);}
-#onboarding-screen .btn-primary{box-shadow:0 6px 20px rgba(127,184,176,0.4);}
-#onboarding-screen .btn-primary:active{box-shadow:0 3px 10px rgba(127,184,176,0.3);}
+#onboarding-screen .btn-primary{
+  background:linear-gradient(135deg,#FF4757,#FF7A45); color:#fff; font-weight:700;
+  box-shadow:0 8px 28px rgba(255,71,87,0.5);
+}
+#onboarding-screen .btn-primary:active{box-shadow:0 4px 14px rgba(255,71,87,0.35);}
+#onboarding-screen .btn-secondary{background:rgba(255,255,255,0.1); color:#fff;}
+#onboarding-screen .btn-ghost{background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.85);}
 #onboarding-screen .ob-mini-card{transition:transform .15s ease, box-shadow .15s ease;}
 #onboarding-screen .ob-mini-card:active{transform:scale(.98);}
 @media (prefers-reduced-motion: reduce){
@@ -1530,8 +1537,10 @@ function obGoTo(step){
   }
 }
 
+const OB_MOODS = ['destino','vuelos','hotel','viajeros','extra'];
 function renderObStep(){
   obProgressRender();
+  document.getElementById('onboarding-screen').dataset.mood = OB_MOODS[obStep] || 'final';
   const body = document.getElementById('ob-body');
   if(obStep===0) return obRenderWelcome(body);
   if(obStep===1) return obRenderVuelos(body);
