@@ -22,7 +22,10 @@ const auth = await import('./auth.js');
 const cookie = (await import('@fastify/cookie')).default;
 const estaticos = (await import('@fastify/static')).default;
 
+const cors = (await import('@fastify/cors')).default;
+
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL || 'info' } });
+await app.register(cors, { origin: true, credentials: true });
 await app.register(multipart, { limits: { fileSize: 50 * 1024 * 1024, files: 1 } });
 await app.register(cookie);
 await app.register(estaticos, { root: join(aqui, 'public'), prefix: '/' });
@@ -170,7 +173,7 @@ const SMTP_PASS = process.env.SMTP_PASSWORD;
 const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER;
 const APP_URL = process.env.APP_URL || '';
 
-const mailer = SMTP_HOST ? createTransport({
+const mailer = (SMTP_HOST && SMTP_PASS && !SMTP_PASS.startsWith('CAMBIAR')) ? createTransport({
   host: SMTP_HOST, port: SMTP_PORT,
   secure: SMTP_PORT === 465,
   auth: SMTP_USER ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
@@ -187,14 +190,14 @@ app.post('/api/reset-password', async (req, res) => {
   }
   const { usuario } = req.body ?? {};
   if (!usuario) { res.code(400); return { error: 'Introduce tu usuario' }; }
+  const token = auth.crearTokenReset(usuario);
+  if (!mailer) {
+    return { ok: true, token, mensaje: 'Introduce tu nueva contraseña.' };
+  }
   const email = await auth.obtenerEmailUsuario(usuario);
   if (!email) {
     auth.registrarFallo(ip);
     return { ok: true, mensaje: 'Si el usuario existe y tiene email, recibirás un enlace.' };
-  }
-  const token = auth.crearTokenReset(usuario);
-  if (!mailer) {
-    return { ok: true, token, mensaje: 'Introduce tu nueva contraseña.' };
   }
   if (!APP_URL) {
     app.log.error('APP_URL no configurada: no se puede enviar enlace de reset seguro');
