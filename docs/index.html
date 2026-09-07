@@ -181,23 +181,58 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 
 /* ===== Auth ===== */
 #auth-screen{
-  position:absolute; top:0;right:0;bottom:0;left:0; z-index:100; background:#EAF6F1;
+  position:absolute; top:0;right:0;bottom:0;left:0; z-index:100;
+  background:linear-gradient(160deg, #FBF7EE 0%, #EAF6F1 45%, #F5EBDC 100%);
   display:flex; flex-direction:column; padding:calc(env(safe-area-inset-top,0px) + 80px) 24px calc(env(safe-area-inset-bottom,0px) + 40px); overflow-y:auto;
 }
-.auth-logo{text-align:center; margin-bottom:10px;}
-.auth-logo .logo-circle{width:96px;height:96px;border-radius:50%;background:#CDEEE2;margin:0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.auth-logo{text-align:center; margin-bottom:12px;}
+.auth-logo .logo-circle{
+  width:96px;height:96px;border-radius:50%;
+  background:linear-gradient(135deg,#CDEEE2,#FFE3CC);
+  box-shadow:0 8px 22px rgba(255,138,101,0.22), 0 0 0 6px rgba(255,255,255,0.55);
+  margin:0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
 .auth-logo img{width:76px;height:76px;object-fit:contain;}
-.auth-title{font-size:22px; font-weight:800; color:#3E5449; text-align:center; margin-bottom:4px;}
+.auth-title{
+  font-size:24px; font-weight:800; text-align:center; margin-bottom:4px;
+  color:#3E5449;
+  background:linear-gradient(100deg, #3E5449 45%, #E8703A 100%);
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+}
 .auth-sub{font-size:14px; color:var(--text2); text-align:center; margin-bottom:24px;}
-.auth-toggle{display:flex; background:rgba(120,95,74,0.08); border-radius:14px; padding:3px; margin-bottom:20px;}
+.auth-toggle{display:flex; background:rgba(120,95,74,0.08); border-radius:14px; padding:3px; margin-bottom:22px;}
 .auth-toggle button{flex:1; padding:8px; border-radius:8px; font-size:14px; font-weight:600; color:var(--text2);}
-.auth-toggle button.active{background:#fff; color:var(--text);}
+.auth-toggle button.active{background:#fff; color:var(--text); box-shadow:0 2px 8px rgba(150,130,100,0.16);}
+.auth-section-title{
+  font-size:12px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:#E8703A;
+  margin:22px 0 10px; padding-top:14px; border-top:1px solid rgba(120,95,74,0.1);
+}
+.auth-section-title:first-child{margin-top:0; padding-top:0; border-top:none;}
 .interest-chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;}
 .interest-chip{
   padding:8px 14px; border-radius:100px; font-size:13px; font-weight:600;
-  background:rgba(120,120,128,0.12); color:var(--text2); border:1.5px solid transparent;
+  background:rgba(255,255,255,0.6); color:var(--text2); border:1.5px solid rgba(255,255,255,0.85);
+  box-shadow:0 2px 8px rgba(150,130,100,0.1);
+  opacity:0; transform:scale(.5);
+  animation:obChipPop .4s cubic-bezier(.34,1.56,.64,1) forwards, obChipFloat 3.6s ease-in-out .5s infinite;
+  transition:box-shadow .15s ease, background .15s ease, border-color .15s ease, transform .15s cubic-bezier(.34,1.56,.64,1);
 }
-.interest-chip.selected{background:#2F6F65; color:#fff; border-color:#2F6F65;}
+.interest-chip:nth-child(1){animation-delay:.02s,.5s}
+.interest-chip:nth-child(2){animation-delay:.06s,.64s}
+.interest-chip:nth-child(3){animation-delay:.10s,.78s}
+.interest-chip:nth-child(4){animation-delay:.14s,.92s}
+.interest-chip:nth-child(5){animation-delay:.18s,1.06s}
+.interest-chip:nth-child(n+6){animation-delay:.22s,1.2s}
+.interest-chip:active{transform:scale(.9);}
+.interest-chip.selected{
+  transform:scale(1.05);
+  background:linear-gradient(135deg,#FF8A65,#FFB347); color:#fff; border-color:transparent;
+  box-shadow:0 0 0 3px rgba(255,138,101,0.25), 0 5px 16px rgba(255,138,101,0.38);
+}
+@media (prefers-reduced-motion: reduce){
+  .interest-chip{opacity:1; transform:scale(1); animation:none; transition:box-shadow .15s ease, background .15s ease, border-color .15s ease;}
+  .interest-chip:active, .interest-chip.selected{transform:none;}
+}
 .auth-error{color:#D1567A; font-size:13px; margin-bottom:8px; min-height:16px;}
 
 /* ===== Onboarding wizard (luminoso, con encanto) ===== */
@@ -632,7 +667,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       </div>
     </div>
     <div class="auth-title">Andanzas</div>
-    <div class="auth-sub">Vuestro viaje en familia, en un solo sitio</div>
+    <div class="auth-sub">Vuestro viaje en familia, en un solo sitio ✈️</div>
 
     <div class="auth-toggle">
       <button id="tab-login" class="active" type="button">Entrar</button>
@@ -700,6 +735,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
     </div>
 
     <form id="register-form" class="hidden">
+      <div class="auth-section-title">Datos de cuenta</div>
       <div class="field">
         <label class="field-label">Nombre</label>
         <input type="text" id="reg-name" placeholder="Tu nombre">
@@ -715,6 +751,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
           <button type="button" class="pwd-toggle" data-toggle-pwd="reg-password" aria-label="Mostrar contraseña" aria-pressed="false">👁</button>
         </div>
       </div>
+      <div class="auth-section-title">Tus gustos</div>
       <div class="field">
         <label class="field-label">Intereses</label>
         <div class="interest-chips" id="reg-interests">
@@ -725,6 +762,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
           <button type="button" class="interest-chip" data-val="tranquilo">Tranquilo</button>
         </div>
       </div>
+      <div class="auth-section-title">Destino</div>
       <div class="field" id="destino-field">
         <label class="field-label">¿A dónde quieres viajar?</label>
         <div class="interest-chips" id="reg-continentes"></div>
