@@ -1338,6 +1338,191 @@ let regDestino = { continente: null, pais: null, ciudades: [] };
 
 function slugify(s){ return s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,""); }
 
+/* ============ ONBOARDING WIZARD ============ */
+const OB_STEP_COUNT = 5; // pasos con dot de progreso (0..4); el 5 es el cierre celebratorio
+let obStep = 0;
+let obDestino = { continente:null, pais:null, ciudades:[] };
+let obFechaInicio = '';
+let obFechaFin = '';
+let obVuelos = [];
+let obHotelData = null;
+let obTravelers = [];
+
+function viajeNecesitaOnboarding(viaje){
+  if(!viaje) return true;
+  if(viaje.onboardingDone) return false;
+  const hasHotel = !!(viaje.hotel && viaje.hotel.nombre);
+  const hasVuelos = !!(viaje.vuelos && viaje.vuelos.length);
+  const hasViajeros = !!(viaje.viajeros && viaje.viajeros.length);
+  return !hasHotel && !hasVuelos && !hasViajeros;
+}
+
+function startOnboarding(){
+  obStep = 0;
+  obDestino = (CURRENT_PROFILE && CURRENT_PROFILE.destino)
+    ? { continente:CURRENT_PROFILE.destino.continente, pais:CURRENT_PROFILE.destino.pais, ciudades:[...(CURRENT_PROFILE.destino.ciudades||[])] }
+    : { continente:null, pais:null, ciudades:[] };
+  obFechaInicio = ''; obFechaFin = '';
+  obVuelos = []; obHotelData = null;
+  const nombreActual = (CURRENT_PROFILE && CURRENT_PROFILE.name) || CURRENT_USER || 'Viajero';
+  obTravelers = [{ id:uid(), nombre:nombreActual, inicial:initialsFrom(nombreActual), color:TRAVELER_COLORS[0] }];
+  document.getElementById('onboarding-screen').classList.remove('hidden');
+  renderObStep();
+}
+
+function obProgressRender(){
+  const wrap = document.getElementById('ob-progress');
+  if(obStep >= OB_STEP_COUNT){ wrap.innerHTML = ''; return; }
+  wrap.innerHTML = Array.from({length:OB_STEP_COUNT}).map((_,i)=>{
+    let cls = 'ob-dot';
+    if(i < obStep) cls += ' done';
+    else if(i === obStep) cls += ' active';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+}
+
+function obSetActions(html){ document.getElementById('ob-actions').innerHTML = html; }
+
+function obGoTo(step){
+  const body = document.getElementById('ob-body');
+  const current = body.querySelector('.ob-step');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const doRender = ()=>{ obStep = step; renderObStep(); };
+  if(current && !reduceMotion){
+    current.classList.add('ob-leaving');
+    setTimeout(doRender, 180);
+  } else {
+    doRender();
+  }
+}
+
+function renderObStep(){
+  obProgressRender();
+  const body = document.getElementById('ob-body');
+  if(obStep===0) return obRenderWelcome(body);
+  if(obStep===1) return obRenderVuelos(body);
+  if(obStep===2) return obRenderHotel(body);
+  if(obStep===3) return obRenderViajeros(body);
+  if(obStep===4) return obRenderExtra(body);
+  return obRenderFinal(body);
+}
+
+/* --- Paso 0: bienvenida + destino + fechas --- */
+function obRenderWelcome(body){
+  const nombre = (CURRENT_PROFILE && CURRENT_PROFILE.name) || 'viajero';
+  const ciudadActual = obDestino.ciudades[0];
+  body.innerHTML = `<div class="ob-step">
+    <div class="ob-welcome-emoji" aria-hidden="true">🧳</div>
+    <div class="ob-eyebrow">¡Bienvenido a Andanzas!</div>
+    <div class="ob-title">Hola ${escapeHtml(nombre)}, vamos a preparar${ciudadActual?(' vuestro viaje a '+escapeHtml(ciudadActual)):' vuestro viaje'}</div>
+    <div class="ob-sub">Elegid a dónde vais y lo dejamos todo listo en un par de minutos.</div>
+    <label class="field-label">Continente</label>
+    <div class="interest-chips" id="ob-continentes"></div>
+    <div id="ob-paises-wrap" class="${obDestino.continente?'':'hidden'}" style="margin-top:14px;">
+      <label class="field-label">País</label>
+      <div class="interest-chips" id="ob-paises"></div>
+    </div>
+    <div id="ob-ciudades-wrap" class="${obDestino.pais?'':'hidden'}" style="margin-top:14px;">
+      <label class="field-label">Ciudades</label>
+      <div class="interest-chips" id="ob-ciudades"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <input type="text" id="ob-ciudad-custom" placeholder="Otra ciudad...">
+        <button type="button" class="btn btn-secondary btn-sm" id="ob-ciudad-add">+</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <div class="field" style="flex:1;"><label class="field-label">Ida</label><input type="date" id="ob-fecha-inicio" value="${escapeHtml(obFechaInicio)}" aria-label="Fecha de ida"></div>
+      <div class="field" style="flex:1;"><label class="field-label">Vuelta</label><input type="date" id="ob-fecha-fin" value="${escapeHtml(obFechaFin)}" aria-label="Fecha de vuelta"></div>
+    </div>
+  </div>`;
+  obRenderContinentes();
+  if(obDestino.continente) obRenderPaisesStep(obDestino.continente);
+  if(obDestino.pais) obRenderCiudadesStep();
+  document.getElementById('ob-fecha-inicio').addEventListener('change', e=>{ obFechaInicio = e.target.value; });
+  document.getElementById('ob-fecha-fin').addEventListener('change', e=>{ obFechaFin = e.target.value; });
+  document.getElementById('ob-ciudad-add').addEventListener('click', obAddCustomCiudad);
+  document.getElementById('ob-ciudad-custom').addEventListener('keydown', e=>{
+    if(e.key==='Enter'){ e.preventDefault(); obAddCustomCiudad(); }
+  });
+
+  obSetActions(`<button class="btn btn-primary btn-block" id="ob-next-0" type="button" ${obDestino.ciudades.length?'':'disabled'}>Continuar</button>`);
+  document.getElementById('ob-next-0').addEventListener('click', ()=>{ if(obDestino.ciudades.length) obGoTo(1); });
+}
+
+function obAddCustomCiudad(){
+  const inp = document.getElementById('ob-ciudad-custom');
+  const val = inp.value.trim();
+  if(!val) return;
+  if(!obDestino.ciudades.includes(val)) obDestino.ciudades.push(val);
+  inp.value = '';
+  obRenderCiudadesStep();
+  obUpdateNextEnabled();
+}
+
+function obRenderContinentes(){
+  const wrap = document.getElementById('ob-continentes');
+  wrap.innerHTML = Object.entries(DESTINOS).map(([k,v])=>
+    `<button type="button" class="interest-chip ${obDestino.continente===k?'selected':''}" data-cont="${k}">${v.label}</button>`
+  ).join('');
+  wrap.querySelectorAll('.interest-chip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      wrap.querySelectorAll('.interest-chip').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      obDestino = { continente: btn.dataset.cont, pais:null, ciudades:[] };
+      obRenderPaisesStep(btn.dataset.cont);
+      document.getElementById('ob-ciudades-wrap').classList.add('hidden');
+      obUpdateNextEnabled();
+    });
+  });
+}
+
+function obRenderPaisesStep(contKey){
+  const wrap = document.getElementById('ob-paises');
+  const paisesWrap = document.getElementById('ob-paises-wrap');
+  const cont = DESTINOS[contKey];
+  wrap.innerHTML = Object.entries(cont.paises).map(([k,v])=>
+    `<button type="button" class="interest-chip ${obDestino.pais===k?'selected':''}" data-pais="${k}">${v.label}</button>`
+  ).join('');
+  paisesWrap.classList.remove('hidden');
+  wrap.querySelectorAll('.interest-chip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      wrap.querySelectorAll('.interest-chip').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      obDestino.pais = btn.dataset.pais;
+      obDestino.ciudades = [];
+      obRenderCiudadesStep();
+      obUpdateNextEnabled();
+    });
+  });
+}
+
+function obRenderCiudadesStep(){
+  const wrap = document.getElementById('ob-ciudades');
+  const ciudadesWrap = document.getElementById('ob-ciudades-wrap');
+  if(!obDestino.continente || !obDestino.pais){ ciudadesWrap.classList.add('hidden'); return; }
+  const paisData = DESTINOS[obDestino.continente].paises[obDestino.pais];
+  const allCities = [...new Set([...paisData.ciudades, ...obDestino.ciudades])];
+  wrap.innerHTML = allCities.map(c=>{
+    const sel = obDestino.ciudades.includes(c) ? 'selected' : '';
+    return `<button type="button" class="interest-chip ${sel}" data-ciudad="${escapeHtml(c)}">${escapeHtml(c)}</button>`;
+  }).join('');
+  ciudadesWrap.classList.remove('hidden');
+  wrap.querySelectorAll('.interest-chip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const city = btn.dataset.ciudad;
+      if(obDestino.ciudades.includes(city)) obDestino.ciudades = obDestino.ciudades.filter(c=>c!==city);
+      else obDestino.ciudades.push(city);
+      btn.classList.toggle('selected');
+      obUpdateNextEnabled();
+    });
+  });
+}
+
+function obUpdateNextEnabled(){
+  const btn = document.getElementById('ob-next-0');
+  if(btn) btn.disabled = !obDestino.ciudades.length;
+}
+
 function initDestinoSelector(){
   const contWrap = document.getElementById("reg-continentes");
   contWrap.innerHTML = Object.entries(DESTINOS).map(([k,v])=>
