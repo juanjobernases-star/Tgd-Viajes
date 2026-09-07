@@ -562,7 +562,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
     <div id="hdr-icon" class="hdr-icon"></div>
     <div style="display:flex; gap:6px; align-items:center;">
       <button class="hdr-btn" id="new-trip-btn" type="button">+ Viaje</button>
-      <button class="hdr-btn hdr-btn-ghost" id="logout-btn" type="button">Salir</button>
+      <button class="hdr-btn hdr-btn-ghost" id="logout-btn" type="button">Cerrar sesión</button>
     </div>
   </div>
 
@@ -3824,6 +3824,31 @@ async function init(){
   }
 }
 init().catch(function(e){ console.error('init fatal', e); });
+
+/* ============ SERVICE WORKER (anti-caché PWA) ============ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function(reg){
+      reg.addEventListener('updatefound', function(){
+        var newWorker = reg.installing;
+        if(!newWorker) return;
+        newWorker.addEventListener('statechange', function(){
+          if(newWorker.state === 'activated'){
+            // Hay una versión nueva ya activa: recargamos para servirla.
+            window.location.reload();
+          }
+        });
+      });
+    }).catch(function(e){ console.error('sw register', e); });
+
+    var refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function(){
+      if(refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+  });
+}
 
 })();
 </script>
