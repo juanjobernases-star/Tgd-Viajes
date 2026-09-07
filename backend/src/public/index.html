@@ -200,49 +200,76 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 .interest-chip.selected{background:#2F6F65; color:#fff; border-color:#2F6F65;}
 .auth-error{color:#D1567A; font-size:13px; margin-bottom:8px; min-height:16px;}
 
-/* ===== Onboarding wizard (dark cinematic redesign) ===== */
+/* ===== Onboarding wizard (luminoso, con encanto) ===== */
 #onboarding-screen{
   position:absolute; top:0;right:0;bottom:0;left:0; z-index:110;
-  background:#0A0C10;
+  background:linear-gradient(160deg, #FBF7EE 0%, #EAF6F1 45%, #F5EBDC 100%);
   display:flex; flex-direction:column;
   overflow:hidden;
   padding:calc(env(safe-area-inset-top,0px) + 20px) 0 calc(env(safe-area-inset-bottom,0px) + 20px);
 }
-/* Viñeta oscura: garantiza contraste del texto sobre los blobs de color */
+/* Velo muy suave arriba/abajo para que el texto siempre tenga contraste limpio */
 #onboarding-screen::before{
   content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
   background:
-    radial-gradient(120% 70% at 50% 0%, rgba(255,255,255,0.08), transparent 60%),
-    linear-gradient(180deg, rgba(10,12,16,0.15) 0%, rgba(10,12,16,0.6) 55%, #0A0C10 100%);
+    radial-gradient(120% 60% at 50% 0%, rgba(255,255,255,0.5), transparent 65%),
+    linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.35) 100%);
 }
 
-/* --- Fondo aurora: blobs de color vivo en movimiento lento, con "mood" por paso --- */
+/* --- Fondo aurora: blobs pastel en deriva lenta, con "mood" por paso --- */
 .ob-aurora{position:absolute; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
-.ob-blob{position:absolute; border-radius:50%; filter:blur(80px); opacity:.55; will-change:transform; transition:background 1s ease;}
-.ob-blob-1{width:380px; height:380px; background:#FF6B4A; top:-110px; left:-90px; animation:obDrift1 24s ease-in-out infinite alternate;}
-.ob-blob-2{width:340px; height:340px; background:#7B2FF7; bottom:-100px; right:-80px; animation:obDrift2 28s ease-in-out infinite alternate;}
-.ob-blob-3{width:300px; height:300px; background:#2E5CFF; top:36%; left:55%; animation:obDrift3 32s ease-in-out infinite alternate;}
+.ob-blob{position:absolute; border-radius:50%; filter:blur(90px); opacity:.55; will-change:transform; transition:background 1s ease;}
+.ob-blob-1{width:380px; height:380px; background:#8FD9C4; top:-110px; left:-90px; animation:obDrift1 24s ease-in-out infinite alternate;}
+.ob-blob-2{width:340px; height:340px; background:#FFC9A6; bottom:-100px; right:-80px; animation:obDrift2 28s ease-in-out infinite alternate;}
+.ob-blob-3{width:300px; height:300px; background:#FFE08A; top:36%; left:55%; animation:obDrift3 32s ease-in-out infinite alternate;}
 @keyframes obDrift1{from{transform:translate3d(0,0,0) scale(1);}to{transform:translate3d(60px,80px,0) scale(1.25);}}
 @keyframes obDrift2{from{transform:translate3d(0,0,0) scale(1);}to{transform:translate3d(-70px,-50px,0) scale(1.15);}}
 @keyframes obDrift3{from{transform:translate3d(-50%,-50%,0) rotate(0deg);}to{transform:translate3d(-50%,-50%,0) rotate(30deg) scale(1.3);}}
 @media (prefers-reduced-motion: reduce){ .ob-blob{animation:none;} }
 
-/* Tono cálido para destino (por defecto), noche/vuelos, hotel, familia/viajeros, dinero/extra, burst final */
-#onboarding-screen[data-mood="vuelos"] .ob-blob-1{background:#2E5CFF;}
-#onboarding-screen[data-mood="vuelos"] .ob-blob-2{background:#00C2FF;}
-#onboarding-screen[data-mood="vuelos"] .ob-blob-3{background:#7B2FF7;}
-#onboarding-screen[data-mood="hotel"] .ob-blob-1{background:#7B2FF7;}
-#onboarding-screen[data-mood="hotel"] .ob-blob-2{background:#00D2C6;}
-#onboarding-screen[data-mood="hotel"] .ob-blob-3{background:#FF4757;}
-#onboarding-screen[data-mood="viajeros"] .ob-blob-1{background:#FF4757;}
-#onboarding-screen[data-mood="viajeros"] .ob-blob-2{background:#FF9F1C;}
-#onboarding-screen[data-mood="viajeros"] .ob-blob-3{background:#7B2FF7;}
-#onboarding-screen[data-mood="extra"] .ob-blob-1{background:#00D2C6;}
-#onboarding-screen[data-mood="extra"] .ob-blob-2{background:#FFD166;}
-#onboarding-screen[data-mood="extra"] .ob-blob-3{background:#FF4757;}
-#onboarding-screen[data-mood="final"] .ob-blob-1{background:#FF4757;}
-#onboarding-screen[data-mood="final"] .ob-blob-2{background:#FFD166;}
-#onboarding-screen[data-mood="final"] .ob-blob-3{background:#2E5CFF;}
+/* Tono cálido para destino (por defecto), cielo/vuelos, lavanda/hotel, atardecer/viajeros, menta-oro/extra, fiesta final */
+#onboarding-screen[data-mood="vuelos"] .ob-blob-1{background:#A8D8FF;}
+#onboarding-screen[data-mood="vuelos"] .ob-blob-2{background:#C9B6FF;}
+#onboarding-screen[data-mood="vuelos"] .ob-blob-3{background:#8FD9C4;}
+#onboarding-screen[data-mood="hotel"] .ob-blob-1{background:#C9B6FF;}
+#onboarding-screen[data-mood="hotel"] .ob-blob-2{background:#FFB8C6;}
+#onboarding-screen[data-mood="hotel"] .ob-blob-3{background:#FFE08A;}
+#onboarding-screen[data-mood="viajeros"] .ob-blob-1{background:#FFC9A6;}
+#onboarding-screen[data-mood="viajeros"] .ob-blob-2{background:#FFB8C6;}
+#onboarding-screen[data-mood="viajeros"] .ob-blob-3{background:#8FD9C4;}
+#onboarding-screen[data-mood="extra"] .ob-blob-1{background:#8FD9C4;}
+#onboarding-screen[data-mood="extra"] .ob-blob-2{background:#FFE08A;}
+#onboarding-screen[data-mood="extra"] .ob-blob-3{background:#FFC9A6;}
+#onboarding-screen[data-mood="final"] .ob-blob-1{background:#FF9E80;}
+#onboarding-screen[data-mood="final"] .ob-blob-2{background:#FFE08A;}
+#onboarding-screen[data-mood="final"] .ob-blob-3{background:#8FD9C4;}
+
+/* --- Iconos de viaje flotando de fondo: decorativos, tenues, sensación mágica --- */
+.ob-icons{position:absolute; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
+.ob-icon{position:absolute; font-size:30px; line-height:1; opacity:.2; animation:obIconFloat1 9s ease-in-out infinite;}
+.ob-icon:nth-child(2n){animation-name:obIconFloat2; animation-duration:11s; font-size:26px; opacity:.16;}
+.ob-icon:nth-child(3n){animation-name:obIconFloat3; animation-duration:13s; font-size:34px; opacity:.14;}
+.ob-icon:nth-child(4n){animation-duration:8.5s;}
+.ob-icon:nth-child(5n){animation-delay:-3s;}
+.ob-icon:nth-child(6n){animation-delay:-6.5s;}
+.ob-icon:nth-child(7n){animation-delay:-1.5s;}
+@keyframes obIconFloat1{
+  0%,100%{translate:0 0; rotate:0deg;}
+  25%{translate:6px -16px; rotate:-6deg;}
+  50%{translate:-5px -26px; rotate:4deg;}
+  75%{translate:-9px -9px; rotate:-3deg;}
+}
+@keyframes obIconFloat2{
+  0%,100%{translate:0 0; rotate:0deg;}
+  30%{translate:-11px -18px; rotate:6deg;}
+  60%{translate:9px -28px; rotate:-7deg;}
+}
+@keyframes obIconFloat3{
+  0%,100%{translate:0 0; rotate:0deg;}
+  40%{translate:6px -20px; rotate:9deg;}
+  70%{translate:-7px -11px; rotate:-5deg;}
+}
+@media (prefers-reduced-motion: reduce){ .ob-icon{animation:none;} }
 
 /* --- Progreso: barra premium que se rellena --- */
 .ob-progress{position:relative; z-index:1; padding:0 24px; margin-bottom:8px; flex-shrink:0;}
@@ -280,40 +307,40 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
   .ob-step > *{opacity:1; transform:none; animation:none;}
 }
 
-/* --- Tipografía protagonista, clara sobre fondo oscuro --- */
-.ob-eyebrow{font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#FF7A63; margin-bottom:8px;}
+/* --- Tipografía protagonista, oscura sobre fondo claro --- */
+.ob-eyebrow{font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#E8703A; margin-bottom:8px;}
 .ob-title{
   font-size:32px; font-weight:800; line-height:1.14; margin-bottom:10px; letter-spacing:-.01em;
-  color:#fff;
-  background:linear-gradient(100deg, #FFFFFF 45%, #FFB199 100%);
+  color:var(--text);
+  background:linear-gradient(100deg, #3E5449 40%, #E8703A 100%);
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-  text-shadow:0 2px 28px rgba(0,0,0,0.45);
 }
-.ob-sub{font-size:15px; color:rgba(255,255,255,0.72); margin-bottom:22px; line-height:1.5;}
+.ob-sub{font-size:15px; color:var(--text2); margin-bottom:22px; line-height:1.5;}
 
 .ob-actions{position:relative; z-index:1; display:flex; flex-direction:column; gap:8px; padding:14px 24px 4px; flex-shrink:0;}
-.ob-skip{text-align:center; font-size:13px; color:rgba(255,255,255,0.55); padding:6px; font-weight:600;}
-.ob-skip:focus-visible, .btn:focus-visible, .interest-chip:focus-visible{outline:2px solid #FF4757; outline-offset:2px;}
+.ob-skip{text-align:center; font-size:13px; color:var(--text2); padding:6px; font-weight:600;}
+.ob-skip:focus-visible, .btn:focus-visible, .interest-chip:focus-visible{outline:2px solid #E8703A; outline-offset:2px;}
 .ob-mini-card{
-  background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.65); border:1px solid rgba(255,255,255,0.8);
   border-radius:16px; padding:14px; margin-bottom:10px;
+  box-shadow:0 4px 18px rgba(150,130,100,0.14);
   backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
   display:flex; justify-content:space-between; align-items:center; gap:10px;
 }
 .ob-mini-card .obmc-main{min-width:0;}
-.ob-mini-card .obmc-title{font-weight:700; font-size:14px; color:#fff;}
-.ob-mini-card .obmc-sub{font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px;}
+.ob-mini-card .obmc-title{font-weight:700; font-size:14px; color:var(--text);}
+.ob-mini-card .obmc-sub{font-size:12px; color:var(--text2); margin-top:2px;}
 .ob-avatar{width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:14px; flex-shrink:0;}
-#onboarding-screen .icon-btn{color:rgba(255,255,255,0.7);}
-#onboarding-screen .icon-btn.danger{color:#FF6B6B;}
-#onboarding-screen .field-label{color:rgba(255,255,255,0.55);}
+#onboarding-screen .icon-btn{color:var(--text2);}
+#onboarding-screen .icon-btn.danger{color:#D1567A;}
+#onboarding-screen .field-label{color:var(--text2);}
 #onboarding-screen input[type=text], #onboarding-screen input[type=date], #onboarding-screen input[type=time],
 #onboarding-screen input[type=number], #onboarding-screen input[type=url]{
-  background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.16); color:#fff;
+  background:rgba(255,255,255,0.75); border:1px solid rgba(255,255,255,0.9); color:var(--text);
 }
-#onboarding-screen input::placeholder{color:rgba(255,255,255,0.35);}
+#onboarding-screen input::placeholder{color:rgba(110,95,80,0.4);}
 
-.ob-welcome-emoji{font-size:58px; text-align:center; margin-bottom:10px; animation:obBounce 1.6s ease infinite; filter:drop-shadow(0 8px 24px rgba(255,107,74,0.4));}
+.ob-welcome-emoji{font-size:58px; text-align:center; margin-bottom:10px; animation:obBounce 1.6s ease infinite; filter:drop-shadow(0 8px 20px rgba(232,112,58,0.3));}
 @keyframes obBounce{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-10px) rotate(-4deg);}}
 @media (prefers-reduced-motion: reduce){ .ob-welcome-emoji{animation:none;} }
 
@@ -762,6 +789,16 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       <span class="ob-blob ob-blob-1"></span>
       <span class="ob-blob ob-blob-2"></span>
       <span class="ob-blob ob-blob-3"></span>
+    </div>
+    <div class="ob-icons" aria-hidden="true">
+      <span class="ob-icon" style="top:7%;left:10%;">✈️</span>
+      <span class="ob-icon" style="top:16%;left:78%;">🧳</span>
+      <span class="ob-icon" style="top:30%;left:6%;">📍</span>
+      <span class="ob-icon" style="top:5%;left:52%;">☀️</span>
+      <span class="ob-icon" style="top:58%;left:86%;">☁️</span>
+      <span class="ob-icon" style="top:74%;left:12%;">📷</span>
+      <span class="ob-icon" style="top:80%;left:64%;">🌴</span>
+      <span class="ob-icon" style="top:44%;left:92%;">🗺️</span>
     </div>
     <div class="ob-progress" id="ob-progress"></div>
     <div class="ob-body" id="ob-body"></div>
