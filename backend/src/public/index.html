@@ -448,7 +448,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
         <label class="field-label">Usuario</label>
         <input type="text" id="reset-usuario" placeholder="tu usuario" autocomplete="username">
       </div>
-      <button type="button" id="reset-send-btn" class="btn btn-primary btn-block">Enviar enlace por email</button>
+      <button type="button" id="reset-send-btn" class="btn btn-primary btn-block">Cambiar contraseña</button>
       <div id="reset-msg" style="text-align:center;margin-top:10px;font-size:13px;"></div>
       <div style="text-align:center;margin-top:10px;">
         <a href="#" id="reset-back-link" style="font-size:13px;color:var(--accent,#2F6F65);">Volver al login</a>
@@ -1412,7 +1412,23 @@ function initAuthUI(){
       if(!r.ok){ err.textContent = r.data?.error || "Credenciales incorrectas."; return; }
       err.textContent = "";
       loginAs(r.data.usuario, r.data.perfil || { nombre: r.data.usuario, intereses: [] });
-    } catch { err.textContent = ""; enterDemo(); }
+    } catch {
+      var localHash = localStorage.getItem(LS_PREFIX+'cred_'+usuario);
+      if(localHash){
+        var enc2 = new TextEncoder();
+        var hb2 = await crypto.subtle.digest('SHA-256', enc2.encode(usuario + ':' + password));
+        var ha2 = Array.from(new Uint8Array(hb2)).map(b=>b.toString(16).padStart(2,'0')).join('');
+        if(ha2 === localHash){
+          err.textContent = "";
+          await enterDemo();
+          CURRENT_USER = usuario;
+          return;
+        }
+        err.textContent = "Contraseña incorrecta.";
+        return;
+      }
+      err.textContent = ""; enterDemo();
+    }
   });
 
   document.getElementById("register-form").addEventListener("submit", async e=>{
@@ -1445,11 +1461,23 @@ function initAuthUI(){
       if(!r.ok){ err.textContent = r.data?.error || "Error en el registro."; return; }
       err.textContent = "";
       loginAs(r.data.usuario, r.data.perfil || { nombre, intereses });
-    } catch { err.textContent = ""; enterDemo(); }
+    } catch {
+      var enc3 = new TextEncoder();
+      var hb3 = await crypto.subtle.digest('SHA-256', enc3.encode(usuario + ':' + password));
+      var ha3 = Array.from(new Uint8Array(hb3)).map(b=>b.toString(16).padStart(2,'0')).join('');
+      localStorage.setItem(LS_PREFIX+'cred_'+usuario, ha3);
+      err.textContent = "";
+      await enterDemo();
+      CURRENT_USER = usuario;
+      CURRENT_PROFILE = { nombre, intereses, destino };
+      lsSet('perfil', CURRENT_PROFILE);
+    }
   });
 
   // --- Reset password UI ---
   var pendingResetToken = null;
+  var pendingResetMode = null;
+  var pendingResetUsuario = null;
   function showResetConfirm(){
     document.getElementById("login-form").classList.add("hidden");
     document.getElementById("register-form").classList.add("hidden");
@@ -1488,7 +1516,8 @@ function initAuthUI(){
     if(!usuario){ msg.style.color="#D1567A"; msg.textContent="Introduce tu usuario."; return; }
     var serverUrl = (document.getElementById('login-server-url').value||'').trim().replace(/\/+$/,'');
     if(serverUrl){ API_BASE = serverUrl; localStorage.setItem('andanzas_api_url', serverUrl); }
-    msg.style.color="var(--accent,#2F6F65)"; msg.textContent="Enviando...";
+    msg.style.color="var(--accent,#2F6F65)"; msg.textContent="Verificando...";
+    pendingResetUsuario = usuario;
     try {
       var hr3 = await apiFetch('/api/salud');
       if(!hr3.ok) throw new Error('no backend');
@@ -1496,11 +1525,15 @@ function initAuthUI(){
       if(!r.ok){ msg.style.color="#D1567A"; msg.textContent=r.data?.error||"Error"; return; }
       if(r.data?.token){
         pendingResetToken = r.data.token;
+        pendingResetMode = 'server';
         showResetConfirm();
         return;
       }
       msg.style.color="var(--accent,#2F6F65)"; msg.textContent=r.data?.mensaje||"Revisa tu correo.";
-    } catch { msg.style.color="#D1567A"; msg.textContent="No hay conexión al servidor. El cambio de contraseña requiere acceso al servidor privado."; }
+    } catch {
+      pendingResetMode = 'local';
+      showResetConfirm();
+    }
   });
 
   document.getElementById("reset-confirm-btn").addEventListener("click", async ()=>{
@@ -1509,13 +1542,23 @@ function initAuthUI(){
     const msg = document.getElementById("reset-confirm-msg");
     if(!pass || pass.length < 8){ msg.style.color="#D1567A"; msg.textContent="Mínimo 8 caracteres."; return; }
     if(pass !== pass2){ msg.style.color="#D1567A"; msg.textContent="Las contraseñas no coinciden."; return; }
+    msg.style.color="var(--accent,#2F6F65)"; msg.textContent="Cambiando...";
+    if(pendingResetMode === 'local'){
+      var enc = new TextEncoder();
+      var hb = await crypto.subtle.digest('SHA-256', enc.encode(pendingResetUsuario + ':' + pass));
+      var ha = Array.from(new Uint8Array(hb)).map(b=>b.toString(16).padStart(2,'0')).join('');
+      localStorage.setItem(LS_PREFIX+'cred_'+pendingResetUsuario, ha);
+      pendingResetMode = null; pendingResetUsuario = null;
+      msg.style.color="var(--accent,#2F6F65)"; msg.textContent="Contraseña guardada. Ya puedes iniciar sesión.";
+      setTimeout(showLogin, 2000);
+      return;
+    }
     var token = pendingResetToken || new URLSearchParams(location.search).get("reset");
     if(!token){ msg.style.color="#D1567A"; msg.textContent="Enlace inválido."; return; }
-    msg.style.color="var(--accent,#2F6F65)"; msg.textContent="Cambiando...";
     try {
       const r = await apiFetch('/api/reset-password/confirmar', { method:'POST', body:JSON.stringify({token, password:pass}) });
       if(!r.ok){ msg.style.color="#D1567A"; msg.textContent=r.data?.error||"Error"; return; }
-      pendingResetToken = null;
+      pendingResetToken = null; pendingResetMode = null; pendingResetUsuario = null;
       msg.style.color="var(--accent,#2F6F65)"; msg.textContent=r.data?.mensaje||"Contraseña cambiada.";
       setTimeout(()=>{ history.replaceState(null,"",location.pathname); showLogin(); }, 2000);
     } catch { msg.style.color="#D1567A"; msg.textContent="No se puede conectar con el servidor."; }
