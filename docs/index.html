@@ -2577,21 +2577,20 @@ function initialsFrom(nombre){
   return nombre.slice(0,2).toUpperCase();
 }
 
+// Nota: estas funciones NUNCA deben caer al TRIP estático (p.ej. milan.json)
+// como si fueran datos reales del usuario. TRIP es contenido de referencia
+// (itinerario, guía, packing...) para el destino elegido, no "mi hotel" ni
+// "mis vuelos" — eso solo existe si el usuario lo ha metido a mano (o el
+// modo demo, que ya rellena viaje.* directamente con datos completos).
 function getEffectiveTravelers(){
   const v = getViaje();
   if(v.viajeros && v.viajeros.length) return v.viajeros;
-  if(TRIP && TRIP.travelers) return TRIP.travelers.map(t=>({id:t.id,nombre:t.name,inicial:t.initial,color:t.color}));
   return [];
 }
 
 function getEffectiveHotel(){
   const v = getViaje();
   if(v.hotel && v.hotel.nombre) return v.hotel;
-  if(TRIP && TRIP.hotel) return {
-    nombre:TRIP.hotel.name, direccion:TRIP.hotel.address, telefono:TRIP.hotel.phone,
-    checkIn:TRIP.hotel.checkIn||"", horaCheckIn:"", checkOut:TRIP.hotel.checkOut||"",
-    horaCheckOut:"", confirmacion:"", mapsUrl:TRIP.hotel.mapsUrl||""
-  };
   return null;
 }
 
@@ -2603,13 +2602,7 @@ function getEffectiveVuelos(){
 
 function getEffectiveExcursiones(){
   const v = getViaje();
-  const manual = v.excursiones || [];
-  if(manual.length) return manual;
-  if(TRIP && TRIP.excursions) return TRIP.excursions.map(e=>({
-    id:e.id, nombre:e.name, proveedor:e.provider, fecha:"", hora:"",
-    precio:e.price, url:e.bookingUrl||"", confirmacion:""
-  }));
-  return [];
+  return v.excursiones || [];
 }
 
 /* --- Hotel form --- */
@@ -3065,16 +3058,9 @@ function renderResumen(){
     } else { banner.innerHTML = ""; }
   } else { banner.innerHTML = ""; }
 
-  // Facts grid
-  if(TRIP && TRIP.facts){
-    const facts = TRIP.facts;
-    document.getElementById("facts-grid").innerHTML = `
-      <div class="fact-card"><div class="flbl">Destino</div><div class="fval">${escapeHtml(facts.destino)}</div></div>
-      <div class="fact-card"><div class="flbl">Duración</div><div class="fval">${escapeHtml(facts.duracion)}</div></div>
-      <div class="fact-card"><div class="flbl">Alojamiento</div><div class="fval">${escapeHtml(facts.alojamiento)}</div></div>
-      <div class="fact-card"><div class="flbl">Presupuesto</div><div class="fval">${escapeHtml(facts.presupuesto)}</div></div>
-    `;
-  } else {
+  // Facts grid: siempre datos reales del usuario (viaje.*), nunca el resumen
+  // de ejemplo de TRIP — así no aparenta tener hotel/vuelos ya reservados.
+  {
     const h = getEffectiveHotel();
     const vuelos = getEffectiveVuelos();
     const destStr = CURRENT_PROFILE && CURRENT_PROFILE.destino && CURRENT_PROFILE.destino.ciudades ? CURRENT_PROFILE.destino.ciudades[0] : "Mi viaje";
