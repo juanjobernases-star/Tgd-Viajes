@@ -421,7 +421,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       </div>
       <div class="field">
         <label class="field-label">Contraseña</label>
-        <input type="password" id="login-password" placeholder="••••" autocomplete="current-password">
+        <input type="text" id="login-password" placeholder="tu contraseña" autocomplete="current-password" style="-webkit-text-security:none;">
       </div>
       <details id="server-details" style="margin-bottom:8px;">
         <summary style="font-size:12px;color:var(--text2);cursor:pointer;">Servidor (avanzado)</summary>
@@ -437,11 +437,6 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       </div>
     </form>
 
-    <div id="demo-banner" class="hidden" style="margin-top:16px;text-align:center;">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">— o —</div>
-      <button type="button" id="demo-btn" class="btn btn-block" style="background:rgba(127,184,176,0.18);color:var(--accent);font-weight:700;padding:12px;border-radius:14px;">Explorar en modo demo</button>
-      <div style="font-size:11px;color:var(--text2);margin-top:6px;">Sin conexión al servidor. Los datos no se guardan.</div>
-    </div>
 
     <div id="reset-request-form" class="hidden">
       <div class="field">
@@ -458,11 +453,11 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
     <div id="reset-confirm-form" class="hidden">
       <div class="field">
         <label class="field-label">Nueva contraseña</label>
-        <input type="password" id="reset-new-password" placeholder="mínimo 8 caracteres">
+        <input type="text" id="reset-new-password" placeholder="mínimo 8 caracteres" autocomplete="new-password">
       </div>
       <div class="field">
         <label class="field-label">Repetir contraseña</label>
-        <input type="password" id="reset-confirm-password" placeholder="mínimo 8 caracteres">
+        <input type="text" id="reset-confirm-password" placeholder="mínimo 8 caracteres" autocomplete="new-password">
       </div>
       <button type="button" id="reset-confirm-btn" class="btn btn-primary btn-block">Cambiar contraseña</button>
       <div id="reset-confirm-msg" style="text-align:center;margin-top:10px;font-size:13px;"></div>
@@ -479,7 +474,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       </div>
       <div class="field">
         <label class="field-label">Contraseña</label>
-        <input type="password" id="reg-password" placeholder="mínimo 8 caracteres">
+        <input type="text" id="reg-password" placeholder="mínimo 8 caracteres" autocomplete="new-password">
       </div>
       <div class="field">
         <label class="field-label">Intereses</label>
@@ -1412,6 +1407,7 @@ function initAuthUI(){
       if(!r.ok){ err.textContent = r.data?.error || "Credenciales incorrectas."; return; }
       err.textContent = "";
       loginAs(r.data.usuario, r.data.perfil || { nombre: r.data.usuario, intereses: [] });
+      await storePasskey(usuario, password);
     } catch {
       var localHash = localStorage.getItem(LS_PREFIX+'cred_'+usuario);
       if(localHash){
@@ -1420,14 +1416,15 @@ function initAuthUI(){
         var ha2 = Array.from(new Uint8Array(hb2)).map(b=>b.toString(16).padStart(2,'0')).join('');
         if(ha2 === localHash){
           err.textContent = "";
-          await enterDemo();
-          CURRENT_USER = usuario;
+          var perfil = lsGet('perfil_'+usuario, { nombre: usuario, intereses: [] });
+          loginLocal(usuario, perfil);
+          await storePasskey(usuario, password);
           return;
         }
         err.textContent = "Contraseña incorrecta.";
         return;
       }
-      err.textContent = ""; enterDemo();
+      err.textContent = "Sin conexión al servidor y no hay cuenta local. Regístrate primero.";
     }
   });
 
@@ -1467,10 +1464,10 @@ function initAuthUI(){
       var ha3 = Array.from(new Uint8Array(hb3)).map(b=>b.toString(16).padStart(2,'0')).join('');
       localStorage.setItem(LS_PREFIX+'cred_'+usuario, ha3);
       err.textContent = "";
-      await enterDemo();
-      CURRENT_USER = usuario;
-      CURRENT_PROFILE = { nombre, intereses, destino };
-      lsSet('perfil', CURRENT_PROFILE);
+      var perfil = { nombre, intereses, destino };
+      lsSet('perfil_'+usuario, perfil);
+      loginLocal(usuario, perfil);
+      await storePasskey(usuario, password);
     }
   });
 
@@ -1588,6 +1585,26 @@ function loginAs(usuario, perfil){
   document.getElementById("auth-screen").classList.add("hidden");
   toast("Bienvenido, " + CURRENT_PROFILE.name);
   loadTripAndRender();
+}
+
+function loginLocal(usuario, perfil){
+  CURRENT_USER = usuario;
+  CURRENT_PROFILE = perfilToProfile(usuario, perfil);
+  var savedViaje = lsGet('viaje_'+usuario, null);
+  if(savedViaje) CURRENT_PROFILE.viaje = savedViaje;
+  DEMO_MODE = false;
+  initCipher(usuario + '-local-key');
+  document.getElementById("auth-screen").classList.add("hidden");
+  toast("Bienvenido, " + (CURRENT_PROFILE.name || usuario));
+  loadTripAndRender();
+}
+
+async function storePasskey(usuario, password){
+  if(!window.PasswordCredential) return;
+  try {
+    var cred = new PasswordCredential({ id: usuario, password: password, name: usuario });
+    await navigator.credentials.store(cred);
+  } catch(e){ console.log('passkey store skipped', e); }
 }
 
 let DEMO_MODE = false;
@@ -1792,14 +1809,12 @@ function ensureViaje(){
 }
 
 async function saveViaje(){
-  if(DEMO_MODE){
-    lsSet('demo_viaje', CURRENT_PROFILE.viaje || {});
-    return;
-  }
   const viaje = CURRENT_PROFILE.viaje || {};
+  lsSet('viaje_'+CURRENT_USER, viaje);
+  if(DEMO_MODE) return;
   try {
     await apiFetch('/api/perfil', { method:'PUT', body:JSON.stringify({ viaje }) });
-  } catch(e){ console.error('saveViaje failed', e); }
+  } catch(e){ console.error('saveViaje failed (guardado local)', e); }
 }
 
 function initialsFrom(nombre){
@@ -3883,10 +3898,6 @@ async function init(){
   if(restored){
     try { await loadTripAndRender(); } catch(e) { console.error('loadTrip', e); }
   } else {
-    try {
-      document.getElementById("demo-banner").classList.remove("hidden");
-      document.getElementById("demo-btn").addEventListener("click", enterDemo);
-    } catch(e) { console.error('demoBanner', e); }
     try {
       var r = await fetch("data/trips/milan.json");
       TRIP = await r.json();
