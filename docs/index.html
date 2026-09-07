@@ -1697,6 +1697,112 @@ function obRenderViajerosList(){
   }));
 }
 
+/* --- Paso 5: presupuesto + intereses (opcional) --- */
+function obRenderExtra(body){
+  const chips = [['arte','Arte'],['comida','Comida'],['aventura','Aventura'],['compras','Compras'],['tranquilo','Tranquilo']];
+  const selected = new Set((CURRENT_PROFILE && CURRENT_PROFILE.interests) || []);
+  body.innerHTML = `<div class="ob-step">
+    <div class="ob-eyebrow">Paso 5 de 5</div>
+    <div class="ob-title">Un último detalle 💶</div>
+    <div class="ob-sub">Presupuesto orientativo e intereses, para personalizar recomendaciones. Totalmente opcional.</div>
+    <div class="field"><label class="field-label">Presupuesto total estimado (€)</label><input type="number" id="ob-presupuesto" min="0" placeholder="2000"></div>
+    <label class="field-label">Intereses</label>
+    <div class="interest-chips" id="ob-intereses">
+      ${chips.map(([val,label])=>`<button type="button" class="interest-chip ${selected.has(val)?'selected':''}" data-val="${val}">${label}</button>`).join('')}
+    </div>
+  </div>`;
+  body.querySelectorAll('#ob-intereses .interest-chip').forEach(btn=>{
+    btn.addEventListener('click', ()=>btn.classList.toggle('selected'));
+  });
+  obSetActions(`
+    <button class="btn btn-primary btn-block" id="ob-next-4" type="button">Continuar</button>
+    <button class="ob-skip" id="ob-skip-4" type="button">Saltar</button>
+  `);
+  document.getElementById('ob-next-4').addEventListener('click', ()=>obFinishExtra(true));
+  document.getElementById('ob-skip-4').addEventListener('click', ()=>obFinishExtra(false));
+}
+
+function obFinishExtra(save){
+  if(save){
+    const presu = parseInt(document.getElementById('ob-presupuesto').value)||0;
+    if(presu) setBudgetCeiling(presu);
+    const intereses = Array.from(document.querySelectorAll('#ob-intereses .interest-chip.selected')).map(c=>c.dataset.val);
+    if(CURRENT_PROFILE) CURRENT_PROFILE.interests = intereses;
+  }
+  obGoTo(5);
+}
+
+/* --- Paso 6: cierre celebratorio --- */
+async function obRenderFinal(body){
+  await obPersistAll();
+  const ciudad = obDestino.ciudades[0] || '';
+  body.innerHTML = `<div class="ob-step ob-final">
+    <div id="ob-confetti-wrap" aria-hidden="true"></div>
+    <div class="ob-final-emoji" aria-hidden="true">🎉</div>
+    <div class="ob-title">¡Todo listo!${ciudad?(' Rumbo a '+escapeHtml(ciudad)):''} ✈️</div>
+    <div class="ob-sub">Ya podéis ver el resumen de vuestro viaje. Podéis editar cualquier dato cuando queráis desde sus pestañas.</div>
+  </div>`;
+  obSpawnConfetti();
+  obSetActions(`<button class="btn btn-primary btn-block" id="ob-close" type="button">Ver mi viaje</button>`);
+  document.getElementById('ob-close').addEventListener('click', obClose);
+}
+
+function obSpawnConfetti(){
+  const wrap = document.getElementById('ob-confetti-wrap');
+  if(!wrap) return;
+  const colors = ['#2F6F65','#D1567A','#C77A2E','#3E9C6B','#7FB8B0'];
+  for(let i=0;i<24;i++){
+    const el = document.createElement('div');
+    el.className = 'ob-confetti';
+    el.style.left = Math.random()*100 + '%';
+    el.style.background = colors[i % colors.length];
+    el.style.animationDelay = (Math.random()*0.5) + 's';
+    el.style.animationDuration = (2 + Math.random()*1.2) + 's';
+    wrap.appendChild(el);
+  }
+}
+
+async function obPersistAll(){
+  const vj = ensureViaje();
+  if(obDestino.continente && obDestino.pais && obDestino.ciudades.length && CURRENT_PROFILE){
+    CURRENT_PROFILE.destino = { continente: obDestino.continente, pais: obDestino.pais, ciudades: obDestino.ciudades };
+  }
+  if(obFechaInicio) vj.fechaInicio = obFechaInicio;
+  if(obFechaFin) vj.fechaFin = obFechaFin;
+  if(obVuelos.length) vj.vuelos = obVuelos;
+  if(obHotelData) vj.hotel = obHotelData;
+  if(obTravelers.length) vj.viajeros = obTravelers;
+  vj.onboardingDone = true;
+  await savePerfilCompleto();
+}
+
+async function savePerfilCompleto(){
+  const viaje = (CURRENT_PROFILE && CURRENT_PROFILE.viaje) || {};
+  lsSet('viaje_'+CURRENT_USER, viaje);
+  if(CURRENT_USER && CURRENT_PROFILE){
+    var perfilLocal = lsGet('perfil_'+CURRENT_USER, null);
+    if(perfilLocal){
+      perfilLocal.nombre = CURRENT_PROFILE.name;
+      perfilLocal.intereses = CURRENT_PROFILE.interests || [];
+      perfilLocal.destino = CURRENT_PROFILE.destino || null;
+      lsSet('perfil_'+CURRENT_USER, perfilLocal);
+    }
+  }
+  if(DEMO_MODE) return;
+  try {
+    await apiFetch('/api/perfil', { method:'PUT', body:JSON.stringify({
+      intereses: CURRENT_PROFILE.interests || [],
+      destino: CURRENT_PROFILE.destino || undefined,
+      viaje
+    }) });
+  } catch(e){ console.error('savePerfilCompleto failed (guardado local)', e); }
+}
+
+function obClose(){
+  document.getElementById('onboarding-screen').classList.add('hidden');
+  renderAll();
+}
+
 function initDestinoSelector(){
   const contWrap = document.getElementById("reg-continentes");
   contWrap.innerHTML = Object.entries(DESTINOS).map(([k,v])=>
@@ -1855,7 +1961,7 @@ function initAuthUI(){
         if(ha2 === localHash){
           err.textContent = "";
           var perfil = lsGet('perfil_'+usuario, { nombre: usuario, intereses: [] });
-          loginLocal(usuario, perfil);
+          await loginLocal(usuario, perfil);
           await storePasskey(usuario, password);
           return;
         }
@@ -1904,7 +2010,7 @@ function initAuthUI(){
       err.textContent = "";
       var perfil = { nombre, intereses, destino };
       lsSet('perfil_'+usuario, perfil);
-      loginLocal(usuario, perfil);
+      await loginLocal(usuario, perfil);
       await storePasskey(usuario, password);
     }
   });
@@ -2025,16 +2131,16 @@ function loginAs(usuario, perfil){
   loadTripAndRender();
 }
 
-function loginLocal(usuario, perfil){
+async function loginLocal(usuario, perfil){
   CURRENT_USER = usuario;
   CURRENT_PROFILE = perfilToProfile(usuario, perfil);
+  DEMO_MODE = false;
+  await initCipher(usuario + '-local-key');
   var savedViaje = lsGet('viaje_'+usuario, null);
   if(savedViaje) CURRENT_PROFILE.viaje = savedViaje;
-  DEMO_MODE = false;
-  initCipher(usuario + '-local-key');
   document.getElementById("auth-screen").classList.add("hidden");
   toast("Bienvenido, " + (CURRENT_PROFILE.name || usuario));
-  loadTripAndRender();
+  await loadTripAndRender();
 }
 
 async function storePasskey(usuario, password){
@@ -3539,8 +3645,8 @@ function renderEquipaje(){
 }
 
 /* ============ RENDER: PRESUPUESTO ============ */
-function getBudgetCeiling(){ return lsGet("budget_ceiling", (TRIP && TRIP.budgetCeiling) || 0); }
-function setBudgetCeiling(v){ lsSet("budget_ceiling", v); }
+function getBudgetCeiling(){ return lsGet("budget_ceiling_"+CURRENT_USER, (TRIP && TRIP.budgetCeiling) || 0); }
+function setBudgetCeiling(v){ lsSet("budget_ceiling_"+CURRENT_USER, v); }
 
 function renderPresupuesto(){
   if(!TRIP){ renderNoTripMessage("presupuesto"); return; }
@@ -4293,6 +4399,9 @@ async function loadTripAndRender(){
   const destino = CURRENT_PROFILE ? CURRENT_PROFILE.destino : null;
   await loadTripData(destino);
   renderAll();
+  if(CURRENT_PROFILE && viajeNecesitaOnboarding(CURRENT_PROFILE.viaje)){
+    startOnboarding();
+  }
 }
 
 /* ============ RENDER OVERRIDE FOR MISSING TRIP ============ */
