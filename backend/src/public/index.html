@@ -166,6 +166,14 @@ input[type=text],input[type=email],input[type=password],input[type=number],input
 }
 label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bottom:4px; display:block;}
 .field{margin-bottom:12px;}
+.pwd-wrap{position:relative;}
+.pwd-wrap input{padding-right:42px;}
+.pwd-toggle{
+  position:absolute; right:2px; top:50%; transform:translateY(-50%);
+  width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+  font-size:17px; color:var(--text2); border-radius:8px;
+}
+.pwd-toggle:active{background:rgba(120,95,74,0.12);}
 
 /* list rows */
 .row{display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border);}
@@ -421,7 +429,10 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       </div>
       <div class="field">
         <label class="field-label">Contraseña</label>
-        <input type="text" id="login-password" placeholder="tu contraseña" autocomplete="current-password" style="-webkit-text-security:none;">
+        <div class="pwd-wrap">
+          <input type="password" id="login-password" placeholder="tu contraseña" autocomplete="current-password">
+          <button type="button" class="pwd-toggle" data-toggle-pwd="login-password" aria-label="Mostrar contraseña" aria-pressed="false">👁</button>
+        </div>
       </div>
       <details id="server-details" style="margin-bottom:8px;">
         <summary style="font-size:12px;color:var(--text2);cursor:pointer;">Servidor (avanzado)</summary>
@@ -453,11 +464,17 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
     <div id="reset-confirm-form" class="hidden">
       <div class="field">
         <label class="field-label">Nueva contraseña</label>
-        <input type="text" id="reset-new-password" placeholder="mínimo 8 caracteres" autocomplete="new-password">
+        <div class="pwd-wrap">
+          <input type="password" id="reset-new-password" placeholder="mínimo 8 caracteres" autocomplete="new-password">
+          <button type="button" class="pwd-toggle" data-toggle-pwd="reset-new-password" aria-label="Mostrar contraseña" aria-pressed="false">👁</button>
+        </div>
       </div>
       <div class="field">
         <label class="field-label">Repetir contraseña</label>
-        <input type="text" id="reset-confirm-password" placeholder="mínimo 8 caracteres" autocomplete="new-password">
+        <div class="pwd-wrap">
+          <input type="password" id="reset-confirm-password" placeholder="mínimo 8 caracteres" autocomplete="new-password">
+          <button type="button" class="pwd-toggle" data-toggle-pwd="reset-confirm-password" aria-label="Mostrar contraseña" aria-pressed="false">👁</button>
+        </div>
       </div>
       <button type="button" id="reset-confirm-btn" class="btn btn-primary btn-block">Cambiar contraseña</button>
       <div id="reset-confirm-msg" style="text-align:center;margin-top:10px;font-size:13px;"></div>
@@ -474,7 +491,10 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       </div>
       <div class="field">
         <label class="field-label">Contraseña</label>
-        <input type="text" id="reg-password" placeholder="mínimo 8 caracteres" autocomplete="new-password">
+        <div class="pwd-wrap">
+          <input type="password" id="reg-password" placeholder="mínimo 8 caracteres" autocomplete="new-password">
+          <button type="button" class="pwd-toggle" data-toggle-pwd="reg-password" aria-label="Mostrar contraseña" aria-pressed="false">👁</button>
+        </div>
       </div>
       <div class="field">
         <label class="field-label">Intereses</label>
@@ -1370,6 +1390,17 @@ async function apiFetch(path, opts = {}) {
 function initAuthUI(){
   var savedUrl = localStorage.getItem('andanzas_api_url');
   if(savedUrl) document.getElementById('login-server-url').value = savedUrl;
+  document.querySelectorAll('[data-toggle-pwd]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var input = document.getElementById(btn.dataset.togglePwd);
+      if(!input) return;
+      var show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+      btn.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
+      btn.textContent = show ? '🙈' : '👁';
+    });
+  });
   document.getElementById("tab-login").addEventListener("click", ()=>{
     document.getElementById("tab-login").classList.add("active");
     document.getElementById("tab-register").classList.remove("active");
