@@ -1486,6 +1486,8 @@ function initAuthUI(){
     const usuario = document.getElementById("reset-usuario").value.trim();
     const msg = document.getElementById("reset-msg");
     if(!usuario){ msg.style.color="#D1567A"; msg.textContent="Introduce tu usuario."; return; }
+    var serverUrl = (document.getElementById('login-server-url').value||'').trim().replace(/\/+$/,'');
+    if(serverUrl){ API_BASE = serverUrl; localStorage.setItem('andanzas_api_url', serverUrl); }
     msg.style.color="var(--accent,#2F6F65)"; msg.textContent="Enviando...";
     try {
       var hr3 = await apiFetch('/api/salud');
