@@ -391,7 +391,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 </style>
 </head>
 <body>
-<script>window.onerror=function(m,s,l){var d=document.getElementById('js-err');if(d){d.style.display='block';d.textContent='Error JS: '+m+' (linea '+l+')';}}</script>
+<script>window.onerror=function(m,s,l){if(m==='Script error.'||l===0)return;var d=document.getElementById('js-err');if(d){d.style.display='block';d.textContent='Error JS: '+m+' (linea '+l+')';}}</script>
 <div id="js-err" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#D1567A;color:#fff;padding:12px;font-size:13px;text-align:center;"></div>
 <div id="frame-wrap">
 <div id="app-frame">
