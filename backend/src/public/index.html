@@ -2508,7 +2508,10 @@ function switchTab(tab, opts){
     iconEl.innerHTML = '';
   }
   const subtitleEl = document.getElementById("hdr-subtitle");
-  if(subtitleEl && TRIP) subtitleEl.textContent = "Andanzas · " + (TRIP.name || TRIP.facts.destino || "");
+  if(subtitleEl){
+    const destStr = CURRENT_PROFILE && CURRENT_PROFILE.destino && CURRENT_PROFILE.destino.ciudades ? CURRENT_PROFILE.destino.ciudades[0] : "";
+    subtitleEl.textContent = destStr ? ("Andanzas · " + destStr) : "Andanzas";
+  }
 
   const backBtn = document.getElementById("back-btn");
   if(!opts.fromBack){
@@ -3744,7 +3747,7 @@ function setExpenses(arr){ lsSet("expenses", arr); }
 function renderGastos(){
   const expenses = getExpenses();
   const total = expenses.reduce((s,e)=>s+parseFloat(e.amount||0),0);
-  const budgetMax = (TRIP && TRIP.budgetCeiling) || 0;
+  const budgetMax = getBudgetCeiling();
   const remaining = budgetMax - total;
   document.getElementById("expense-summary-grid").innerHTML = `
     <div class="fact-card"><div class="flbl">Total gastado</div><div class="fval">${total.toFixed(2)} €</div></div>
@@ -3938,34 +3941,40 @@ function renderEquipaje(){
 }
 
 /* ============ RENDER: PRESUPUESTO ============ */
-function getBudgetCeiling(){ return lsGet("budget_ceiling_"+CURRENT_USER, (TRIP && TRIP.budgetCeiling) || 0); }
+function getBudgetCeiling(){ return lsGet("budget_ceiling_"+CURRENT_USER, 0); }
 function setBudgetCeiling(v){ lsSet("budget_ceiling_"+CURRENT_USER, v); }
 
 function renderPresupuesto(){
-  if(!TRIP){ renderNoTripMessage("presupuesto"); return; }
   var ceiling = getBudgetCeiling();
   var inp = document.getElementById("budget-ceiling-input");
   inp.value = ceiling;
   inp.onchange = function(){ setBudgetCeiling(parseInt(inp.value)||0); renderPresupuesto(); };
   const expenses = getExpenses();
   const spent = expenses.reduce(function(s,e){ return s+parseFloat(e.amount||0); },0);
-  const colorMap = {brass:"#B08D57", ice:"#3E6E92", pine:"#3F6B52", rust:"#A6472F", est:"#8E8E93"};
   if(ceiling > 0){
     var pct = Math.min(100, Math.round(spent/ceiling*100));
     document.getElementById("budget-bar").innerHTML = `<div style="width:${pct}%; background:${pct>90?'#D1567A':'#3E9C6B'};"></div>`;
   } else {
     document.getElementById("budget-bar").innerHTML = '';
   }
-  document.getElementById("budget-breakdown").innerHTML = TRIP.budgetRows.map(r=>`
-    <div class="budget-row">
-      <div class="swatch" style="background:${colorMap[r.color]||'#999'}"></div>
+  // Desglose real por categoría de gasto (nunca el ejemplo TRIP.budgetRows)
+  const catColors = {Comida:"#3E9C6B", Transporte:"#3E6E92", Alojamiento:"#B08D57", Actividades:"#A6472F", Compras:"#8E5FBF", Otros:"#8E8E93"};
+  const byCat = {};
+  expenses.forEach(function(e){ var c = e.cat||"Otros"; byCat[c] = (byCat[c]||0) + parseFloat(e.amount||0); });
+  const cats = Object.keys(byCat);
+  if(!cats.length){
+    document.getElementById("budget-breakdown").innerHTML = '<div class="empty-note">Aún no hay gastos registrados. Añádelos desde la pestaña Gastos.</div>';
+    return;
+  }
+  document.getElementById("budget-breakdown").innerHTML = cats.map(function(c){
+    return `<div class="budget-row">
+      <div class="swatch" style="background:${catColors[c]||'#999'}"></div>
       <div style="flex:1;">
-        <div style="font-weight:600; font-size:14px;">${escapeHtml(r.label)}</div>
-        <div class="tiny">${escapeHtml(r.note)}</div>
+        <div style="font-weight:600; font-size:14px;">${escapeHtml(c)}</div>
       </div>
-      <div style="font-weight:700;">${escapeHtml(r.value)}</div>
-    </div>
-  `).join("") + `<div class="budget-row" style="border-top:1px solid var(--border);padding-top:8px;margin-top:8px;">
+      <div style="font-weight:700;">${byCat[c].toFixed(2)} €</div>
+    </div>`;
+  }).join("") + `<div class="budget-row" style="border-top:1px solid var(--border);padding-top:8px;margin-top:8px;">
     <div style="flex:1;font-weight:700;">Gastado</div>
     <div style="font-weight:700;">${spent.toFixed(2)} €</div>
   </div>`;
