@@ -91,6 +91,9 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes popIn{0%{transform:scale(0.3) rotate(-8deg);opacity:0}60%{transform:scale(1.12) rotate(2deg)}100%{transform:scale(1) rotate(0);opacity:1}}
 @keyframes dotPulse{0%,100%{box-shadow:0 0 0 0 rgba(47,111,101,0.35)}50%{box-shadow:0 0 0 4px rgba(47,111,101,0.18)}}
+@keyframes checkDraw{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}
+@keyframes confettiFall{0%{transform:translateY(-6px) rotate(0deg);opacity:1}100%{transform:translateY(70px) rotate(220deg);opacity:0}}
+@keyframes cardFloat{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-8px) rotate(1.5deg)}}
 
 /* ===== Tab bar ===== */
 #tabbar{
@@ -851,21 +854,76 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
         </div>
       </div>
 
-      <!-- STEP 5: Confirm -->
+      <!-- STEP 5: Logistics -->
       <div id="reg-step-5" class="reg-step hidden">
+        <div style="display:flex;flex-direction:column;gap:18px;">
+          <div style="text-align:center;">
+            <div style="font-size:22px;font-weight:800;color:#2A2018;">Antes de seguir…</div>
+            <p style="font-size:13.5px;color:#6B5642;margin:6px 0 0;">Cuéntanos qué tienes ya reservado</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="background:#F5EBE0;border-radius:18px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <span style="font-size:14.5px;font-weight:700;color:#2A2018;">¿Ya tienes el vuelo?</span>
+              <div style="display:flex;gap:6px;">
+                <button type="button" class="reg-toggle" data-field="flight" data-val="yes" style="border:2px solid #2F6F65;background:transparent;color:#2F6F65;font-family:inherit;font-weight:700;font-size:13px;padding:7px 16px;border-radius:100px;cursor:pointer;">Sí</button>
+                <button type="button" class="reg-toggle" data-field="flight" data-val="no" style="border:2px solid rgba(120,95,74,0.2);background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:13px;padding:7px 16px;border-radius:100px;cursor:pointer;">No aún</button>
+              </div>
+            </div>
+            <div style="background:#F5EBE0;border-radius:18px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <span style="font-size:14.5px;font-weight:700;color:#2A2018;">¿Ya tienes el hotel?</span>
+              <div style="display:flex;gap:6px;">
+                <button type="button" class="reg-toggle" data-field="hotel" data-val="yes" style="border:2px solid #2F6F65;background:transparent;color:#2F6F65;font-family:inherit;font-weight:700;font-size:13px;padding:7px 16px;border-radius:100px;cursor:pointer;">Sí</button>
+                <button type="button" class="reg-toggle" data-field="hotel" data-val="no" style="border:2px solid rgba(120,95,74,0.2);background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:13px;padding:7px 16px;border-radius:100px;cursor:pointer;">No aún</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:13.5px;font-weight:700;color:#5A4A38;margin:4px 0 4px;">Te puede interesar</div>
+            <div style="font-size:11.5px;color:#6B5642;opacity:0.75;margin:0 0 12px;">Toca la tarjeta para ver la siguiente</div>
+            <div id="reg-suggestions" style="position:relative;height:150px;display:flex;justify-content:center;"></div>
+            <div id="reg-sug-dots" style="display:flex;gap:5px;justify-content:center;margin-top:12px;"></div>
+            <div id="reg-saved-wrap" class="hidden" style="margin-top:14px;">
+              <div style="font-size:12px;font-weight:700;color:#5A4A38;opacity:0.75;margin-bottom:6px;">Guardado para ti</div>
+              <div id="reg-saved-chips" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button type="button" id="reg-back-5" style="border:none;background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:14px;padding:13px 18px;border-radius:100px;cursor:pointer;">Atrás</button>
+            <button type="button" id="reg-next-5" style="flex:1;border:none;background:#2F6F65;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Continuar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 6: Confirm -->
+      <div id="reg-step-6" class="reg-step hidden">
         <div style="display:flex;flex-direction:column;gap:16px;">
           <div style="text-align:center;">
             <div style="font-size:13px;font-weight:700;color:#5A4A38;margin-bottom:10px;">Elige tu icono</div>
-            <div id="reg-avatar-picker" style="display:grid;grid-template-columns:repeat(4,46px);gap:8px;justify-content:center;"></div>
+            <div id="reg-avatar-picker" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;"></div>
           </div>
           <div style="background:#F5EBE0;border-radius:28px;padding:28px 24px;box-shadow:0 4px 0 rgba(196,150,110,0.18);display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;">
             <div id="reg-avatar" style="width:72px;height:72px;border-radius:50%;background:#3E6E92;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;animation:popIn .5s cubic-bezier(.34,1.56,.64,1);overflow:hidden;"></div>
             <div id="reg-summary" style="font-size:14px;line-height:1.7;color:#2A2018;"></div>
           </div>
           <div style="display:flex;gap:10px;">
-            <button type="button" id="reg-back-5" style="border:none;background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:14px;padding:13px 18px;border-radius:100px;cursor:pointer;">Atrás</button>
+            <button type="button" id="reg-back-6" style="border:none;background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:14px;padding:13px 18px;border-radius:100px;cursor:pointer;">Atrás</button>
             <button type="submit" style="flex:1;border:none;background:#2F6F65;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Crear cuenta</button>
           </div>
+        </div>
+      </div>
+
+      <!-- STEP 7: Done -->
+      <div id="reg-step-7" class="reg-step hidden">
+        <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:16px;padding-top:40px;">
+          <div style="position:relative;width:88px;height:88px;">
+            <div style="width:88px;height:88px;border-radius:50%;background:#2F6F65;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 0 rgba(31,88,80,0.3);animation:popIn .55s cubic-bezier(.34,1.56,.64,1);">
+              <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:24;animation:checkDraw .4s .3s ease forwards;"><path d="M20 6 9 17l-5-5"></path></svg>
+            </div>
+            <div id="reg-confetti"></div>
+          </div>
+          <h2 style="font-size:26px;font-weight:800;color:#2A2018;margin:0;">¡Ya estás dentro!</h2>
+          <p id="reg-done-msg" style="font-size:15px;color:#5A4A38;opacity:0.85;margin:0;max-width:32ch;"></p>
+          <button type="button" id="reg-go-app" style="border:none;background:#2F6F65;color:#fff;font-family:inherit;font-weight:700;font-size:16px;padding:15px 36px;border-radius:100px;cursor:pointer;box-shadow:0 4px 0 rgba(31,88,80,0.5);margin-top:6px;">Ir a la app</button>
         </div>
       </div>
     </form>
@@ -2307,7 +2365,7 @@ function initAuthUI(){
 
   // --- Multi-step register wizard (DC style) ---
   var regStep = 1;
-  var regTotalSteps = 5;
+  var regTotalSteps = 7;
   var PALETTE_AVATAR=['#3E6E92','#A6472F','#3F6B52','#8E44AD','#C77B2E'];
   function regShowStep(n){
     regStep = n;
@@ -2326,6 +2384,7 @@ function initAuthUI(){
       dots.appendChild(d);
     }
     document.getElementById('auth-error').textContent='';
+    document.getElementById('reg-dots').style.display=n===7?'none':'flex';
   }
   regShowStep(1);
 
@@ -2345,8 +2404,140 @@ function initAuthUI(){
   document.getElementById('reg-back-3').addEventListener('click',()=>regShowStep(2));
   document.getElementById('reg-next-3').addEventListener('click',()=>regShowStep(4));
   document.getElementById('reg-back-4').addEventListener('click',()=>regShowStep(3));
-  document.getElementById('reg-next-4').addEventListener('click',()=>{regShowStep(5);regBuildSummary();});
+  document.getElementById('reg-next-4').addEventListener('click',()=>{regShowStep(5);regBuildLogistics();});
   document.getElementById('reg-back-5').addEventListener('click',()=>regShowStep(4));
+  document.getElementById('reg-next-5').addEventListener('click',()=>{regShowStep(6);regBuildSummary();});
+  document.getElementById('reg-back-6').addEventListener('click',()=>regShowStep(5));
+
+  /* --- Logistics: vuelo/hotel toggles --- */
+  var regLogistics={flight:null,hotel:null};
+  document.querySelectorAll('.reg-toggle').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var f=btn.dataset.field, v=btn.dataset.val;
+      regLogistics[f]=regLogistics[f]===v?null:v;
+      document.querySelectorAll('.reg-toggle[data-field="'+f+'"]').forEach(function(b){
+        var on=b.dataset.val===regLogistics[f];
+        b.style.background=on?'#2F6F65':'transparent';
+        b.style.color=on?'#fff':(b.dataset.val==='yes'?'#2F6F65':'#6B5642');
+        b.style.borderColor=on?'#2F6F65':(b.dataset.val==='yes'?'#2F6F65':'rgba(120,95,74,0.2)');
+      });
+    });
+  });
+
+  /* --- Suggestion cards --- */
+  var SUGGESTIONS=[
+    {emoji:'🏛️',title:'Duomo di Milano',tag:'Imprescindible',bg:'#EAF4F2',interest:'arte'},
+    {emoji:'🖼️',title:'Pinacoteca di Brera',tag:'Museo',bg:'#EAF4F2',interest:'arte'},
+    {emoji:'🎨',title:'El Cenacolo Vinciano',tag:'Arte',bg:'#EAF4F2',interest:'arte'},
+    {emoji:'🍕',title:'Trattorias locales',tag:'Comida',bg:'#FDEBD9',interest:'comida'},
+    {emoji:'🧀',title:'Mercato coperto',tag:'Sabores',bg:'#FDEBD9',interest:'comida'},
+    {emoji:'🍷',title:'Tour de aperitivo',tag:'Noche',bg:'#FDEBD9',interest:'comida'},
+    {emoji:'🚂',title:'Bernina Express',tag:'Excursión',bg:'#EAF9F0',interest:'aventura'},
+    {emoji:'🏔️',title:'Lago di Como',tag:'Un día',bg:'#EAF9F0',interest:'aventura'},
+    {emoji:'🥾',title:'Rutas por los Alpes',tag:'Naturaleza',bg:'#EAF9F0',interest:'aventura'},
+    {emoji:'🛍️',title:'Quadrilatero della Moda',tag:'Moda',bg:'#FBEAF0',interest:'compras'},
+    {emoji:'🧴',title:'Corso Buenos Aires',tag:'Compras',bg:'#FBEAF0',interest:'compras'},
+    {emoji:'🏷️',title:'Outlet Serravalle',tag:'Ofertas',bg:'#FBEAF0',interest:'compras'},
+    {emoji:'🛶',title:'Navigli',tag:'Atardecer',bg:'#EFEAF6',interest:'tranquilo'},
+    {emoji:'🌳',title:'Parco Sempione',tag:'Relax',bg:'#EFEAF6',interest:'tranquilo'}
+  ];
+  var regSugIndex=0;
+  var regSavedSugs=[];
+
+  function regGetPool(){
+    var sel=Array.from(document.querySelectorAll('#reg-interests .ob-tile.selected')).map(function(c){return c.dataset.val;});
+    if(!sel.length) return SUGGESTIONS;
+    var base=SUGGESTIONS.filter(function(s){return sel.indexOf(s.interest)>=0;});
+    return base.length?base:SUGGESTIONS;
+  }
+
+  function regRenderSuggestions(){
+    var pool=regGetPool();
+    if(regSugIndex>=pool.length) regSugIndex=0;
+    var box=document.getElementById('reg-suggestions');
+    box.innerHTML='';
+    for(var i=0;i<Math.min(3,pool.length);i++){
+      var idx=(regSugIndex+i)%pool.length;
+      var sg=pool[idx];
+      var isFront=i===0;
+      var zI=3-i;
+      var tx=i===0?'translateY(0) rotate(-1.5deg)':i===1?'translateY(4px) rotate(1deg) scale(.95)':'translateY(8px) rotate(-0.5deg) scale(.9)';
+      var op=i===0?'1':i===1?'0.7':'0.4';
+      var shadow=isFront?'0 4px 12px rgba(90,74,56,0.12)':'0 2px 6px rgba(90,74,56,0.08)';
+      var card=document.createElement('div');
+      card.style.cssText='position:absolute;top:0;width:150px;height:140px;background:#fff;border-radius:18px;padding:14px 12px;box-shadow:'+shadow+';display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;justify-content:center;cursor:pointer;transform:'+tx+';z-index:'+zI+';opacity:'+op+';transition:transform .3s ease,opacity .3s ease;';
+      if(isFront) card.className='ob-card-front';
+      var saved=regSavedSugs.indexOf(sg.title)>=0;
+      card.innerHTML=(isFront?'<button type="button" class="reg-sug-save" data-title="'+sg.title+'" style="position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:none;background:'+(saved?'#2F6F65':'rgba(120,95,74,0.08)')+';display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="'+(saved?'#fff':'none')+'" stroke="'+(saved?'#fff':'#6B5642')+'" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"></path></svg></button>':'')
+        +'<div style="width:44px;height:44px;border-radius:14px;background:'+sg.bg+';display:flex;align-items:center;justify-content:center;font-size:22px;">'+sg.emoji+'</div>'
+        +'<div style="font-size:12.5px;font-weight:700;color:#2A2018;line-height:1.25;">'+sg.title+'</div>'
+        +'<div style="font-size:11px;color:#6B5642;opacity:0.8;">'+sg.tag+'</div>';
+      if(isFront) card.addEventListener('click',function(e){
+        if(e.target.closest('.reg-sug-save')) return;
+        regSugIndex=(regSugIndex+1)%pool.length;
+        regRenderSuggestions();
+      });
+      box.appendChild(card);
+    }
+    box.querySelectorAll('.reg-sug-save').forEach(function(btn){
+      btn.addEventListener('click',function(e){
+        e.stopPropagation();
+        var t=btn.dataset.title;
+        var idx2=regSavedSugs.indexOf(t);
+        if(idx2>=0) regSavedSugs.splice(idx2,1); else regSavedSugs.push(t);
+        regRenderSuggestions();
+        regRenderSaved();
+      });
+    });
+    var dotsEl=document.getElementById('reg-sug-dots');
+    dotsEl.innerHTML='';
+    for(var i=0;i<pool.length;i++){
+      var dot=document.createElement('div');
+      var active=i===regSugIndex%pool.length;
+      dot.style.cssText='height:6px;border-radius:100px;transition:all .2s;'+(active?'width:14px;background:#2F6F65;':'width:6px;background:rgba(47,111,101,0.2);');
+      dotsEl.appendChild(dot);
+    }
+  }
+
+  function regRenderSaved(){
+    var wrap=document.getElementById('reg-saved-wrap');
+    var chips=document.getElementById('reg-saved-chips');
+    if(!regSavedSugs.length){wrap.classList.add('hidden');return;}
+    wrap.classList.remove('hidden');
+    chips.innerHTML=regSavedSugs.map(function(t){
+      return '<span style="display:inline-flex;align-items:center;gap:6px;border:1.5px solid #2F6F65;border-radius:100px;padding:5px 6px 5px 12px;font-size:12px;font-weight:700;color:#1F5850;background:#EAF4F2;">'+t+'<button type="button" class="reg-saved-rm" data-title="'+t+'" style="width:18px;height:18px;border-radius:50%;border:none;background:#2F6F65;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;line-height:1;padding:0;">×</button></span>';
+    }).join('');
+    chips.querySelectorAll('.reg-saved-rm').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var t=btn.dataset.title;
+        regSavedSugs=regSavedSugs.filter(function(s){return s!==t;});
+        regRenderSuggestions();
+        regRenderSaved();
+      });
+    });
+  }
+
+  function regBuildLogistics(){
+    regSugIndex=0;
+    regRenderSuggestions();
+    regRenderSaved();
+  }
+
+  /* --- Done step (confetti + message) --- */
+  var CONFETTI_COLORS=['#7FB8B0','#F5D9A8','#A6472F','#2F6F65','#C77B2E','#3E6E92'];
+  function regShowDone(){
+    var nombre=document.getElementById('reg-name').value.trim();
+    var destino=regDestino.pais||'tu destino';
+    document.getElementById('reg-done-msg').textContent='Bienvenido/a, '+nombre+'. Tu viaje a '+destino+' ya te espera.';
+    var confEl=document.getElementById('reg-confetti');
+    confEl.innerHTML='';
+    for(var i=0;i<6;i++){
+      var c=document.createElement('div');
+      var sz=(6+(i%3)*2)+'px';
+      c.style.cssText='position:absolute;top:40px;left:44px;width:'+sz+';height:'+sz+';border-radius:'+(i%2===0?'50%':'3px')+';background:'+CONFETTI_COLORS[i]+';animation:confettiFall '+(0.7+(i%3)*0.15).toFixed(2)+'s '+(0.35+i*0.05).toFixed(2)+'s ease-in forwards;transform:rotate('+(i*37)+'deg);';
+      confEl.appendChild(c);
+    }
+  }
 
   /* Avatar SVGs estilo icons8 — 16 variantes */
   var REG_AVATARS=[
@@ -2424,7 +2615,8 @@ function initAuthUI(){
       '<div style="font-size:20px;font-weight:800;color:#2A2018;">'+nombre+'</div>'
       +'<div style="font-size:13px;color:#6B5642;margin:4px 0 10px;">@'+usuario+'</div>'
       +(chips?'<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">'+chips+'</div>':'')
-      +(regDestino.pais?'<div style="margin-top:10px;font-size:13px;color:#5A4A38;">📍 '+regDestino.pais+(regDestino.ciudades.length?' — '+regDestino.ciudades.join(', '):'')+'</div>':'');
+      +(regDestino.pais?'<div style="margin-top:10px;font-size:13px;color:#5A4A38;">📍 '+regDestino.pais+(regDestino.ciudades.length?' — '+regDestino.ciudades.join(', '):'')+'</div>':'')
+      +(regSavedSugs.length?'<div style="width:100%;margin-top:10px;"><div style="font-size:12px;font-weight:700;color:#5A4A38;opacity:0.75;margin:4px 0 6px;">Tus planes guardados</div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">'+regSavedSugs.map(function(t){return '<span style="border:1.5px solid rgba(120,95,74,0.25);border-radius:100px;padding:6px 12px;font-size:12px;font-weight:700;color:#6B5642;background:#fff;">'+t+'</span>';}).join('')+'</div></div>':'');
   }
 
   document.getElementById('terms-link-reg').addEventListener('click',e=>{e.preventDefault();openSheet('privacy-sheet-overlay');});
@@ -2487,6 +2679,7 @@ function initAuthUI(){
       pais: regDestino.pais,
       ciudades: regDestino.ciudades
     } : undefined;
+    var regDoneLogin = null;
     try {
       var hr2 = await apiFetch('/api/salud');
       if(!hr2.ok) throw new Error('no backend');
@@ -2496,7 +2689,7 @@ function initAuthUI(){
       });
       if(!r.ok){ err.textContent = r.data?.error || "Error en el registro."; return; }
       err.textContent = "";
-      loginAs(r.data.usuario, r.data.perfil || { nombre, intereses });
+      regDoneLogin = function(){ loginAs(r.data.usuario, r.data.perfil || { nombre, intereses }); };
     } catch {
       var enc3 = new TextEncoder();
       var hb3 = await crypto.subtle.digest('SHA-256', enc3.encode(usuario + ':' + password));
@@ -2505,9 +2698,12 @@ function initAuthUI(){
       err.textContent = "";
       var perfil = { nombre, intereses, destino };
       lsSet('perfil_'+usuario, perfil);
-      await loginLocal(usuario, perfil);
       await storePasskey(usuario, password);
+      regDoneLogin = function(){ loginLocal(usuario, perfil); };
     }
+    regShowStep(7);
+    regShowDone();
+    document.getElementById('reg-go-app').onclick = function(){ regDoneLogin(); };
   });
 
   // --- Reset password UI ---
