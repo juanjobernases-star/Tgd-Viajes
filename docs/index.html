@@ -856,7 +856,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
         <div style="display:flex;flex-direction:column;gap:16px;">
           <div style="text-align:center;">
             <div style="font-size:13px;font-weight:700;color:#5A4A38;margin-bottom:10px;">Elige tu icono</div>
-            <div id="reg-avatar-picker" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;"></div>
+            <div id="reg-avatar-picker" style="display:grid;grid-template-columns:repeat(4,46px);gap:8px;justify-content:center;"></div>
           </div>
           <div style="background:#F5EBE0;border-radius:28px;padding:28px 24px;box-shadow:0 4px 0 rgba(196,150,110,0.18);display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;">
             <div id="reg-avatar" style="width:72px;height:72px;border-radius:50%;background:#3E6E92;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;animation:popIn .5s cubic-bezier(.34,1.56,.64,1);overflow:hidden;"></div>
@@ -2348,8 +2348,48 @@ function initAuthUI(){
   document.getElementById('reg-next-4').addEventListener('click',()=>{regShowStep(5);regBuildSummary();});
   document.getElementById('reg-back-5').addEventListener('click',()=>regShowStep(4));
 
-  var REG_AVATARS=['👩','👨','👧','👦','👩‍🦰','👨‍🦱','👱‍♀️','👱','🧑','👴'];
+  /* Avatar SVGs estilo icons8 — 16 variantes */
+  var REG_AVATARS=[
+    {id:'av1',skin:'#F5D0A9',hair:'#5A3825',shirt:'#4CAF50',hairType:'long'},
+    {id:'av2',skin:'#F5D0A9',hair:'#3E2723',shirt:'#2196F3',hairType:'short'},
+    {id:'av3',skin:'#FFCC99',hair:'#FFB74D',shirt:'#FF9800',hairType:'pigtails'},
+    {id:'av4',skin:'#FFCC99',hair:'#5D4037',shirt:'#9C27B0',hairType:'buzz'},
+    {id:'av5',skin:'#D4A57B',hair:'#BF360C',shirt:'#F44336',hairType:'wavy'},
+    {id:'av6',skin:'#D4A57B',hair:'#212121',shirt:'#607D8B',hairType:'curly'},
+    {id:'av7',skin:'#FDE0C8',hair:'#FDD835',shirt:'#E91E63',hairType:'bob'},
+    {id:'av8',skin:'#FDE0C8',hair:'#8D6E63',shirt:'#00BCD4',hairType:'short'},
+    {id:'av9',skin:'#8D5524',hair:'#3E2723',shirt:'#FF5722',hairType:'afro'},
+    {id:'av10',skin:'#C68642',hair:'#1B1B1B',shirt:'#673AB7',hairType:'long'},
+    {id:'av11',skin:'#FFCC99',hair:'#BDBDBD',shirt:'#795548',hairType:'short'},
+    {id:'av12',skin:'#F5D0A9',hair:'#FF8A65',shirt:'#009688',hairType:'curly'},
+    {id:'av13',skin:'#FDE0C8',hair:'#5D4037',shirt:'#3F51B5',hairType:'pigtails'},
+    {id:'av14',skin:'#D4A57B',hair:'#212121',shirt:'#CDDC39',hairType:'buzz'},
+    {id:'av15',skin:'#8D5524',hair:'#4E342E',shirt:'#FF4081',hairType:'bob'},
+    {id:'av16',skin:'#C68642',hair:'#FFCC80',shirt:'#00897B',hairType:'wavy'}
+  ];
   var regSelectedAvatar=null;
+
+  function avatarSVG(a,size){
+    var s=a.skin,h=a.hair,sh=a.shirt,ht=a.hairType;
+    var hairPath='';
+    switch(ht){
+      case'long':hairPath='<ellipse cx="24" cy="14" rx="13" ry="12" fill="'+h+'"/><rect x="11" y="14" width="5" height="14" rx="2" fill="'+h+'"/><rect x="32" y="14" width="5" height="14" rx="2" fill="'+h+'"/>';break;
+      case'short':hairPath='<ellipse cx="24" cy="13" rx="12" ry="11" fill="'+h+'"/>';break;
+      case'pigtails':hairPath='<ellipse cx="24" cy="14" rx="11" ry="10" fill="'+h+'"/><circle cx="10" cy="12" r="5" fill="'+h+'"/><circle cx="38" cy="12" r="5" fill="'+h+'"/>';break;
+      case'buzz':hairPath='<ellipse cx="24" cy="14" rx="11.5" ry="9" fill="'+h+'"/>';break;
+      case'wavy':hairPath='<ellipse cx="24" cy="14" rx="13" ry="11" fill="'+h+'"/><path d="M11 18 Q8 24 11 28" stroke="'+h+'" stroke-width="4" fill="none"/><path d="M37 18 Q40 24 37 28" stroke="'+h+'" stroke-width="4" fill="none"/>';break;
+      case'curly':hairPath='<ellipse cx="24" cy="13" rx="13" ry="12" fill="'+h+'"/><circle cx="12" cy="10" r="3" fill="'+h+'"/><circle cx="36" cy="10" r="3" fill="'+h+'"/><circle cx="24" cy="5" r="3" fill="'+h+'"/>';break;
+      case'bob':hairPath='<ellipse cx="24" cy="14" rx="13" ry="11" fill="'+h+'"/><rect x="11" y="14" width="4" height="10" rx="2" fill="'+h+'"/><rect x="33" y="14" width="4" height="10" rx="2" fill="'+h+'"/>';break;
+      case'afro':hairPath='<circle cx="24" cy="13" r="15" fill="'+h+'"/>';break;
+    }
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="'+size+'" height="'+size+'">'
+      +'<circle cx="24" cy="38" r="14" fill="'+sh+'"/>'
+      +hairPath
+      +'<ellipse cx="24" cy="20" rx="10" ry="11" fill="'+s+'"/>'
+      +'<circle cx="20" cy="19" r="1.5" fill="#3E2723"/><circle cx="28" cy="19" r="1.5" fill="#3E2723"/>'
+      +'<ellipse cx="24" cy="23" rx="2.5" ry="1" fill="#E8967A"/>'
+      +'</svg>';
+  }
 
   function regBuildSummary(){
     var nombre=document.getElementById('reg-name').value.trim();
@@ -2357,9 +2397,9 @@ function initAuthUI(){
     var intereses=Array.from(document.querySelectorAll('#reg-interests .ob-tile.selected')).map(c=>TILE_LABELS[c.dataset.val]||c.dataset.val);
 
     var picker=document.getElementById('reg-avatar-picker');
-    picker.innerHTML=REG_AVATARS.map(function(em,i){
-      var sel=regSelectedAvatar===em;
-      return '<button type="button" data-av="'+em+'" style="width:46px;height:46px;border-radius:50%;border:'+(sel?'3px solid #2F6F65':'3px solid transparent')+';padding:0;background:#fff;cursor:pointer;font-size:24px;box-shadow:0 2px 0 rgba(196,150,110,0.15);transition:border-color .15s;">'+em+'</button>';
+    picker.innerHTML=REG_AVATARS.map(function(a){
+      var sel=regSelectedAvatar===a.id;
+      return '<button type="button" data-av="'+a.id+'" style="width:46px;height:46px;border-radius:50%;border:'+(sel?'3px solid #2F6F65':'3px solid transparent')+';padding:2px;background:#fff;cursor:pointer;box-shadow:0 2px 0 rgba(196,150,110,0.15);transition:border-color .15s;overflow:hidden;display:flex;align-items:center;justify-content:center;">'+avatarSVG(a,38)+'</button>';
     }).join('');
     picker.querySelectorAll('button').forEach(function(btn){
       btn.addEventListener('click',function(){
@@ -2369,15 +2409,15 @@ function initAuthUI(){
     });
 
     var avatar=document.getElementById('reg-avatar');
-    if(regSelectedAvatar){
-      avatar.textContent=regSelectedAvatar;
-      avatar.style.background='#fff';
-      avatar.style.fontSize='36px';
+    var avObj=regSelectedAvatar?REG_AVATARS.find(function(a){return a.id===regSelectedAvatar;}):null;
+    if(avObj){
+      avatar.innerHTML=avatarSVG(avObj,56);
+      avatar.style.background='#EDE7DD';
     } else {
       var initial=(nombre[0]||'?').toUpperCase();
+      avatar.innerHTML='';
       avatar.textContent=initial;
       avatar.style.background=PALETTE_AVATAR[nombre.length%PALETTE_AVATAR.length];
-      avatar.style.fontSize='28px';
     }
     var chips=intereses.map(l=>'<span style="border:1.5px solid #2F6F65;border-radius:100px;padding:6px 12px;font-size:12px;font-weight:700;color:#2F6F65;background:#fff;display:inline-block;">'+l+'</span>').join(' ');
     document.getElementById('reg-summary').innerHTML=
