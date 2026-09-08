@@ -89,6 +89,8 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;}
 }
 .section{padding:16px; animation:fadeIn .25s ease;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes popIn{0%{transform:scale(0.3) rotate(-8deg);opacity:0}60%{transform:scale(1.12) rotate(2deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes dotPulse{0%,100%{box-shadow:0 0 0 0 rgba(47,111,101,0.35)}50%{box-shadow:0 0 0 4px rgba(47,111,101,0.18)}}
 
 /* ===== Tab bar ===== */
 #tabbar{
@@ -735,91 +737,122 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
     </div>
 
     <form id="register-form" class="hidden">
-      <div id="reg-dots" style="display:flex;gap:5px;justify-content:center;margin-bottom:18px;"></div>
+      <!-- Progress dots (DC style) -->
+      <div id="reg-dots" style="display:flex;gap:6px;justify-content:center;margin-bottom:18px;"></div>
 
-      <div id="reg-step-1" class="reg-step">
-        <div style="text-align:center;padding:12px 0 8px;">
-          <div style="font-size:38px;margin-bottom:6px;">✈️</div>
-          <div style="font-size:22px;font-weight:800;color:var(--text);">Tu próxima aventura empieza aquí</div>
-          <div style="font-size:13px;color:var(--text2);margin-top:6px;">Crea tu cuenta en un minuto</div>
+      <!-- STEP 1: Welcome -->
+      <div id="reg-step-1" class="reg-step" style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:18px;">
+        <div style="width:96px;height:96px;border-radius:32px;background:#7FB8B0;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 0 rgba(47,111,101,0.25);animation:popIn .55s cubic-bezier(.34,1.56,.64,1);">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"></path><path d="M4 7h9a4 4 0 0 1 4 4v1"></path><path d="m16 21 4-4-4-4"></path><path d="M20 17h-9a4 4 0 0 1-4-4v-1"></path></svg>
         </div>
-        <button type="button" id="reg-next-1" class="btn btn-primary btn-block" style="margin-top:16px;">Comenzar</button>
-        <div style="text-align:center;margin-top:10px;font-size:13px;">
-          <span style="color:var(--text2);">¿Ya tienes cuenta?</span> <a href="#" id="reg-go-login" style="color:var(--accent);font-weight:600;">Entrar</a>
-        </div>
+        <h1 style="font-size:28px;font-weight:800;color:#2A2018;margin:0;line-height:1.2;">Tu próxima aventura<br>empieza aquí</h1>
+        <button type="button" id="reg-next-1" style="border:none;background:#2F6F65;color:#fff;font-family:inherit;font-weight:700;font-size:16px;padding:15px 36px;border-radius:100px;cursor:pointer;box-shadow:0 4px 0 rgba(31,88,80,0.5);margin-top:6px;">Comenzar</button>
+        <div style="font-size:13px;color:#5A4A38;opacity:0.7;">¿Ya tienes cuenta? <a href="#" id="reg-go-login" style="color:#2F6F65;font-weight:600;">Entrar</a></div>
       </div>
 
+      <!-- STEP 2: Account (card style) -->
       <div id="reg-step-2" class="reg-step hidden">
-        <div class="auth-section-title">Crea tu cuenta</div>
-        <div class="field">
-          <label class="field-label">Nombre</label>
-          <input type="text" id="reg-name" placeholder="Tu nombre">
-        </div>
-        <div class="field">
-          <label class="field-label">Usuario</label>
-          <input type="text" id="reg-email" placeholder="elige un usuario">
-        </div>
-        <div class="field">
-          <label class="field-label">Contraseña</label>
-          <input type="text" id="reg-password" placeholder="mínimo 8 caracteres" autocomplete="new-password">
-        </div>
-        <label style="display:flex;align-items:flex-start;gap:8px;margin:4px 0 12px;cursor:pointer;">
-          <input type="checkbox" id="reg-terms" style="margin-top:2px;width:16px;height:16px;flex-shrink:0;accent-color:var(--accent);">
-          <span style="font-size:12px;line-height:1.4;color:var(--text2);">Acepto los <a href="#" id="terms-link-reg" style="color:var(--accent);font-weight:700;">Términos de uso</a> y he leído la <a href="#" id="privacy-link-reg" style="color:var(--accent);font-weight:700;">Política de privacidad</a>.</span>
-        </label>
-        <div style="display:flex;gap:10px;">
-          <button type="button" id="reg-back-2" class="btn btn-secondary" style="flex:0 0 auto;">Atrás</button>
-          <button type="button" id="reg-next-2" class="btn btn-primary btn-block">Siguiente</button>
+        <div style="background:linear-gradient(160deg,#F9F1E7,#F5EBE0);border-radius:28px;padding:30px 24px;box-shadow:0 5px 0 rgba(196,150,110,0.2),0 14px 30px rgba(120,95,74,0.1);display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:-30px;right:-30px;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,rgba(127,184,176,0.25),rgba(127,184,176,0));"></div>
+          <div style="width:48px;height:48px;border-radius:16px;background:#7FB8B0;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 rgba(47,111,101,0.25);animation:popIn .5s cubic-bezier(.34,1.56,.64,1);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </div>
+          <div>
+            <div style="font-size:22px;font-weight:800;color:#2A2018;">Crea tu cuenta</div>
+            <p style="font-size:13px;color:#6B5642;margin:5px 0 0;">Solo lo necesario para empezar a planear.</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <input type="text" id="reg-name" placeholder="Tu nombre" style="width:100%;border:1.5px solid rgba(120,95,74,0.14);border-radius:14px;padding:13px 16px;font-size:15px;background:#fff;color:#2A2018;outline:none;box-shadow:0 1px 0 rgba(196,150,110,0.08);font-family:inherit;">
+            <input type="text" id="reg-email" placeholder="Elige un usuario" style="width:100%;border:1.5px solid rgba(120,95,74,0.14);border-radius:14px;padding:13px 16px;font-size:15px;background:#fff;color:#2A2018;outline:none;box-shadow:0 1px 0 rgba(196,150,110,0.08);font-family:inherit;">
+            <input type="text" id="reg-password" placeholder="Contraseña (mín. 8)" autocomplete="new-password" style="width:100%;border:1.5px solid rgba(120,95,74,0.14);border-radius:14px;padding:13px 16px;font-size:15px;background:#fff;color:#2A2018;outline:none;box-shadow:0 1px 0 rgba(196,150,110,0.08);font-family:inherit;">
+          </div>
+          <label style="display:flex;align-items:flex-start;gap:8px;margin-top:2px;cursor:pointer;">
+            <input type="checkbox" id="reg-terms" style="margin-top:2px;width:16px;height:16px;flex-shrink:0;accent-color:#2F6F65;">
+            <span style="font-size:12px;line-height:1.4;color:#6B5642;">Acepto los <a href="#" id="terms-link-reg" style="color:#2F6F65;font-weight:700;text-decoration:underline;">Términos de uso</a> y he leído la <a href="#" id="privacy-link-reg" style="color:#2F6F65;font-weight:700;text-decoration:underline;">Política de privacidad</a>.</span>
+          </label>
+          <div style="display:flex;gap:10px;margin-top:4px;">
+            <button type="button" id="reg-back-2" style="border:none;background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:14px;padding:13px 18px;border-radius:100px;cursor:pointer;">Atrás</button>
+            <button type="button" id="reg-next-2" style="flex:1;border:none;background:linear-gradient(135deg,#2F6F65,#3F8478);color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Continuar</button>
+          </div>
         </div>
       </div>
 
+      <!-- STEP 3: Interests (tiles grid) -->
       <div id="reg-step-3" class="reg-step hidden">
-        <div class="auth-section-title">¿Qué te apetece descubrir?</div>
-        <div class="field">
-          <label class="field-label">Intereses</label>
-          <div class="interest-chips" id="reg-interests">
-            <button type="button" class="interest-chip" data-val="arte">Arte</button>
-            <button type="button" class="interest-chip" data-val="comida">Comida</button>
-            <button type="button" class="interest-chip" data-val="aventura">Aventura</button>
-            <button type="button" class="interest-chip" data-val="compras">Compras</button>
-            <button type="button" class="interest-chip" data-val="tranquilo">Tranquilo</button>
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div style="text-align:center;">
+            <div style="font-size:22px;font-weight:800;color:#2A2018;">¿Qué te apetece descubrir?</div>
+            <p style="font-size:13px;color:#6B5642;margin:6px 0 0;">Elige tus intereses para personalizar tu guía</p>
           </div>
-        </div>
-        <div style="display:flex;gap:10px;">
-          <button type="button" id="reg-back-3" class="btn btn-secondary" style="flex:0 0 auto;">Atrás</button>
-          <button type="button" id="reg-next-3" class="btn btn-primary btn-block">Siguiente</button>
+          <div id="reg-interests" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <button type="button" class="ob-tile" data-val="arte" style="grid-column:auto;border:2.5px solid rgba(120,95,74,0.15);background:#fff;border-radius:22px;padding:18px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 2px 0 rgba(196,150,110,0.12);transition:transform .2s,border-color .15s,background .15s,box-shadow .15s;font-family:inherit;">
+              <span style="font-size:28px;line-height:1;">🎨</span>
+              <span style="font-size:14px;font-weight:700;color:#5A4A38;">Arte y cultura</span>
+            </button>
+            <button type="button" class="ob-tile" data-val="comida" style="grid-column:auto;border:2.5px solid rgba(120,95,74,0.15);background:#fff;border-radius:22px;padding:18px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 2px 0 rgba(196,150,110,0.12);transition:transform .2s,border-color .15s,background .15s,box-shadow .15s;font-family:inherit;">
+              <span style="font-size:28px;line-height:1;">🍝</span>
+              <span style="font-size:14px;font-weight:700;color:#5A4A38;">Comida</span>
+            </button>
+            <button type="button" class="ob-tile" data-val="aventura" style="grid-column:auto;border:2.5px solid rgba(120,95,74,0.15);background:#fff;border-radius:22px;padding:18px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 2px 0 rgba(196,150,110,0.12);transition:transform .2s,border-color .15s,background .15s,box-shadow .15s;font-family:inherit;">
+              <span style="font-size:28px;line-height:1;">🏔️</span>
+              <span style="font-size:14px;font-weight:700;color:#5A4A38;">Aventura</span>
+            </button>
+            <button type="button" class="ob-tile" data-val="compras" style="grid-column:auto;border:2.5px solid rgba(120,95,74,0.15);background:#fff;border-radius:22px;padding:18px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 2px 0 rgba(196,150,110,0.12);transition:transform .2s,border-color .15s,background .15s,box-shadow .15s;font-family:inherit;">
+              <span style="font-size:28px;line-height:1;">🛍️</span>
+              <span style="font-size:14px;font-weight:700;color:#5A4A38;">Compras</span>
+            </button>
+            <button type="button" class="ob-tile" data-val="tranquilo" style="grid-column:1 / -1;border:2.5px solid rgba(120,95,74,0.15);background:#fff;border-radius:22px;padding:18px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 2px 0 rgba(196,150,110,0.12);transition:transform .2s,border-color .15s,background .15s,box-shadow .15s;font-family:inherit;">
+              <span style="font-size:28px;line-height:1;">🌿</span>
+              <span style="font-size:14px;font-weight:700;color:#5A4A38;">Tranquilo</span>
+            </button>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:4px;">
+            <button type="button" id="reg-back-3" style="border:none;background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:14px;padding:13px 18px;border-radius:100px;cursor:pointer;">Atrás</button>
+            <button type="button" id="reg-next-3" style="flex:1;border:none;background:#2F6F65;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Continuar</button>
+          </div>
         </div>
       </div>
 
+      <!-- STEP 4: Destino -->
       <div id="reg-step-4" class="reg-step hidden">
-        <div class="auth-section-title">¿A dónde quieres viajar?</div>
-        <div class="field" id="destino-field">
-          <div class="interest-chips" id="reg-continentes"></div>
-          <div id="reg-paises-wrap" class="hidden" style="margin-top:10px;">
-            <label class="field-label">País</label>
-            <div class="interest-chips" id="reg-paises"></div>
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div style="text-align:center;">
+            <div style="font-size:22px;font-weight:800;color:#2A2018;">¿A dónde vais?</div>
+            <p style="font-size:13px;color:#6B5642;margin:6px 0 0;">Elige vuestro destino</p>
           </div>
-          <div id="reg-ciudades-wrap" class="hidden" style="margin-top:10px;">
-            <label class="field-label">Ciudades</label>
-            <div class="interest-chips" id="reg-ciudades"></div>
-            <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
-              <input type="text" id="reg-ciudad-custom" placeholder="Otra ciudad" style="flex:1;padding:8px 12px;font-size:13px;">
-              <button type="button" id="reg-ciudad-add" class="btn btn-secondary btn-sm">+</button>
+          <div class="field" id="destino-field">
+            <div class="interest-chips" id="reg-continentes"></div>
+            <div id="reg-paises-wrap" class="hidden" style="margin-top:10px;">
+              <label class="field-label">País</label>
+              <div class="interest-chips" id="reg-paises"></div>
+            </div>
+            <div id="reg-ciudades-wrap" class="hidden" style="margin-top:10px;">
+              <label class="field-label">Ciudades</label>
+              <div class="interest-chips" id="reg-ciudades"></div>
+              <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+                <input type="text" id="reg-ciudad-custom" placeholder="Otra ciudad" style="flex:1;padding:10px 14px;font-size:14px;border:1.5px solid rgba(120,95,74,0.14);border-radius:14px;background:#fff;font-family:inherit;">
+                <button type="button" id="reg-ciudad-add" style="border:none;background:#2F6F65;color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;box-shadow:0 2px 0 rgba(31,88,80,0.4);">+</button>
+              </div>
             </div>
           </div>
-        </div>
-        <div style="display:flex;gap:10px;">
-          <button type="button" id="reg-back-4" class="btn btn-secondary" style="flex:0 0 auto;">Atrás</button>
-          <button type="button" id="reg-next-4" class="btn btn-primary btn-block">Siguiente</button>
+          <div style="display:flex;gap:10px;">
+            <button type="button" id="reg-back-4" style="border:none;background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:14px;padding:13px 18px;border-radius:100px;cursor:pointer;">Atrás</button>
+            <button type="button" id="reg-next-4" style="flex:1;border:none;background:#2F6F65;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Continuar</button>
+          </div>
         </div>
       </div>
 
+      <!-- STEP 5: Confirm -->
       <div id="reg-step-5" class="reg-step hidden">
-        <div class="auth-section-title">Confirma tu perfil</div>
-        <div id="reg-summary" style="background:var(--card);border-radius:18px;padding:16px;box-shadow:var(--card-shadow);margin-bottom:14px;"></div>
-        <div style="display:flex;gap:10px;">
-          <button type="button" id="reg-back-5" class="btn btn-secondary" style="flex:0 0 auto;">Atrás</button>
-          <button type="submit" class="btn btn-primary btn-block">Crear cuenta</button>
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div style="background:#F5EBE0;border-radius:28px;padding:28px 24px;box-shadow:0 4px 0 rgba(196,150,110,0.18);display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;">
+            <div id="reg-avatar" style="width:72px;height:72px;border-radius:50%;background:#3E6E92;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;animation:popIn .5s cubic-bezier(.34,1.56,.64,1);"></div>
+            <div id="reg-summary" style="font-size:14px;line-height:1.7;color:#2A2018;"></div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button type="button" id="reg-back-5" style="border:none;background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:14px;padding:13px 18px;border-radius:100px;cursor:pointer;">Atrás</button>
+            <button type="submit" style="flex:1;border:none;background:#2F6F65;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Crear cuenta</button>
+          </div>
         </div>
       </div>
     </form>
@@ -2244,15 +2277,25 @@ function initAuthUI(){
     document.getElementById("auth-error").textContent = "";
   });
 
-  const chips = document.querySelectorAll("#reg-interests .interest-chip");
-  chips.forEach(c=>c.addEventListener("click", ()=>c.classList.toggle("selected")));
+  // Interest tiles (DC-style grid)
+  var TILE_LABELS={arte:'Arte y cultura',comida:'Comida',aventura:'Aventura',compras:'Compras',tranquilo:'Tranquilo'};
+  document.querySelectorAll("#reg-interests .ob-tile").forEach(function(t){
+    t.addEventListener("click", function(){
+      var on=t.classList.toggle("selected");
+      t.style.borderColor=on?'#2F6F65':'rgba(120,95,74,0.15)';
+      t.style.background=on?'#EAF4F2':'#fff';
+      t.style.boxShadow=on?'0 3px 0 rgba(47,111,101,0.25)':'0 2px 0 rgba(196,150,110,0.12)';
+      t.querySelector('span:last-child').style.color=on?'#1F5850':'#5A4A38';
+    });
+  });
 
   // --- Destination selector ---
   initDestinoSelector();
 
-  // --- Multi-step register wizard ---
+  // --- Multi-step register wizard (DC style) ---
   var regStep = 1;
   var regTotalSteps = 5;
+  var PALETTE_AVATAR=['#3E6E92','#A6472F','#3F6B52','#8E44AD','#C77B2E'];
   function regShowStep(n){
     regStep = n;
     for(var i=1;i<=regTotalSteps;i++){
@@ -2263,7 +2306,10 @@ function initAuthUI(){
     dots.innerHTML='';
     for(var i=1;i<=regTotalSteps;i++){
       var d=document.createElement('div');
-      d.style.cssText='height:6px;border-radius:3px;transition:all .2s;'+(i===n?'width:22px;background:var(--accent);':'width:6px;background:var(--border);');
+      var active=i===n;
+      d.style.cssText='height:8px;border-radius:100px;transition:all .3s;'
+        +(active?'width:24px;background:#2F6F65;box-shadow:0 0 0 0 rgba(47,111,101,0.35);animation:dotPulse 1.6s ease-in-out infinite;'
+                :'width:8px;background:'+(i<n?'#2F6F65':'rgba(47,111,101,0.2)')+';');
       dots.appendChild(d);
     }
     document.getElementById('auth-error').textContent='';
@@ -2286,21 +2332,24 @@ function initAuthUI(){
   document.getElementById('reg-back-3').addEventListener('click',()=>regShowStep(2));
   document.getElementById('reg-next-3').addEventListener('click',()=>regShowStep(4));
   document.getElementById('reg-back-4').addEventListener('click',()=>regShowStep(3));
-  document.getElementById('reg-next-4').addEventListener('click',()=>regShowStep(5));
+  document.getElementById('reg-next-4').addEventListener('click',()=>{regShowStep(5);regBuildSummary();});
   document.getElementById('reg-back-5').addEventListener('click',()=>regShowStep(4));
 
-  document.getElementById('reg-next-4').addEventListener('click',function(){
-    var sum=document.getElementById('reg-summary');
+  function regBuildSummary(){
     var nombre=document.getElementById('reg-name').value.trim();
     var usuario=document.getElementById('reg-email').value.trim();
-    var intereses=Array.from(document.querySelectorAll('#reg-interests .interest-chip.selected')).map(c=>c.dataset.val);
-    sum.innerHTML='<div style="font-size:14px;line-height:1.7;">'
-      +'<div><strong>Nombre:</strong> '+nombre+'</div>'
-      +'<div><strong>Usuario:</strong> '+usuario+'</div>'
-      +(intereses.length?'<div><strong>Intereses:</strong> '+intereses.join(', ')+'</div>':'')
-      +(regDestino.pais?'<div><strong>Destino:</strong> '+regDestino.pais+(regDestino.ciudades.length?' — '+regDestino.ciudades.join(', '):'')+'</div>':'')
-      +'</div>';
-  });
+    var intereses=Array.from(document.querySelectorAll('#reg-interests .ob-tile.selected')).map(c=>TILE_LABELS[c.dataset.val]||c.dataset.val);
+    var avatar=document.getElementById('reg-avatar');
+    var initial=(nombre[0]||'?').toUpperCase();
+    avatar.textContent=initial;
+    avatar.style.background=PALETTE_AVATAR[nombre.length%PALETTE_AVATAR.length];
+    var chips=intereses.map(l=>'<span style="border:1.5px solid #2F6F65;border-radius:100px;padding:6px 12px;font-size:12px;font-weight:700;color:#2F6F65;background:#fff;display:inline-block;">'+l+'</span>').join(' ');
+    document.getElementById('reg-summary').innerHTML=
+      '<div style="font-size:20px;font-weight:800;color:#2A2018;">'+nombre+'</div>'
+      +'<div style="font-size:13px;color:#6B5642;margin:4px 0 10px;">@'+usuario+'</div>'
+      +(chips?'<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">'+chips+'</div>':'')
+      +(regDestino.pais?'<div style="margin-top:10px;font-size:13px;color:#5A4A38;">📍 '+regDestino.pais+(regDestino.ciudades.length?' — '+regDestino.ciudades.join(', '):'')+'</div>':'');
+  }
 
   document.getElementById('terms-link-reg').addEventListener('click',e=>{e.preventDefault();openSheet('privacy-sheet-overlay');});
   document.getElementById('privacy-link-reg').addEventListener('click',e=>{e.preventDefault();openSheet('privacy-sheet-overlay');});
@@ -2356,7 +2405,7 @@ function initAuthUI(){
       err.textContent = "La contraseña debe tener al menos 8 caracteres.";
       return;
     }
-    const intereses = Array.from(document.querySelectorAll("#reg-interests .interest-chip.selected")).map(c=>c.dataset.val);
+    const intereses = Array.from(document.querySelectorAll("#reg-interests .ob-tile.selected")).map(c=>c.dataset.val);
     const destino = (regDestino.continente && regDestino.pais) ? {
       continente: regDestino.continente,
       pais: regDestino.pais,
