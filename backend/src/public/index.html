@@ -735,51 +735,93 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
     </div>
 
     <form id="register-form" class="hidden">
-      <div class="auth-section-title">Datos de cuenta</div>
-      <div class="field">
-        <label class="field-label">Nombre</label>
-        <input type="text" id="reg-name" placeholder="Tu nombre">
-      </div>
-      <div class="field">
-        <label class="field-label">Usuario</label>
-        <input type="text" id="reg-email" placeholder="elige un usuario">
-      </div>
-      <div class="field">
-        <label class="field-label">Contraseña</label>
-        <div class="pwd-wrap">
-          <input type="password" id="reg-password" placeholder="mínimo 8 caracteres" autocomplete="new-password">
-          <button type="button" class="pwd-toggle" data-toggle-pwd="reg-password" aria-label="Mostrar contraseña" aria-pressed="false">👁</button>
+      <div id="reg-dots" style="display:flex;gap:5px;justify-content:center;margin-bottom:18px;"></div>
+
+      <div id="reg-step-1" class="reg-step">
+        <div style="text-align:center;padding:12px 0 8px;">
+          <div style="font-size:38px;margin-bottom:6px;">✈️</div>
+          <div style="font-size:22px;font-weight:800;color:var(--text);">Tu próxima aventura empieza aquí</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:6px;">Crea tu cuenta en un minuto</div>
+        </div>
+        <button type="button" id="reg-next-1" class="btn btn-primary btn-block" style="margin-top:16px;">Comenzar</button>
+        <div style="text-align:center;margin-top:10px;font-size:13px;">
+          <span style="color:var(--text2);">¿Ya tienes cuenta?</span> <a href="#" id="reg-go-login" style="color:var(--accent);font-weight:600;">Entrar</a>
         </div>
       </div>
-      <div class="auth-section-title">Tus gustos</div>
-      <div class="field">
-        <label class="field-label">Intereses</label>
-        <div class="interest-chips" id="reg-interests">
-          <button type="button" class="interest-chip" data-val="arte">Arte</button>
-          <button type="button" class="interest-chip" data-val="comida">Comida</button>
-          <button type="button" class="interest-chip" data-val="aventura">Aventura</button>
-          <button type="button" class="interest-chip" data-val="compras">Compras</button>
-          <button type="button" class="interest-chip" data-val="tranquilo">Tranquilo</button>
+
+      <div id="reg-step-2" class="reg-step hidden">
+        <div class="auth-section-title">Crea tu cuenta</div>
+        <div class="field">
+          <label class="field-label">Nombre</label>
+          <input type="text" id="reg-name" placeholder="Tu nombre">
+        </div>
+        <div class="field">
+          <label class="field-label">Usuario</label>
+          <input type="text" id="reg-email" placeholder="elige un usuario">
+        </div>
+        <div class="field">
+          <label class="field-label">Contraseña</label>
+          <input type="text" id="reg-password" placeholder="mínimo 8 caracteres" autocomplete="new-password">
+        </div>
+        <label style="display:flex;align-items:flex-start;gap:8px;margin:4px 0 12px;cursor:pointer;">
+          <input type="checkbox" id="reg-terms" style="margin-top:2px;width:16px;height:16px;flex-shrink:0;accent-color:var(--accent);">
+          <span style="font-size:12px;line-height:1.4;color:var(--text2);">Acepto los <a href="#" id="terms-link-reg" style="color:var(--accent);font-weight:700;">Términos de uso</a> y he leído la <a href="#" id="privacy-link-reg" style="color:var(--accent);font-weight:700;">Política de privacidad</a>.</span>
+        </label>
+        <div style="display:flex;gap:10px;">
+          <button type="button" id="reg-back-2" class="btn btn-secondary" style="flex:0 0 auto;">Atrás</button>
+          <button type="button" id="reg-next-2" class="btn btn-primary btn-block">Siguiente</button>
         </div>
       </div>
-      <div class="auth-section-title">Destino</div>
-      <div class="field" id="destino-field">
-        <label class="field-label">¿A dónde quieres viajar?</label>
-        <div class="interest-chips" id="reg-continentes"></div>
-        <div id="reg-paises-wrap" class="hidden" style="margin-top:10px;">
-          <label class="field-label">País</label>
-          <div class="interest-chips" id="reg-paises"></div>
-        </div>
-        <div id="reg-ciudades-wrap" class="hidden" style="margin-top:10px;">
-          <label class="field-label">Ciudades</label>
-          <div class="interest-chips" id="reg-ciudades"></div>
-          <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
-            <input type="text" id="reg-ciudad-custom" placeholder="Otra ciudad" style="flex:1;padding:8px 12px;font-size:13px;">
-            <button type="button" id="reg-ciudad-add" class="btn btn-secondary btn-sm">+</button>
+
+      <div id="reg-step-3" class="reg-step hidden">
+        <div class="auth-section-title">¿Qué te apetece descubrir?</div>
+        <div class="field">
+          <label class="field-label">Intereses</label>
+          <div class="interest-chips" id="reg-interests">
+            <button type="button" class="interest-chip" data-val="arte">Arte</button>
+            <button type="button" class="interest-chip" data-val="comida">Comida</button>
+            <button type="button" class="interest-chip" data-val="aventura">Aventura</button>
+            <button type="button" class="interest-chip" data-val="compras">Compras</button>
+            <button type="button" class="interest-chip" data-val="tranquilo">Tranquilo</button>
           </div>
         </div>
+        <div style="display:flex;gap:10px;">
+          <button type="button" id="reg-back-3" class="btn btn-secondary" style="flex:0 0 auto;">Atrás</button>
+          <button type="button" id="reg-next-3" class="btn btn-primary btn-block">Siguiente</button>
+        </div>
       </div>
-      <button type="submit" class="btn btn-primary btn-block">Crear cuenta</button>
+
+      <div id="reg-step-4" class="reg-step hidden">
+        <div class="auth-section-title">¿A dónde quieres viajar?</div>
+        <div class="field" id="destino-field">
+          <div class="interest-chips" id="reg-continentes"></div>
+          <div id="reg-paises-wrap" class="hidden" style="margin-top:10px;">
+            <label class="field-label">País</label>
+            <div class="interest-chips" id="reg-paises"></div>
+          </div>
+          <div id="reg-ciudades-wrap" class="hidden" style="margin-top:10px;">
+            <label class="field-label">Ciudades</label>
+            <div class="interest-chips" id="reg-ciudades"></div>
+            <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+              <input type="text" id="reg-ciudad-custom" placeholder="Otra ciudad" style="flex:1;padding:8px 12px;font-size:13px;">
+              <button type="button" id="reg-ciudad-add" class="btn btn-secondary btn-sm">+</button>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button type="button" id="reg-back-4" class="btn btn-secondary" style="flex:0 0 auto;">Atrás</button>
+          <button type="button" id="reg-next-4" class="btn btn-primary btn-block">Siguiente</button>
+        </div>
+      </div>
+
+      <div id="reg-step-5" class="reg-step hidden">
+        <div class="auth-section-title">Confirma tu perfil</div>
+        <div id="reg-summary" style="background:var(--card);border-radius:18px;padding:16px;box-shadow:var(--card-shadow);margin-bottom:14px;"></div>
+        <div style="display:flex;gap:10px;">
+          <button type="button" id="reg-back-5" class="btn btn-secondary" style="flex:0 0 auto;">Atrás</button>
+          <button type="submit" class="btn btn-primary btn-block">Crear cuenta</button>
+        </div>
+      </div>
     </form>
 
     <div style="text-align:center;margin-top:18px;">
@@ -804,28 +846,48 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       <div class="sheet-handle"></div>
       <div class="sheet-title">Política de Privacidad</div>
       <div style="font-size:13px;line-height:1.6;color:var(--text);">
-        <p><strong>Andanzas</strong> es una aplicación de gestión de viajes familiar.</p>
-        <h4 style="margin:12px 0 4px;">Datos que se almacenan</h4>
+        <p><strong>Responsable del tratamiento</strong>: Familia Bernasés · juanjobernases@gmail.com</p>
+
+        <h4 style="margin:12px 0 4px;">Datos que recogemos</h4>
         <ul style="padding-left:18px;margin:4px 0;">
-          <li>Perfil de viajero (nombre, intereses, destino)</li>
-          <li>Datos del viaje (vuelos, hotel, itinerario, presupuesto)</li>
-          <li>Ubicación (solo cuando pulsas "Cerca de mí", nunca en segundo plano)</li>
+          <li>Identificación: nombre, usuario, contraseña (hasheada SHA-256)</li>
+          <li>Preferencias: intereses de viaje seleccionados</li>
+          <li>Contenido del viaje: itinerario, vuelos, hotel, gastos, documentos que subas (pasaporte, DNI, seguro, vacunas, visados)</li>
+          <li>Datos de otros viajeros del grupo, si los añades como titular de la cuenta</li>
+          <li>Ubicación: solo cuando pulsas «Cerca de mí», nunca en segundo plano</li>
         </ul>
+
+        <h4 style="margin:12px 0 4px;">Finalidad</h4>
+        <p>Prestar el servicio de planificación de viaje (itinerario, guía personalizada, gestión de documentos y gastos).</p>
+
+        <h4 style="margin:12px 0 4px;">Base legal</h4>
+        <p>Ejecución del contrato de uso de la app. El tratamiento de intereses para personalizar la guía se basa en tu consentimiento, que puedes retirar en cualquier momento desde ajustes.</p>
+
         <h4 style="margin:12px 0 4px;">Dónde se guardan</h4>
-        <p>En modo demo: <strong>solo en tu dispositivo</strong> (localStorage), cifrados con PBKDF2+XOR de 256 bits. Ningún dato sale de tu navegador.</p>
+        <p>Sin servidor: <strong>solo en tu dispositivo</strong> (localStorage), cifrados con PBKDF2+XOR de 256 bits. Ningún dato sale de tu navegador.</p>
         <p>Con servidor privado: en tu nube Nextcloud personal, bajo tu control.</p>
-        <h4 style="margin:12px 0 4px;">APIs externas consultadas</h4>
+
+        <h4 style="margin:12px 0 4px;">Conservación</h4>
+        <p>Mientras mantengas la cuenta activa; los documentos de viaje se eliminan cuando borres el viaje o la cuenta.</p>
+
+        <h4 style="margin:12px 0 4px;">Terceros</h4>
         <ul style="padding-left:18px;margin:4px 0;">
+          <li><strong>Nextcloud</strong> — almacenamiento documental (tu nube privada)</li>
           <li><strong>Open-Meteo</strong> — datos meteorológicos (sin datos personales)</li>
-          <li><strong>Overpass API</strong> — puntos de interés cercanos (solo coordenadas, sin identificación)</li>
+          <li><strong>Overpass API / OpenStreetMap</strong> — puntos de interés (solo coordenadas, sin identificación)</li>
         </ul>
-        <h4 style="margin:12px 0 4px;">Tus derechos</h4>
-        <p>Conforme al RGPD (UE), CCPA (EE.UU.), LGPD (Brasil) y normativas equivalentes:</p>
+
+        <h4 style="margin:12px 0 4px;">Menores de edad</h4>
+        <p>Si un menor usa la app o sus datos identificativos se suben como documentación, el titular de la cuenta declara ser su tutor legal y actuar en su representación.</p>
+
+        <h4 style="margin:12px 0 4px;">Tus derechos (ARCO)</h4>
+        <p>Conforme al RGPD (UE 2016/679):</p>
         <ul style="padding-left:18px;margin:4px 0;">
           <li><strong>Acceso</strong>: toda tu información está visible en la app</li>
           <li><strong>Rectificación</strong>: puedes editar cualquier dato desde la app</li>
-          <li><strong>Supresión</strong>: pulsa «Borrar mis datos» para eliminar todo</li>
+          <li><strong>Supresión</strong>: pulsa «Eliminar mi cuenta» en el menú Más</li>
           <li><strong>Portabilidad</strong>: tus datos están en tu dispositivo/nube</li>
+          <li><strong>Oposición</strong>: escríbenos a juanjobernases@gmail.com</li>
         </ul>
         <div style="margin-top:12px;">
           <button class="btn btn-secondary btn-block" id="privacy-delete-all" type="button" style="color:#c0392b;border-color:#c0392b;">🗑️ Borrar todos mis datos</button>
@@ -1320,6 +1382,11 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       <div class="more-item" id="more-privacy-item">
         <div class="more-icon" style="background:rgba(120,95,74,0.14);">🔒</div>
         <div class="more-label">Privacidad</div>
+        <div class="more-chevron">›</div>
+      </div>
+      <div class="more-item" id="more-delete-account" style="color:#D1567A;margin-top:8px;">
+        <div class="more-icon" style="background:rgba(209,86,122,0.12);">🗑️</div>
+        <div class="more-label">Eliminar mi cuenta</div>
         <div class="more-chevron">›</div>
       </div>
     </div>
@@ -2183,6 +2250,61 @@ function initAuthUI(){
   // --- Destination selector ---
   initDestinoSelector();
 
+  // --- Multi-step register wizard ---
+  var regStep = 1;
+  var regTotalSteps = 5;
+  function regShowStep(n){
+    regStep = n;
+    for(var i=1;i<=regTotalSteps;i++){
+      var el=document.getElementById('reg-step-'+i);
+      if(el) el.classList.toggle('hidden',i!==n);
+    }
+    var dots=document.getElementById('reg-dots');
+    dots.innerHTML='';
+    for(var i=1;i<=regTotalSteps;i++){
+      var d=document.createElement('div');
+      d.style.cssText='height:6px;border-radius:3px;transition:all .2s;'+(i===n?'width:22px;background:var(--accent);':'width:6px;background:var(--border);');
+      dots.appendChild(d);
+    }
+    document.getElementById('auth-error').textContent='';
+  }
+  regShowStep(1);
+
+  document.getElementById('reg-next-1').addEventListener('click',()=>regShowStep(2));
+  document.getElementById('reg-go-login').addEventListener('click',e=>{e.preventDefault();showLogin();});
+  document.getElementById('reg-back-2').addEventListener('click',()=>regShowStep(1));
+  document.getElementById('reg-next-2').addEventListener('click',()=>{
+    var err=document.getElementById('auth-error');
+    var n=document.getElementById('reg-name').value.trim();
+    var u=document.getElementById('reg-email').value.trim();
+    var p=document.getElementById('reg-password').value;
+    if(!n||!u||!p){err.textContent='Rellena todos los campos.';return;}
+    if(p.length<8){err.textContent='La contraseña debe tener al menos 8 caracteres.';return;}
+    if(!document.getElementById('reg-terms').checked){err.textContent='Debes aceptar los Términos y la Política de privacidad.';return;}
+    regShowStep(3);
+  });
+  document.getElementById('reg-back-3').addEventListener('click',()=>regShowStep(2));
+  document.getElementById('reg-next-3').addEventListener('click',()=>regShowStep(4));
+  document.getElementById('reg-back-4').addEventListener('click',()=>regShowStep(3));
+  document.getElementById('reg-next-4').addEventListener('click',()=>regShowStep(5));
+  document.getElementById('reg-back-5').addEventListener('click',()=>regShowStep(4));
+
+  document.getElementById('reg-next-4').addEventListener('click',function(){
+    var sum=document.getElementById('reg-summary');
+    var nombre=document.getElementById('reg-name').value.trim();
+    var usuario=document.getElementById('reg-email').value.trim();
+    var intereses=Array.from(document.querySelectorAll('#reg-interests .interest-chip.selected')).map(c=>c.dataset.val);
+    sum.innerHTML='<div style="font-size:14px;line-height:1.7;">'
+      +'<div><strong>Nombre:</strong> '+nombre+'</div>'
+      +'<div><strong>Usuario:</strong> '+usuario+'</div>'
+      +(intereses.length?'<div><strong>Intereses:</strong> '+intereses.join(', ')+'</div>':'')
+      +(regDestino.pais?'<div><strong>Destino:</strong> '+regDestino.pais+(regDestino.ciudades.length?' — '+regDestino.ciudades.join(', '):'')+'</div>':'')
+      +'</div>';
+  });
+
+  document.getElementById('terms-link-reg').addEventListener('click',e=>{e.preventDefault();openSheet('privacy-sheet-overlay');});
+  document.getElementById('privacy-link-reg').addEventListener('click',e=>{e.preventDefault();openSheet('privacy-sheet-overlay');});
+
   document.getElementById("login-form").addEventListener("submit", async e=>{
     e.preventDefault();
     const usuario = document.getElementById("login-email").value.trim();
@@ -2552,6 +2674,19 @@ function closeSheet(id){ document.getElementById(id).classList.remove("open"); }
 
 document.getElementById("more-sheet-overlay").addEventListener("click", e=>{
   if(e.target.id==="more-sheet-overlay") closeSheet("more-sheet-overlay");
+});
+
+document.getElementById("more-delete-account").addEventListener("click", ()=>{
+  closeSheet("more-sheet-overlay");
+  confirmDelete("¿Eliminar tu cuenta?", "Se borrarán todos tus datos de este dispositivo. Esta acción no se puede deshacer.", async ()=>{
+    if(CURRENT_USER){
+      var keys=Object.keys(localStorage).filter(k=>k.indexOf(LS_PREFIX+'cred_'+CURRENT_USER)===0||k.indexOf(LS_PREFIX+'perfil_'+CURRENT_USER)===0||k.indexOf(LS_PREFIX+'viaje_'+CURRENT_USER)===0||k.indexOf(LS_PREFIX+'checkins_'+CURRENT_USER)===0);
+      keys.forEach(k=>localStorage.removeItem(k));
+      try{await apiFetch('/api/cuenta',{method:'DELETE'});}catch{}
+    }
+    toast("Cuenta eliminada");
+    logout();
+  });
 });
 
 function renderMoreSheet(){
