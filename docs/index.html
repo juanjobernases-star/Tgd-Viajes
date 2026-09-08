@@ -188,8 +188,11 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 #auth-screen{
   position:absolute; top:0;right:0;bottom:0;left:0; z-index:100;
   background:linear-gradient(160deg, #FBF7EE 0%, #EAF6F1 45%, #F5EBDC 100%);
-  display:flex; flex-direction:column; padding:calc(env(safe-area-inset-top,0px) + 80px) 24px calc(env(safe-area-inset-bottom,0px) + 40px); overflow-y:auto;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:calc(env(safe-area-inset-top,0px) + 24px) 24px calc(env(safe-area-inset-bottom,0px) + 24px);
+  overflow-y:auto;
 }
+#auth-screen > *{ width:100%; max-width:400px; }
 .auth-logo{text-align:center; margin-bottom:12px;}
 .auth-logo .logo-circle{
   width:96px;height:96px;border-radius:50%;
@@ -2337,6 +2340,10 @@ function initAuthUI(){
     document.getElementById("login-form").classList.remove("hidden");
     document.getElementById("register-form").classList.add("hidden");
     document.getElementById("auth-error").textContent = "";
+    document.querySelector('.auth-logo').style.display='';
+    document.querySelector('.auth-title').style.display='';
+    document.querySelector('.auth-sub').style.display='';
+    document.querySelector('.auth-toggle').style.display='';
   });
   document.getElementById("tab-register").addEventListener("click", ()=>{
     document.getElementById("tab-register").classList.add("active");
@@ -2383,6 +2390,12 @@ function initAuthUI(){
     }
     document.getElementById('auth-error').textContent='';
     document.getElementById('reg-dots').style.display=n===7?'none':'flex';
+    var hideHeader=n>1&&n<7;
+    document.querySelector('.auth-logo').style.display=hideHeader?'none':'';
+    document.querySelector('.auth-title').style.display=hideHeader?'none':'';
+    document.querySelector('.auth-sub').style.display=hideHeader?'none':'';
+    document.querySelector('.auth-toggle').style.display=hideHeader?'none':'';
+    if(n>1) window.scrollTo(0,0);
   }
   regShowStep(1);
 
