@@ -1,0 +1,13 @@
+{
+  "ciudad": "alpes",
+  "pois": [
+    { "id": "bernina-express", "nombre": "Bernina Express", "categoria": "mirador", "icono": "🚂", "lat": 46.4908, "lng": 9.8355, "duracion_min": 180, "precio": "medio", "descripcion_corta": "Tren panorámico Patrimonio UNESCO por los Alpes" },
+    { "id": "lago-st-moritz", "nombre": "Lago de St. Moritz", "categoria": "naturaleza", "icono": "🏔️", "lat": 46.4908, "lng": 9.8355, "duracion_min": 60, "precio": "gratis", "descripcion_corta": "Paseo junto al lago helado de St. Moritz" },
+    { "id": "museo-engadina", "nombre": "Museo de la Engadina", "categoria": "monumento", "icono": "🏛️", "lat": 46.4975, "lng": 9.8385, "duracion_min": 45, "precio": "economico", "descripcion_corta": "Museo de tradiciones alpinas de la región" },
+    { "id": "chocolateria-alpina", "nombre": "Chocolatería alpina", "categoria": "gastronomia", "icono": "🍫", "lat": 46.4920, "lng": 9.8340, "duracion_min": 45, "precio": "economico", "descripcion_corta": "Chocolate caliente y pastelería suiza" },
+    { "id": "piz-nair", "nombre": "Mirador de Piz Nair", "categoria": "mirador", "icono": "🌅", "lat": 46.4795, "lng": 9.8419, "duracion_min": 90, "precio": "medio", "descripcion_corta": "Teleférico con vistas a los picos de Engadina" },
+    { "id": "parque-trineos", "nombre": "Zona de trineos", "categoria": "con_ninos", "icono": "🛷", "lat": 46.4950, "lng": 9.8300, "duracion_min": 60, "precio": "gratis", "descripcion_corta": "Zona de nieve y trineos para los peques" },
+    { "id": "boutiques-st-moritz", "nombre": "Boutiques de St. Moritz", "categoria": "compras", "icono": "🛍️", "lat": 46.4980, "lng": 9.8410, "duracion_min": 40, "precio": "medio", "descripcion_corta": "Calle comercial elegante del centro" },
+    { "id": "sendero-segantini", "nombre": "Sendero Segantini", "categoria": "joya_oculta", "icono": "💎", "lat": 46.5010, "lng": 9.8450, "duracion_min": 75, "precio": "gratis", "descripcion_corta": "Sendero tranquilo con vistas poco conocidas" }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "ciudad": "milan",
+  "pois": [
+    { "id": "duomo-milan", "nombre": "Duomo di Milano", "categoria": "monumento", "icono": "⛪", "lat": 45.4642, "lng": 9.1900, "duracion_min": 60, "precio": "economico", "descripcion_corta": "Catedral gótica, símbolo de Milán" },
+    { "id": "galleria-vittorio", "nombre": "Galleria Vittorio Emanuele II", "categoria": "compras", "icono": "🛍️", "lat": 45.4655, "lng": 9.1900, "duracion_min": 30, "precio": "gratis", "descripcion_corta": "Galería comercial del siglo XIX junto al Duomo" },
+    { "id": "castello-sforzesco", "nombre": "Castello Sforzesco", "categoria": "monumento", "icono": "🏰", "lat": 45.4706, "lng": 9.1794, "duracion_min": 75, "precio": "economico", "descripcion_corta": "Castillo renacentista con varios museos dentro" },
+    { "id": "navigli", "nombre": "Navigli", "categoria": "vida_nocturna", "icono": "🌃", "lat": 45.4489, "lng": 9.1716, "duracion_min": 90, "precio": "medio", "descripcion_corta": "Canales históricos, bares y aperitivo milanés" },
+    { "id": "brera", "nombre": "Barrio de Brera", "categoria": "joya_oculta", "icono": "💎", "lat": 45.4719, "lng": 9.1877, "duracion_min": 60, "precio": "gratis", "descripcion_corta": "Calles empedradas, arte y cafés con encanto" },
+    { "id": "trattoria-brera", "nombre": "Trattoria en Brera", "categoria": "gastronomia", "icono": "🍽️", "lat": 45.4715, "lng": 9.1880, "duracion_min": 75, "precio": "medio", "descripcion_corta": "Cocina lombarda tradicional" },
+    { "id": "terrazza-duomo", "nombre": "Terrazas del Duomo", "categoria": "mirador", "icono": "🌅", "lat": 45.4642, "lng": 9.1919, "duracion_min": 45, "precio": "economico", "descripcion_corta": "Vistas de Milán entre las agujas de la catedral" },
+    { "id": "parco-sempione", "nombre": "Parco Sempione", "categoria": "naturaleza", "icono": "🌳", "lat": 45.4726, "lng": 9.1765, "duracion_min": 60, "precio": "gratis", "descripcion_corta": "Gran parque urbano junto al Castello Sforzesco" },
+    { "id": "acquario-milano", "nombre": "Acquario Civico", "categoria": "con_ninos", "icono": "👨‍👩‍👧", "lat": 45.4736, "lng": 9.1785, "duracion_min": 60, "precio": "economico", "descripcion_corta": "Acuario público, ideal para ir en familia" },
+    { "id": "san-siro", "nombre": "Estadio San Siro", "categoria": "joya_oculta", "icono": "🏟️", "lat": 45.4781, "lng": 9.1240, "duracion_min": 90, "precio": "medio", "descripcion_corta": "Tour por el estadio de Inter y Milan" }
+  ]
+}
