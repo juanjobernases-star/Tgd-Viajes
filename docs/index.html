@@ -5619,6 +5619,14 @@ if('serviceWorker' in navigator){
           }
         });
       });
+      // Los PWA instalados en el móvil (icono de pantalla de inicio) no
+      // siempre relanzan la comprobación de actualización del SW al volver
+      // en primer plano. Forzamos reg.update() cada vez que la app pasa a
+      // visible, para que el nuevo deploy se detecte lo antes posible.
+      document.addEventListener('visibilitychange', function(){
+        if(document.visibilityState === 'visible') reg.update().catch(function(){});
+      });
+      reg.update().catch(function(){});
     }).catch(function(e){ console.error('sw register', e); });
 
     var refreshing = false;
