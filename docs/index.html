@@ -2779,15 +2779,22 @@ function initAuthUI(){
       var perfilServer = Object.assign({ nombre, intereses }, r.data.perfil || {}, { viaje, avatarIcon });
       regDoneLogin = function(){ SKIP_TRIP_ONBOARDING=true; loginAs(r.data.usuario, perfilServer); };
     } catch {
-      var enc3 = new TextEncoder();
-      var hb3 = await crypto.subtle.digest('SHA-256', enc3.encode(usuario + ':' + password));
-      var ha3 = Array.from(new Uint8Array(hb3)).map(b=>b.toString(16).padStart(2,'0')).join('');
-      localStorage.setItem(LS_PREFIX+'cred_'+usuario, ha3);
-      err.textContent = "";
       var perfil = { nombre, intereses, destino, avatarIcon, viaje };
-      lsSet('perfil_'+usuario, perfil);
-      lsSet('viaje_'+usuario, viaje);
-      await storePasskey(usuario, password);
+      // Cada paso de guardado va en su propio try: en local-mode no hay red
+      // de seguridad del servidor, así que si algo falla (p.ej. cuota de
+      // localStorage agotada en modo privado) preferimos seguir sin ese
+      // dato suelto antes que dejar el registro a medias y que el usuario
+      // acabe en el onboarding antiguo por un viaje sin onboardingDone.
+      try {
+        var enc3 = new TextEncoder();
+        var hb3 = await crypto.subtle.digest('SHA-256', enc3.encode(usuario + ':' + password));
+        var ha3 = Array.from(new Uint8Array(hb3)).map(b=>b.toString(16).padStart(2,'0')).join('');
+        localStorage.setItem(LS_PREFIX+'cred_'+usuario, ha3);
+      } catch(e){ console.error('guardar credencial local', e); }
+      try { lsSet('perfil_'+usuario, perfil); } catch(e){ console.error('guardar perfil local', e); }
+      try { lsSet('viaje_'+usuario, viaje); } catch(e){ console.error('guardar viaje local', e); }
+      err.textContent = "";
+      try { await storePasskey(usuario, password); } catch(e){ console.error('storePasskey', e); }
       regDoneLogin = function(){ SKIP_TRIP_ONBOARDING=true; loginLocal(usuario, perfil); };
     }
     regShowStep(8);
