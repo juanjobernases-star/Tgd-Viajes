@@ -830,22 +830,16 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       <div id="reg-step-4" class="reg-step hidden">
         <div style="display:flex;flex-direction:column;gap:16px;">
           <div style="text-align:center;">
-            <div style="font-size:22px;font-weight:800;color:#2A2018;">¿A dónde vais?</div>
-            <p style="font-size:13px;color:#6B5642;margin:6px 0 0;">Elige vuestro destino</p>
+            <div id="reg-destino-title" style="font-size:22px;font-weight:800;color:#2A2018;">¿Qué continente?</div>
+            <p style="font-size:13px;color:#6B5642;margin:6px 0 0;">Elige tu destino para ver sugerencias a medida</p>
           </div>
-          <div class="field" id="destino-field">
-            <div class="interest-chips" id="reg-continentes"></div>
-            <div id="reg-paises-wrap" class="hidden" style="margin-top:10px;">
-              <label class="field-label">País</label>
-              <div class="interest-chips" id="reg-paises"></div>
-            </div>
-            <div id="reg-ciudades-wrap" class="hidden" style="margin-top:10px;">
-              <label class="field-label">Ciudades</label>
-              <div class="interest-chips" id="reg-ciudades"></div>
-              <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
-                <input type="text" id="reg-ciudad-custom" placeholder="Otra ciudad" style="flex:1;padding:10px 14px;font-size:14px;border:1.5px solid rgba(120,95,74,0.14);border-radius:14px;background:#fff;font-family:inherit;">
-                <button type="button" id="reg-ciudad-add" style="border:none;background:#2F6F65;color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;box-shadow:0 2px 0 rgba(31,88,80,0.4);">+</button>
-              </div>
+          <div id="reg-continentes" style="display:flex;flex-direction:column;gap:10px;"></div>
+          <div id="reg-paises" class="hidden" style="display:flex;flex-direction:column;gap:10px;max-height:340px;overflow-y:auto;"></div>
+          <div id="reg-ciudades-wrap" class="hidden">
+            <div id="reg-ciudades" style="display:flex;flex-direction:column;gap:10px;"></div>
+            <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
+              <input type="text" id="reg-ciudad-custom" placeholder="Otra ciudad" style="flex:1;padding:10px 14px;font-size:14px;border:1.5px solid rgba(120,95,74,0.14);border-radius:14px;background:#fff;font-family:inherit;">
+              <button type="button" id="reg-ciudad-add" style="border:none;background:#2F6F65;color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;box-shadow:0 2px 0 rgba(31,88,80,0.4);">+</button>
             </div>
           </div>
           <div style="display:flex;gap:10px;">
@@ -1705,86 +1699,91 @@ function travelerByName(name){
 const DESTINOS = {
   europa: {
     label: "Europa",
+    emoji: "🏰",
     paises: {
-      italia: { label: "Italia", ciudades: ["Milán", "Roma", "Florencia", "Venecia", "Nápoles"] },
-      espana: { label: "España", ciudades: ["Barcelona", "Madrid", "Sevilla", "Valencia", "Málaga"] },
-      francia: { label: "Francia", ciudades: ["París", "Marsella", "Lyon", "Niza", "Burdeos"] },
-      alemania: { label: "Alemania", ciudades: ["Berlín", "Múnich", "Hamburgo", "Fráncfort", "Colonia"] },
-      portugal: { label: "Portugal", ciudades: ["Lisboa", "Oporto", "Faro", "Sintra", "Braga"] },
-      grecia: { label: "Grecia", ciudades: ["Atenas", "Santorini", "Mikonos", "Tesalónica", "Creta"] },
-      reinounido: { label: "Reino Unido", ciudades: ["Londres", "Edimburgo", "Manchester", "Liverpool", "Oxford"] },
-      holanda: { label: "Países Bajos", ciudades: ["Ámsterdam", "Róterdam", "La Haya", "Utrecht"] },
-      suiza: { label: "Suiza", ciudades: ["Zúrich", "Ginebra", "Berna", "Lucerna", "Interlaken"] },
-      austria: { label: "Austria", ciudades: ["Viena", "Salzburgo", "Innsbruck", "Graz"] },
-      croacia: { label: "Croacia", ciudades: ["Dubrovnik", "Split", "Zagreb", "Plitvice"] },
-      republica_checa: { label: "República Checa", ciudades: ["Praga", "Český Krumlov", "Brno"] },
-      hungria: { label: "Hungría", ciudades: ["Budapest", "Eger", "Pécs"] },
-      irlanda: { label: "Irlanda", ciudades: ["Dublín", "Galway", "Cork", "Killarney"] },
-      noruega: { label: "Noruega", ciudades: ["Oslo", "Bergen", "Tromsø", "Stavanger"] },
-      suecia: { label: "Suecia", ciudades: ["Estocolmo", "Gotemburgo", "Malmö"] },
-      dinamarca: { label: "Dinamarca", ciudades: ["Copenhague", "Aarhus", "Odense"] },
-      finlandia: { label: "Finlandia", ciudades: ["Helsinki", "Rovaniemi", "Turku"] },
-      islandia: { label: "Islandia", ciudades: ["Reikiavik", "Akureyri", "Vík"] },
-      turquia: { label: "Turquía", ciudades: ["Estambul", "Capadocia", "Antalya", "Éfeso"] },
-      polonia: { label: "Polonia", ciudades: ["Varsovia", "Cracovia", "Gdansk", "Wroclaw"] }
+      italia: { label: "Italia", emoji: "🇮🇹", ciudades: ["Milán", "Roma", "Florencia", "Venecia", "Nápoles"] },
+      espana: { label: "España", emoji: "🇪🇸", ciudades: ["Barcelona", "Madrid", "Sevilla", "Valencia", "Málaga"] },
+      francia: { label: "Francia", emoji: "🇫🇷", ciudades: ["París", "Marsella", "Lyon", "Niza", "Burdeos"] },
+      alemania: { label: "Alemania", emoji: "🇩🇪", ciudades: ["Berlín", "Múnich", "Hamburgo", "Fráncfort", "Colonia"] },
+      portugal: { label: "Portugal", emoji: "🇵🇹", ciudades: ["Lisboa", "Oporto", "Faro", "Sintra", "Braga"] },
+      grecia: { label: "Grecia", emoji: "🇬🇷", ciudades: ["Atenas", "Santorini", "Mikonos", "Tesalónica", "Creta"] },
+      reinounido: { label: "Reino Unido", emoji: "🇬🇧", ciudades: ["Londres", "Edimburgo", "Manchester", "Liverpool", "Oxford"] },
+      holanda: { label: "Países Bajos", emoji: "🇳🇱", ciudades: ["Ámsterdam", "Róterdam", "La Haya", "Utrecht"] },
+      suiza: { label: "Suiza", emoji: "🇨🇭", ciudades: ["Zúrich", "Ginebra", "Berna", "Lucerna", "Interlaken"] },
+      austria: { label: "Austria", emoji: "🇦🇹", ciudades: ["Viena", "Salzburgo", "Innsbruck", "Graz"] },
+      croacia: { label: "Croacia", emoji: "🇭🇷", ciudades: ["Dubrovnik", "Split", "Zagreb", "Plitvice"] },
+      republica_checa: { label: "República Checa", emoji: "🇨🇿", ciudades: ["Praga", "Český Krumlov", "Brno"] },
+      hungria: { label: "Hungría", emoji: "🇭🇺", ciudades: ["Budapest", "Eger", "Pécs"] },
+      irlanda: { label: "Irlanda", emoji: "🇮🇪", ciudades: ["Dublín", "Galway", "Cork", "Killarney"] },
+      noruega: { label: "Noruega", emoji: "🇳🇴", ciudades: ["Oslo", "Bergen", "Tromsø", "Stavanger"] },
+      suecia: { label: "Suecia", emoji: "🇸🇪", ciudades: ["Estocolmo", "Gotemburgo", "Malmö"] },
+      dinamarca: { label: "Dinamarca", emoji: "🇩🇰", ciudades: ["Copenhague", "Aarhus", "Odense"] },
+      finlandia: { label: "Finlandia", emoji: "🇫🇮", ciudades: ["Helsinki", "Rovaniemi", "Turku"] },
+      islandia: { label: "Islandia", emoji: "🇮🇸", ciudades: ["Reikiavik", "Akureyri", "Vík"] },
+      turquia: { label: "Turquía", emoji: "🇹🇷", ciudades: ["Estambul", "Capadocia", "Antalya", "Éfeso"] },
+      polonia: { label: "Polonia", emoji: "🇵🇱", ciudades: ["Varsovia", "Cracovia", "Gdansk", "Wroclaw"] }
     }
   },
   asia: {
     label: "Asia",
+    emoji: "🏯",
     paises: {
-      japon: { label: "Japón", ciudades: ["Tokio", "Kioto", "Osaka", "Hiroshima", "Nara"] },
-      tailandia: { label: "Tailandia", ciudades: ["Bangkok", "Chiang Mai", "Phuket", "Krabi", "Ayutthaya"] },
-      vietnam: { label: "Vietnam", ciudades: ["Hanói", "Ho Chi Minh", "Hoi An", "Ha Long", "Da Nang"] },
-      india: { label: "India", ciudades: ["Delhi", "Jaipur", "Agra", "Varanasi", "Goa", "Mumbai"] },
-      corea: { label: "Corea del Sur", ciudades: ["Seúl", "Busan", "Jeju", "Gyeongju"] },
-      indonesia: { label: "Indonesia", ciudades: ["Bali", "Yakarta", "Yogyakarta", "Lombok"] },
-      china: { label: "China", ciudades: ["Pekín", "Shanghái", "Xi'an", "Guilin", "Hong Kong"] },
-      malasia: { label: "Malasia", ciudades: ["Kuala Lumpur", "Penang", "Langkawi", "Malaca"] },
-      camboya: { label: "Camboya", ciudades: ["Siem Reap", "Phnom Penh", "Sihanoukville"] },
-      nepal: { label: "Nepal", ciudades: ["Katmandú", "Pokhara", "Chitwan"] },
-      sri_lanka: { label: "Sri Lanka", ciudades: ["Colombo", "Kandy", "Galle", "Sigiriya"] },
-      filipinas: { label: "Filipinas", ciudades: ["Manila", "Cebú", "Palawan", "Boracay"] },
-      emiratos: { label: "Emiratos Árabes", ciudades: ["Dubái", "Abu Dabi", "Sharjah"] }
+      japon: { label: "Japón", emoji: "🇯🇵", ciudades: ["Tokio", "Kioto", "Osaka", "Hiroshima", "Nara"] },
+      tailandia: { label: "Tailandia", emoji: "🇹🇭", ciudades: ["Bangkok", "Chiang Mai", "Phuket", "Krabi", "Ayutthaya"] },
+      vietnam: { label: "Vietnam", emoji: "🇻🇳", ciudades: ["Hanói", "Ho Chi Minh", "Hoi An", "Ha Long", "Da Nang"] },
+      india: { label: "India", emoji: "🇮🇳", ciudades: ["Delhi", "Jaipur", "Agra", "Varanasi", "Goa", "Mumbai"] },
+      corea: { label: "Corea del Sur", emoji: "🇰🇷", ciudades: ["Seúl", "Busan", "Jeju", "Gyeongju"] },
+      indonesia: { label: "Indonesia", emoji: "🇮🇩", ciudades: ["Bali", "Yakarta", "Yogyakarta", "Lombok"] },
+      china: { label: "China", emoji: "🇨🇳", ciudades: ["Pekín", "Shanghái", "Xi'an", "Guilin", "Hong Kong"] },
+      malasia: { label: "Malasia", emoji: "🇲🇾", ciudades: ["Kuala Lumpur", "Penang", "Langkawi", "Malaca"] },
+      camboya: { label: "Camboya", emoji: "🇰🇭", ciudades: ["Siem Reap", "Phnom Penh", "Sihanoukville"] },
+      nepal: { label: "Nepal", emoji: "🇳🇵", ciudades: ["Katmandú", "Pokhara", "Chitwan"] },
+      sri_lanka: { label: "Sri Lanka", emoji: "🇱🇰", ciudades: ["Colombo", "Kandy", "Galle", "Sigiriya"] },
+      filipinas: { label: "Filipinas", emoji: "🇵🇭", ciudades: ["Manila", "Cebú", "Palawan", "Boracay"] },
+      emiratos: { label: "Emiratos Árabes", emoji: "🇦🇪", ciudades: ["Dubái", "Abu Dabi", "Sharjah"] }
     }
   },
   america: {
     label: "América",
+    emoji: "🗽",
     paises: {
-      mexico: { label: "México", ciudades: ["Ciudad de México", "Cancún", "Oaxaca", "Playa del Carmen", "Guadalajara"] },
-      usa: { label: "Estados Unidos", ciudades: ["Nueva York", "Los Ángeles", "San Francisco", "Miami", "Chicago", "Las Vegas"] },
-      argentina: { label: "Argentina", ciudades: ["Buenos Aires", "Mendoza", "Bariloche", "Ushuaia", "Salta"] },
-      colombia: { label: "Colombia", ciudades: ["Bogotá", "Cartagena", "Medellín", "Santa Marta"] },
-      peru: { label: "Perú", ciudades: ["Lima", "Cusco", "Machu Picchu", "Arequipa"] },
-      brasil: { label: "Brasil", ciudades: ["Río de Janeiro", "São Paulo", "Salvador", "Florianópolis", "Foz de Iguazú"] },
-      chile: { label: "Chile", ciudades: ["Santiago", "Valparaíso", "San Pedro de Atacama", "Torres del Paine"] },
-      costa_rica: { label: "Costa Rica", ciudades: ["San José", "Monteverde", "Manuel Antonio", "Arenal"] },
-      cuba: { label: "Cuba", ciudades: ["La Habana", "Trinidad", "Viñales", "Santiago de Cuba"] },
-      canada: { label: "Canadá", ciudades: ["Toronto", "Vancouver", "Montreal", "Quebec", "Banff"] },
-      ecuador: { label: "Ecuador", ciudades: ["Quito", "Galápagos", "Cuenca", "Baños"] },
-      uruguay: { label: "Uruguay", ciudades: ["Montevideo", "Punta del Este", "Colonia del Sacramento"] },
-      republica_dominicana: { label: "República Dominicana", ciudades: ["Punta Cana", "Santo Domingo", "Samaná"] }
+      mexico: { label: "México", emoji: "🇲🇽", ciudades: ["Ciudad de México", "Cancún", "Oaxaca", "Playa del Carmen", "Guadalajara"] },
+      usa: { label: "Estados Unidos", emoji: "🇺🇸", ciudades: ["Nueva York", "Los Ángeles", "San Francisco", "Miami", "Chicago", "Las Vegas"] },
+      argentina: { label: "Argentina", emoji: "🇦🇷", ciudades: ["Buenos Aires", "Mendoza", "Bariloche", "Ushuaia", "Salta"] },
+      colombia: { label: "Colombia", emoji: "🇨🇴", ciudades: ["Bogotá", "Cartagena", "Medellín", "Santa Marta"] },
+      peru: { label: "Perú", emoji: "🇵🇪", ciudades: ["Lima", "Cusco", "Machu Picchu", "Arequipa"] },
+      brasil: { label: "Brasil", emoji: "🇧🇷", ciudades: ["Río de Janeiro", "São Paulo", "Salvador", "Florianópolis", "Foz de Iguazú"] },
+      chile: { label: "Chile", emoji: "🇨🇱", ciudades: ["Santiago", "Valparaíso", "San Pedro de Atacama", "Torres del Paine"] },
+      costa_rica: { label: "Costa Rica", emoji: "🇨🇷", ciudades: ["San José", "Monteverde", "Manuel Antonio", "Arenal"] },
+      cuba: { label: "Cuba", emoji: "🇨🇺", ciudades: ["La Habana", "Trinidad", "Viñales", "Santiago de Cuba"] },
+      canada: { label: "Canadá", emoji: "🇨🇦", ciudades: ["Toronto", "Vancouver", "Montreal", "Quebec", "Banff"] },
+      ecuador: { label: "Ecuador", emoji: "🇪🇨", ciudades: ["Quito", "Galápagos", "Cuenca", "Baños"] },
+      uruguay: { label: "Uruguay", emoji: "🇺🇾", ciudades: ["Montevideo", "Punta del Este", "Colonia del Sacramento"] },
+      republica_dominicana: { label: "República Dominicana", emoji: "🇩🇴", ciudades: ["Punta Cana", "Santo Domingo", "Samaná"] }
     }
   },
   africa: {
     label: "África",
+    emoji: "🦁",
     paises: {
-      marruecos: { label: "Marruecos", ciudades: ["Marrakech", "Fez", "Chefchaouen", "Essaouira", "Desierto del Sahara"] },
-      sudafrica: { label: "Sudáfrica", ciudades: ["Ciudad del Cabo", "Johannesburgo", "Kruger", "Durban"] },
-      egipto: { label: "Egipto", ciudades: ["El Cairo", "Luxor", "Asuán", "Alejandría", "Sharm el-Sheij"] },
-      kenia: { label: "Kenia", ciudades: ["Nairobi", "Masái Mara", "Mombasa", "Amboseli"] },
-      tanzania: { label: "Tanzania", ciudades: ["Zanzíbar", "Serengeti", "Kilimanjaro", "Dar es-Salam"] },
-      etiopia: { label: "Etiopía", ciudades: ["Addis Abeba", "Lalibela", "Gondar"] },
-      namibia: { label: "Namibia", ciudades: ["Windhoek", "Sossusvlei", "Etosha", "Swakopmund"] },
-      tunez: { label: "Túnez", ciudades: ["Túnez", "Sidi Bou Said", "Cartago", "Djerba"] }
+      marruecos: { label: "Marruecos", emoji: "🇲🇦", ciudades: ["Marrakech", "Fez", "Chefchaouen", "Essaouira", "Desierto del Sahara"] },
+      sudafrica: { label: "Sudáfrica", emoji: "🇿🇦", ciudades: ["Ciudad del Cabo", "Johannesburgo", "Kruger", "Durban"] },
+      egipto: { label: "Egipto", emoji: "🇪🇬", ciudades: ["El Cairo", "Luxor", "Asuán", "Alejandría", "Sharm el-Sheij"] },
+      kenia: { label: "Kenia", emoji: "🇰🇪", ciudades: ["Nairobi", "Masái Mara", "Mombasa", "Amboseli"] },
+      tanzania: { label: "Tanzania", emoji: "🇹🇿", ciudades: ["Zanzíbar", "Serengeti", "Kilimanjaro", "Dar es-Salam"] },
+      etiopia: { label: "Etiopía", emoji: "🇪🇹", ciudades: ["Addis Abeba", "Lalibela", "Gondar"] },
+      namibia: { label: "Namibia", emoji: "🇳🇦", ciudades: ["Windhoek", "Sossusvlei", "Etosha", "Swakopmund"] },
+      tunez: { label: "Túnez", emoji: "🇹🇳", ciudades: ["Túnez", "Sidi Bou Said", "Cartago", "Djerba"] }
     }
   },
   oceania: {
     label: "Oceanía",
+    emoji: "🏝️",
     paises: {
-      australia: { label: "Australia", ciudades: ["Sídney", "Melbourne", "Cairns", "Perth", "Gran Barrera de Coral"] },
-      nueva_zelanda: { label: "Nueva Zelanda", ciudades: ["Auckland", "Queenstown", "Wellington", "Rotorua", "Milford Sound"] },
-      fiyi: { label: "Fiyi", ciudades: ["Nadi", "Suva", "Islas Mamanuca"] },
-      polinesia: { label: "Polinesia Francesa", ciudades: ["Tahití", "Bora Bora", "Moorea"] }
+      australia: { label: "Australia", emoji: "🇦🇺", ciudades: ["Sídney", "Melbourne", "Cairns", "Perth", "Gran Barrera de Coral"] },
+      nueva_zelanda: { label: "Nueva Zelanda", emoji: "🇳🇿", ciudades: ["Auckland", "Queenstown", "Wellington", "Rotorua", "Milford Sound"] },
+      fiyi: { label: "Fiyi", emoji: "🇫🇯", ciudades: ["Nadi", "Suva", "Islas Mamanuca"] },
+      polinesia: { label: "Polinesia Francesa", emoji: "🇵🇫", ciudades: ["Tahití", "Bora Bora", "Moorea"] }
     }
   }
 };
@@ -2272,18 +2271,37 @@ function obClose(){
   renderAll();
 }
 
+const CITY_ICONS = {
+  "Milán":"⛪","Roma":"🏛️","Florencia":"🎨","Venecia":"🚣","Nápoles":"🌋","Turín":"🏛️",
+  "Barcelona":"🏖️","Madrid":"🏛️","Sevilla":"💃","Valencia":"🍊","Málaga":"🏖️",
+  "París":"🗼","Londres":"🎡","Nueva York":"🗽","Tokio":"🗼"
+};
+function cityIcon(c){ return CITY_ICONS[c] || "📍"; }
+
+function destinoPillHTML(attrs, emoji, label){
+  return `<button type="button" ${attrs} style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:none;background:#fff;border-radius:18px;padding:16px 18px;font-family:inherit;font-size:15px;font-weight:700;color:#2A2018;cursor:pointer;box-shadow:0 2px 0 rgba(196,150,110,0.12);"><span style="font-size:22px;line-height:1;">${emoji}</span>${label}</button>`;
+}
+
+function regDestinoShow(substep){
+  document.getElementById("reg-continentes").classList.toggle("hidden", substep!=="continente");
+  document.getElementById("reg-paises").classList.toggle("hidden", substep!=="pais");
+  document.getElementById("reg-ciudades-wrap").classList.toggle("hidden", substep!=="ciudad");
+  document.getElementById("reg-destino-title").textContent =
+    substep==="continente" ? "¿Qué continente?" : substep==="pais" ? "¿Qué país?" : "¿Qué ciudad?";
+  regDestino.substep = substep;
+}
+
 function initDestinoSelector(){
   const contWrap = document.getElementById("reg-continentes");
   contWrap.innerHTML = Object.entries(DESTINOS).map(([k,v])=>
-    `<button type="button" class="interest-chip" data-cont="${k}">${v.label}</button>`
+    destinoPillHTML(`data-cont="${k}"`, v.emoji||"🌍", v.label)
   ).join("");
-  contWrap.querySelectorAll(".interest-chip").forEach(btn=>{
+  contWrap.querySelectorAll("button").forEach((btn,i)=>{
+    const k = Object.keys(DESTINOS)[i];
     btn.addEventListener("click", ()=>{
-      contWrap.querySelectorAll(".interest-chip").forEach(b=>b.classList.remove("selected"));
-      btn.classList.add("selected");
-      regDestino = { continente: btn.dataset.cont, pais: null, ciudades: [] };
-      renderPaises(btn.dataset.cont);
-      document.getElementById("reg-ciudades-wrap").classList.add("hidden");
+      regDestino = { continente: k, pais: null, ciudades: [] };
+      renderPaises(k);
+      regDestinoShow("pais");
     });
   });
 
@@ -2291,6 +2309,7 @@ function initDestinoSelector(){
   document.getElementById("reg-ciudad-custom").addEventListener("keydown", e=>{
     if(e.key==="Enter"){ e.preventDefault(); addCustomCity(); }
   });
+  regDestinoShow("continente");
 }
 
 function addCustomCity(){
@@ -2306,38 +2325,33 @@ function addCustomCity(){
 
 function renderPaises(contKey){
   const wrap = document.getElementById("reg-paises");
-  const paisesWrap = document.getElementById("reg-paises-wrap");
   const cont = DESTINOS[contKey];
-  wrap.innerHTML = Object.entries(cont.paises).map(([k,v])=>
-    `<button type="button" class="interest-chip" data-pais="${k}" data-pais-label="${escapeHtml(v.label)}">${v.label}</button>`
+  const entries = Object.entries(cont.paises);
+  wrap.innerHTML = entries.map(([k,v])=>
+    destinoPillHTML(`data-pais="${k}" data-pais-label="${escapeHtml(v.label)}"`, v.emoji||"📍", v.label)
   ).join("");
-  paisesWrap.classList.remove("hidden");
-  paisesWrap.style.animation = "fadeIn .25s ease";
-  wrap.querySelectorAll(".interest-chip").forEach(btn=>{
+  wrap.querySelectorAll("button").forEach((btn,i)=>{
+    const [k,v] = entries[i];
     btn.addEventListener("click", ()=>{
-      wrap.querySelectorAll(".interest-chip").forEach(b=>b.classList.remove("selected"));
-      btn.classList.add("selected");
-      regDestino.pais = btn.dataset.pais;
-      regDestino.paisLabel = btn.dataset.paisLabel;
+      regDestino.pais = k;
+      regDestino.paisLabel = v.label;
       regDestino.ciudades = [];
       renderCiudades();
+      regDestinoShow("ciudad");
     });
   });
 }
 
 function renderCiudades(){
   const wrap = document.getElementById("reg-ciudades");
-  const ciudadesWrap = document.getElementById("reg-ciudades-wrap");
-  if(!regDestino.continente || !regDestino.pais){ ciudadesWrap.classList.add("hidden"); return; }
+  if(!regDestino.continente || !regDestino.pais) return;
   const paisData = DESTINOS[regDestino.continente].paises[regDestino.pais];
   const allCities = [...new Set([...paisData.ciudades, ...regDestino.ciudades])];
   wrap.innerHTML = allCities.map(c=>{
-    const sel = regDestino.ciudades.includes(c) ? "selected" : "";
-    return `<button type="button" class="interest-chip ${sel}" data-ciudad="${escapeHtml(c)}">${escapeHtml(c)}</button>`;
+    const sel = regDestino.ciudades.includes(c);
+    return destinoPillHTML(`data-ciudad="${escapeHtml(c)}"`, cityIcon(c), escapeHtml(c)) .replace('background:#fff;', sel ? 'background:#EAF6F1;border:2px solid #2F6F65;' : 'background:#fff;');
   }).join("");
-  ciudadesWrap.classList.remove("hidden");
-  ciudadesWrap.style.animation = "fadeIn .25s ease";
-  wrap.querySelectorAll(".interest-chip").forEach(btn=>{
+  wrap.querySelectorAll("button").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const city = btn.dataset.ciudad;
       if(regDestino.ciudades.includes(city)){
@@ -2345,7 +2359,7 @@ function renderCiudades(){
       } else {
         regDestino.ciudades.push(city);
       }
-      btn.classList.toggle("selected");
+      renderCiudades();
     });
   });
 }
@@ -2464,7 +2478,11 @@ function initAuthUI(){
   });
   document.getElementById('reg-back-3').addEventListener('click',()=>regShowStep(2));
   document.getElementById('reg-next-3').addEventListener('click',()=>regShowStep(4));
-  document.getElementById('reg-back-4').addEventListener('click',()=>regShowStep(3));
+  document.getElementById('reg-back-4').addEventListener('click',()=>{
+    if(regDestino.substep==="ciudad") regDestinoShow("pais");
+    else if(regDestino.substep==="pais") regDestinoShow("continente");
+    else regShowStep(3);
+  });
   document.getElementById('reg-next-4').addEventListener('click',()=>{regShowStep(5);regBuildLogistics();});
   document.getElementById('reg-back-5').addEventListener('click',()=>regShowStep(4));
   document.getElementById('reg-next-5').addEventListener('click',()=>{regShowStep(6);regBuildItinPrefs();});
