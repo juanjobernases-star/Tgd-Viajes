@@ -1223,6 +1223,11 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       <div class="card" id="budget-breakdown"></div>
     </section>
 
+    <!-- ITINERARIO -->
+    <section class="section hidden" id="sec-itinerario">
+      <div id="itin-content"></div>
+    </section>
+
     <!-- CLIMA -->
     <section class="section hidden" id="sec-clima">
       <div id="weather-content"></div>
@@ -1667,10 +1672,11 @@ const SECTION_META = {
   offline: {label:"Offline", letter:"O", color:"#8E8E93", icon:"assets/icons/offline.png"},
   seguridad: {label:"Seguridad", letter:"S", color:"#D1567A", icon:"assets/icons/security.png"},
   buscar: {label:"Buscar", letter:"B", color:"#2F6F65", icon:"assets/icons/ticket.png"},
-  vpn: {label:"VPN Viaje", letter:"V", color:"#5856D6", icon:"assets/icons/security.png"}
+  vpn: {label:"VPN Viaje", letter:"V", color:"#5856D6", icon:"assets/icons/security.png"},
+  itinerario: {label:"Itinerario", emoji:"🗺️", color:"#2F6F65"}
 };
 const MAIN_TABS = ["resumen","calendario","vuelo","guia"];
-const MORE_SECTIONS = ["buscar","gastos","mapas","documentacion","equipaje","presupuesto","clima","frases","offline","seguridad","vpn"];
+const MORE_SECTIONS = ["itinerario","buscar","gastos","mapas","documentacion","equipaje","presupuesto","clima","frases","offline","seguridad","vpn"];
 
 /* ============ UTILS ============ */
 function toast(msg){
@@ -3030,6 +3036,8 @@ function switchTab(tab, opts){
   const meta = SECTION_META[tab];
   if(meta && meta.icon) {
     iconEl.innerHTML = '<img src="' + meta.icon + '" alt="">';
+  } else if(meta && meta.emoji) {
+    iconEl.innerHTML = '<span style="font-size:20px;">' + meta.emoji + '</span>';
   } else {
     iconEl.innerHTML = '';
   }
@@ -3099,7 +3107,9 @@ function renderMoreSheet(){
     const m = SECTION_META[key];
     const iconHtml = m.icon
       ? `<div class="more-icon" style="background:#EAF6F1;"><img src="${m.icon}" alt="" style="width:22px;height:22px;object-fit:contain;"></div>`
-      : `<div class="more-icon" style="background:${m.color}">${m.letter}</div>`;
+      : (m.emoji
+        ? `<div class="more-icon" style="background:#EAF6F1;font-size:19px;display:flex;align-items:center;justify-content:center;">${m.emoji}</div>`
+        : `<div class="more-icon" style="background:${m.color}">${m.letter}</div>`);
     return `<div class="more-item" data-goto="${key}">
       ${iconHtml}
       <div class="more-label">${m.label}</div>
@@ -5182,6 +5192,7 @@ function renderSection(tab){
       if(calendarView==="month") renderMonthGrid();
       break;
     case "vuelo": renderVuelo(); break;
+    case "itinerario": renderItinerario(); break;
     case "guia": renderGuia(); break;
     case "gastos": renderGastos(); break;
     case "mapas": renderMap(); break;
@@ -5200,6 +5211,293 @@ function renderSection(tab){
 function renderAll(){
   renderMoreSheet();
   switchTab("resumen");
+}
+
+/* ============ ITINERARIO INTELIGENTE (POIs) ============ */
+var POI_ENGINE = null;
+function loadPoiEngine(){
+  if(!POI_ENGINE) POI_ENGINE = import('./data/pois/engine.js');
+  return POI_ENGINE;
+}
+
+function poiCityKey(){
+  var destino = CURRENT_PROFILE ? CURRENT_PROFILE.destino : null;
+  if(!destino || !destino.ciudades || !destino.ciudades.length) return 'milan';
+  return slugify(destino.ciudades[0]);
+}
+
+var itinState = {
+  screen: 'prefs',
+  catalog: undefined, // undefined = not loaded yet, null = no catalog for this city
+  selectedCats: [],
+  numDays: 4,
+  itinerario: null,
+  activeDay: 1,
+  addDay: 1,
+  addHour: '10:00',
+  addCatalogChoice: 'destino', // 'destino' | 'alpes'
+  addQuery: ''
+};
+
+function itinStorageKey(){ return 'itinerario_' + (CURRENT_USER || 'demo'); }
+function itinPrefsKey(){ return 'prefs_' + (CURRENT_USER || 'demo'); }
+
+function itinLoadPrefs(){
+  return lsGet(itinPrefsKey(), {pace:'moderado', budget:'moderado', maxWalk:'centro', timeOfDay:[], kidsAges:''});
+}
+
+function itinSave(){ lsSet(itinStorageKey(), itinState.itinerario); }
+function itinLoad(){ return lsGet(itinStorageKey(), null); }
+
+async function renderItinerario(){
+  var el = document.getElementById('itin-content');
+  if(!el) return;
+  el.innerHTML = '<div class="card" style="text-align:center;padding:24px;"><div class="subtle">Cargando…</div></div>';
+
+  if(itinState.catalog === undefined){
+    var mod = await loadPoiEngine();
+    var cityKey = poiCityKey();
+    itinState.catalog = await mod.loadPoiCatalog(cityKey);
+    itinState.mod = mod;
+    itinState.catalogsCache = {};
+    itinState.catalogsCache[cityKey] = itinState.catalog;
+  }
+
+  var saved = itinLoad();
+  if(saved && !itinState.itinerario){
+    itinState.itinerario = saved;
+    itinState.screen = 'timeline';
+  }
+
+  if(itinState.screen === 'prefs') return itinRenderPrefsScreen(el);
+  if(itinState.screen === 'add') return itinRenderAddScreen(el);
+  return itinRenderTimelineScreen(el);
+}
+
+function itinRenderPrefsScreen(el){
+  var mod = itinState.mod;
+  var cats = mod.CATEGORIES;
+  var noCatalog = itinState.catalog === null;
+  var tripDays = (TRIP && TRIP.days && TRIP.days.length) ? TRIP.days.length : 4;
+  if(!itinState.numDays) itinState.numDays = tripDays;
+
+  var catsHtml = cats.map(function(c){
+    var sel = itinState.selectedCats.indexOf(c.id) >= 0;
+    return '<button type="button" class="itin-cat-tile" data-cat="' + c.id + '" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:20px;border:2px solid ' + (sel ? '#2F6F65' : 'rgba(47,111,101,0.15)') + ';background:' + (sel ? '#EAF6F1' : '#fff') + ';cursor:pointer;transition:all .15s;">'
+      + '<span style="font-size:26px;">' + c.emoji + '</span>'
+      + '<span style="font-size:12px;font-weight:700;color:#2A2018;text-align:center;">' + c.label + '</span>'
+      + '</button>';
+  }).join('');
+
+  el.innerHTML =
+    '<div class="card" style="margin-bottom:12px;">'
+    + '<div style="font-size:17px;font-weight:800;margin-bottom:4px;">🗺️ Itinerario inteligente</div>'
+    + '<div class="subtle" style="margin-bottom:14px;">Elige qué te apetece ver y generamos un plan día a día cerca de tu hotel.</div>'
+    + (noCatalog
+      ? '<div style="background:#FFF7EC;border-radius:16px;padding:14px;font-size:13px;color:#6B5642;display:flex;gap:10px;align-items:flex-start;"><span style="font-size:20px;">🌱</span><div>Todavía no tenemos un catálogo de lugares para tu destino. Puedes seguir añadiendo sitios a mano desde "+ Añadir sitio" una vez tengas un itinerario, o probar con otro destino como Milán.</div></div>'
+      : '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">' + catsHtml + '</div>'
+      + '<div class="field" style="margin-bottom:14px;"><label class="field-label">Días de itinerario</label><input type="number" id="itin-num-days" min="1" max="14" value="' + itinState.numDays + '" style="width:100%;"></div>'
+      + '<button type="button" id="itin-generate-btn" class="btn btn-primary" style="width:100%;">Generar mi itinerario</button>')
+    + '</div>';
+
+  if(noCatalog) return;
+
+  el.querySelectorAll('.itin-cat-tile').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var c = btn.dataset.cat;
+      var idx = itinState.selectedCats.indexOf(c);
+      if(idx >= 0) itinState.selectedCats.splice(idx, 1); else itinState.selectedCats.push(c);
+      itinRenderPrefsScreen(el);
+    });
+  });
+  var daysInput = document.getElementById('itin-num-days');
+  daysInput.addEventListener('input', function(){ itinState.numDays = parseInt(daysInput.value) || tripDays; });
+
+  document.getElementById('itin-generate-btn').addEventListener('click', function(){
+    var prefsRaw = itinLoadPrefs();
+    var hotelCoords = (TRIP && TRIP.hotel && TRIP.hotel.lat != null) ? {lat: TRIP.hotel.lat, lng: TRIP.hotel.lng} : null;
+    var prefs = {
+      categorias: itinState.selectedCats,
+      ritmo: prefsRaw.pace,
+      presupuesto: prefsRaw.budget,
+      distancia: prefsRaw.maxWalk,
+      horario: prefsRaw.timeOfDay,
+      tieneNinos: !!(prefsRaw.kidsAges && prefsRaw.kidsAges.trim())
+    };
+    itinState.itinerario = itinState.mod.generateItinerary(prefs, itinState.catalog, itinState.numDays, hotelCoords);
+    itinSave();
+    itinState.screen = 'timeline';
+    itinState.activeDay = 1;
+    renderItinerario();
+  });
+}
+
+function itinPoiById(catalog, id){
+  if(!catalog) return null;
+  return (catalog.pois || []).find(function(p){ return p.id === id; }) || null;
+}
+
+function itinRenderTimelineScreen(el){
+  var itin = itinState.itinerario;
+  if(!itin || !itin.dias || !itin.dias.length){
+    itinState.screen = 'prefs';
+    return itinRenderPrefsScreen(el);
+  }
+  var dayTabs = itin.dias.map(function(d){
+    var active = d.dia === itinState.activeDay;
+    return '<button type="button" class="itin-day-tab" data-day="' + d.dia + '" style="flex:0 0 auto;padding:8px 16px;border-radius:100px;border:none;font-weight:700;font-size:13px;cursor:pointer;background:' + (active ? '#2F6F65' : '#EAF6F1') + ';color:' + (active ? '#fff' : '#2F6F65') + ';">Día ' + d.dia + '</button>';
+  }).join('');
+
+  var day = itin.dias.find(function(d){ return d.dia === itinState.activeDay; }) || itin.dias[0];
+  var doneKey = 'itin_done_' + day.dia;
+  var doneSet = day._done || {};
+
+  var stopsHtml = (day.bloques || []).map(function(b, i){
+    var catForPoi = b._catalogKey ? (itinState.catalogsCache[b._catalogKey] || itinState.catalog) : itinState.catalog;
+    var poi = b.poiId ? itinPoiById(catForPoi, b.poiId) : null;
+    var nombre = poi ? poi.nombre : (b.nombreLibre || 'Parada');
+    var emoji = poi ? poi.icono : '🍽️';
+    var meta = poi ? (categoryLabelSafe(itinState.mod, poi.categoria) + (poi.duracion_min ? ' · ' + poi.duracion_min + ' min' : '')) : 'Comida';
+    var isDone = !!doneSet[i];
+    var borderColor = b.origen === 'usuario' ? '#C77A2E' : '#7FB8B0';
+    return '<div class="itin-stop" data-idx="' + i + '" style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-left:4px solid ' + borderColor + ';background:#fff;border-radius:14px;margin-bottom:10px;box-shadow:0 2px 0 rgba(196,150,110,0.1);">'
+      + '<div style="font-size:12px;font-weight:800;color:#6B5642;min-width:42px;">' + (b.hora || '') + '</div>'
+      + '<div style="font-size:22px;">' + emoji + '</div>'
+      + '<div style="flex:1;">'
+      + '<div style="font-weight:700;font-size:14px;' + (isDone ? 'text-decoration:line-through;color:#9A8F80;' : 'color:#2A2018;') + '">' + escapeHtml(nombre) + '</div>'
+      + '<div class="subtle" style="font-size:12px;">' + escapeHtml(meta) + '</div>'
+      + '</div>'
+      + '<button type="button" class="itin-done-btn" data-idx="' + i + '" style="width:26px;height:26px;border-radius:50%;border:2px solid ' + (isDone ? '#3E9C6B' : 'rgba(0,0,0,0.15)') + ';background:' + (isDone ? '#3E9C6B' : '#fff') + ';color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;">' + (isDone ? '✓' : '') + '</button>'
+      + '</div>';
+  }).join('');
+
+  el.innerHTML =
+    '<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;">' + dayTabs + '</div>'
+    + '<div id="itin-stops-wrap">' + (stopsHtml || '<div class="subtle" style="text-align:center;padding:20px;">Este día no tiene paradas todavía.</div>') + '</div>'
+    + '<div style="display:flex;gap:10px;margin-top:16px;">'
+    + '<button type="button" id="itin-regen-btn" class="btn btn-secondary" style="flex:1;">Regenerar</button>'
+    + '<button type="button" id="itin-add-btn" class="btn btn-primary" style="flex:1;">+ Añadir sitio</button>'
+    + '</div>';
+
+  el.querySelectorAll('.itin-day-tab').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      itinState.activeDay = parseInt(btn.dataset.day);
+      itinRenderTimelineScreen(el);
+    });
+  });
+  el.querySelectorAll('.itin-done-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var idx = parseInt(btn.dataset.idx);
+      if(!day._done) day._done = {};
+      day._done[idx] = !day._done[idx];
+      itinSave();
+      itinRenderTimelineScreen(el);
+    });
+  });
+  document.getElementById('itin-regen-btn').addEventListener('click', function(){
+    itinState.screen = 'prefs';
+    renderItinerario();
+  });
+  document.getElementById('itin-add-btn').addEventListener('click', function(){
+    itinState.screen = 'add';
+    itinState.addDay = itinState.activeDay;
+    itinState.addCatalogChoice = 'destino';
+    itinState.addQuery = '';
+    renderItinerario();
+  });
+}
+
+function categoryLabelSafe(mod, id){
+  try { return mod.categoryLabel(id); } catch(e) { return id; }
+}
+
+function itinRenderAddScreen(el){
+  var itin = itinState.itinerario;
+  var dayOptions = (itin && itin.dias ? itin.dias : []).map(function(d){
+    return '<option value="' + d.dia + '"' + (d.dia === itinState.addDay ? ' selected' : '') + '>Día ' + d.dia + '</option>';
+  }).join('');
+
+  el.innerHTML =
+    '<div class="card" style="margin-bottom:12px;">'
+    + '<div style="font-size:17px;font-weight:800;margin-bottom:12px;">+ Añadir sitio</div>'
+    + '<div style="display:flex;gap:10px;margin-bottom:12px;">'
+    + '<div class="field" style="flex:1;"><label class="field-label">Día</label><select id="itin-add-day" style="width:100%;">' + dayOptions + '</select></div>'
+    + '<div class="field" style="flex:1;"><label class="field-label">Hora</label><input type="time" id="itin-add-hour" value="' + itinState.addHour + '" style="width:100%;"></div>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px;margin-bottom:12px;">'
+    + '<button type="button" class="itin-src-toggle" data-src="destino" style="flex:1;padding:9px;border-radius:100px;border:none;font-weight:700;font-size:13px;cursor:pointer;background:' + (itinState.addCatalogChoice === 'destino' ? '#2F6F65' : '#EAF6F1') + ';color:' + (itinState.addCatalogChoice === 'destino' ? '#fff' : '#2F6F65') + ';">📍 ' + (poiCityKey() === 'milan' ? 'Milán' : 'Destino') + '</button>'
+    + '<button type="button" class="itin-src-toggle" data-src="alpes" style="flex:1;padding:9px;border-radius:100px;border:none;font-weight:700;font-size:13px;cursor:pointer;background:' + (itinState.addCatalogChoice === 'alpes' ? '#2F6F65' : '#EAF6F1') + ';color:' + (itinState.addCatalogChoice === 'alpes' ? '#fff' : '#2F6F65') + ';">🏔️ Alpes</button>'
+    + '</div>'
+    + '<div class="field" style="margin-bottom:10px;"><input type="text" id="itin-add-search" placeholder="Buscar un lugar…" value="' + escapeHtml(itinState.addQuery) + '" style="width:100%;"></div>'
+    + '<div id="itin-add-results" style="margin-bottom:16px;"></div>'
+    + '<div style="border-top:1px solid rgba(0,0,0,0.06);padding-top:14px;">'
+    + '<div class="field" style="margin-bottom:10px;"><label class="field-label">O añade un sitio libre</label><input type="text" id="itin-add-free" placeholder="Nombre del lugar"></div>'
+    + '<button type="button" id="itin-add-free-btn" class="btn btn-primary" style="width:100%;">Añadir a la línea de tiempo</button>'
+    + '</div>'
+    + '<button type="button" id="itin-add-back" class="btn btn-secondary" style="width:100%;margin-top:12px;">← Volver</button>'
+    + '</div>';
+
+  document.getElementById('itin-add-day').addEventListener('change', function(e){ itinState.addDay = parseInt(e.target.value); });
+  document.getElementById('itin-add-hour').addEventListener('input', function(e){ itinState.addHour = e.target.value; });
+  document.getElementById('itin-add-back').addEventListener('click', function(){ itinState.screen = 'timeline'; renderItinerario(); });
+
+  el.querySelectorAll('.itin-src-toggle').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      itinState.addCatalogChoice = btn.dataset.src;
+      itinRenderAddScreen(el);
+    });
+  });
+
+  var searchInput = document.getElementById('itin-add-search');
+  function renderResults(){
+    var resWrap = document.getElementById('itin-add-results');
+    var cityKey = itinState.addCatalogChoice === 'alpes' ? 'alpes' : poiCityKey();
+    itinState.mod.loadPoiCatalog(cityKey).then(function(catalog){
+      itinState.catalogsCache[cityKey] = catalog;
+      var pois = (catalog && catalog.pois) || [];
+      var q = (searchInput.value || '').toLowerCase();
+      var results = pois.filter(function(p){ return !q || p.nombre.toLowerCase().indexOf(q) >= 0; }).slice(0, 8);
+      resWrap.innerHTML = results.length ? results.map(function(p){
+        return '<button type="button" class="itin-add-result" data-id="' + p.id + '" data-cat="' + cityKey + '" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;border-radius:12px;border:1.5px solid rgba(47,111,101,0.15);background:#fff;margin-bottom:8px;cursor:pointer;"><span style="font-size:20px;">' + p.icono + '</span><div><div style="font-weight:700;font-size:13px;">' + escapeHtml(p.nombre) + '</div><div class="subtle" style="font-size:11px;">' + escapeHtml(p.descripcion_corta || '') + '</div></div></button>';
+      }).join('') : '<div class="subtle" style="padding:8px 0;">Sin resultados.</div>';
+      resWrap.querySelectorAll('.itin-add-result').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          itinAddManualStop({poiId: btn.dataset.id, poiCatalogKey: btn.dataset.cat});
+        });
+      });
+    });
+  }
+  searchInput.addEventListener('input', function(){ itinState.addQuery = searchInput.value; renderResults(); });
+  renderResults();
+
+  document.getElementById('itin-add-free-btn').addEventListener('click', function(){
+    var name = document.getElementById('itin-add-free').value.trim();
+    if(!name){ toast('Escribe un nombre'); return; }
+    itinAddManualStop({nombreLibre: name});
+  });
+}
+
+function itinAddManualStop(opts){
+  if(!itinState.itinerario) return;
+  var day = itinState.itinerario.dias.find(function(d){ return d.dia === itinState.addDay; });
+  if(!day){ toast('Día no válido'); return; }
+  var bloque = {hora: itinState.addHour || '10:00', origen: 'usuario'};
+  if(opts.poiId){
+    bloque.poiId = opts.poiId;
+    if(opts.poiCatalogKey && opts.poiCatalogKey !== poiCityKey()){
+      bloque._catalogKey = opts.poiCatalogKey;
+    }
+  } else {
+    bloque.poiId = null;
+    bloque.nombreLibre = opts.nombreLibre;
+  }
+  day.bloques.push(bloque);
+  day.bloques.sort(function(a, b){ return (a.hora || '').localeCompare(b.hora || ''); });
+  itinSave();
+  itinState.screen = 'timeline';
+  itinState.activeDay = itinState.addDay;
+  toast('Sitio añadido');
+  renderItinerario();
 }
 
 /* ============ TRIP LOADING ============ */
