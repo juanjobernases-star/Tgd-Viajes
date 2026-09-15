@@ -477,7 +477,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 .dark-card input::placeholder{color:rgba(91,70,54,0.4);}
 
 /* day cards - calendario */
-.hscroll{display:flex; gap:12px; overflow-x:auto; padding-bottom:8px; margin:0 -16px 8px; padding-left:16px; padding-right:16px; scroll-snap-type:x mandatory;}
+.hscroll{display:flex; align-items:flex-start; gap:12px; overflow-x:auto; padding-bottom:8px; margin:0 -16px 8px; padding-left:16px; padding-right:16px; scroll-snap-type:x mandatory;}
 .hscroll::-webkit-scrollbar{display:none;}
 .day-card{
   min-width:calc(100vw - 48px); max-width:calc(100vw - 48px); scroll-snap-align:start; background:var(--card); border-radius:24px; padding:16px;
@@ -1796,7 +1796,7 @@ let regDestino = { continente: null, pais: null, paisLabel: null, ciudades: [] }
 // documento). Sin esto, un deploy nuevo de world-data.js/engine.js podía
 // quedar invisible hasta 10 minutos para quien ya hubiera cargado la app
 // antes. Coleamos la query string a CACHE_VERSION (sw.js) en cada deploy.
-const ASSET_VERSION = 'v33';
+const ASSET_VERSION = 'v34';
 
 // Catálogo continente→país→ciudad + sugerencias del paso 5, recreado en
 // docs/data/world-data.js. Se carga en paralelo al arrancar; regGetPool()
