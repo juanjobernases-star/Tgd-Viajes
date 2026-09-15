@@ -256,6 +256,13 @@ function sanitizarViaje(viaje) {
   if (!viaje || typeof viaje !== 'object') return undefined;
   const out = {};
 
+  if (typeof viaje.onboardingDone === 'boolean') out.onboardingDone = viaje.onboardingDone;
+  if (typeof viaje.flightPlanned === 'boolean') out.flightPlanned = viaje.flightPlanned;
+  if (typeof viaje.hotelPlanned === 'boolean') out.hotelPlanned = viaje.hotelPlanned;
+  if (Array.isArray(viaje.savedSuggestions)) {
+    out.savedSuggestions = viaje.savedSuggestions.filter(s => typeof s === 'string').map(s => s.slice(0, 200)).slice(0, 50);
+  }
+
   if (viaje.hotel && typeof viaje.hotel === 'object') {
     const h = viaje.hotel;
     out.hotel = {
