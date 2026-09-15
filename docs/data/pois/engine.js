@@ -23,7 +23,7 @@ const START_HOUR = { 'mañana': 9, tarde: 13, noche: 17 };
 
 export async function loadPoiCatalog(cityKey) {
   try {
-    const res = await fetch(`data/pois/${cityKey}.json`);
+    const res = await fetch(`data/pois/${cityKey}.json`, { cache: 'no-cache' });
     if (!res.ok) return null;
     return await res.json();
   } catch (e) { return null; }

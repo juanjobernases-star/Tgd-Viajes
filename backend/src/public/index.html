@@ -1790,11 +1790,19 @@ const DESTINOS = {
 
 let regDestino = { continente: null, pais: null, paisLabel: null, ciudades: [] };
 
+// Los módulos ES cargados por import() dinámico siguen la caché HTTP normal
+// del navegador (Cache-Control: max-age=600 en GitHub Pages), fuera del
+// alcance del service worker (que solo intercepta navegaciones de
+// documento). Sin esto, un deploy nuevo de world-data.js/engine.js podía
+// quedar invisible hasta 10 minutos para quien ya hubiera cargado la app
+// antes. Coleamos la query string a CACHE_VERSION (sw.js) en cada deploy.
+const ASSET_VERSION = 'v33';
+
 // Catálogo continente→país→ciudad + sugerencias del paso 5, recreado en
 // docs/data/world-data.js. Se carga en paralelo al arrancar; regGetPool()
 // (más abajo, en initAuthUI) espera a que esté listo antes de mostrarlo.
 let WORLD_DATA = null;
-import('./data/world-data.js').then(m => m.loadWorldData()).then(w => { WORLD_DATA = w; });
+import('./data/world-data.js?v=' + ASSET_VERSION).then(m => m.loadWorldData()).then(w => { WORLD_DATA = w; });
 
 function slugify(s){ return s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,""); }
 
@@ -2632,7 +2640,7 @@ function initAuthUI(){
   }
 
   async function regBuildLogistics(){
-    if(!WORLD_DATA){ WORLD_DATA = await import('./data/world-data.js').then(m=>m.loadWorldData()); }
+    if(!WORLD_DATA){ WORLD_DATA = await import('./data/world-data.js?v=' + ASSET_VERSION).then(m=>m.loadWorldData()); }
     regSugIndex=0;
     regRenderSuggestions();
     regRenderSaved();
@@ -5242,7 +5250,7 @@ function renderAll(){
 /* ============ ITINERARIO INTELIGENTE (POIs) ============ */
 var POI_ENGINE = null;
 function loadPoiEngine(){
-  if(!POI_ENGINE) POI_ENGINE = import('./data/pois/engine.js');
+  if(!POI_ENGINE) POI_ENGINE = import('./data/pois/engine.js?v=' + ASSET_VERSION);
   return POI_ENGINE;
 }
 
