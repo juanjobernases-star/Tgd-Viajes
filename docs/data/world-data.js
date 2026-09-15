@@ -84,23 +84,33 @@ const DESTINOS = {
 const SUGGESTION_TEMPLATES = {
   arte: [
     { emoji: "🎨", title: c => `Museos y arte en ${c}`, tag: c => `Las mejores colecciones de ${c}` },
-    { emoji: "🏛️", title: c => `Casco histórico de ${c}`, tag: c => `El corazón monumental de ${c}` }
+    { emoji: "🏛️", title: c => `Casco histórico de ${c}`, tag: c => `El corazón monumental de ${c}` },
+    { emoji: "🖼️", title: c => `Galerías y arte callejero de ${c}`, tag: c => `Arte más allá de los museos en ${c}` },
+    { emoji: "🎭", title: c => `Teatro y espectáculos en ${c}`, tag: c => `Una noche de cultura en ${c}` }
   ],
   comida: [
     { emoji: "🍝", title: c => `Sabores de ${c}`, tag: c => `Platos típicos que probar en ${c}` },
-    { emoji: "☕", title: c => `Mercados y cafés de ${c}`, tag: c => `Come como un local en ${c}` }
+    { emoji: "☕", title: c => `Mercados y cafés de ${c}`, tag: c => `Come como un local en ${c}` },
+    { emoji: "🍷", title: c => `Vinos y aperitivo en ${c}`, tag: c => `La mejor hora del aperitivo en ${c}` },
+    { emoji: "🍰", title: c => `Dulces y pastelerías de ${c}`, tag: c => `Postres que no te puedes perder en ${c}` }
   ],
   aventura: [
     { emoji: "🏔️", title: c => `Aire libre cerca de ${c}`, tag: c => `Rutas y planes de aventura en ${c}` },
-    { emoji: "🚴", title: c => `Explora activo ${c}`, tag: c => `Bici, senderismo o deporte en ${c}` }
+    { emoji: "🚴", title: c => `Explora activo ${c}`, tag: c => `Bici, senderismo o deporte en ${c}` },
+    { emoji: "🚣", title: c => `Agua y naturaleza en ${c}`, tag: c => `Planes junto al agua en ${c}` },
+    { emoji: "🧗", title: c => `Adrenalina en ${c}`, tag: c => `Actividades para los más aventureros en ${c}` }
   ],
   compras: [
     { emoji: "🛍️", title: c => `De compras por ${c}`, tag: c => `Las mejores calles y mercados de ${c}` },
-    { emoji: "🎁", title: c => `Artesanía local de ${c}`, tag: c => `Recuerdos típicos de ${c}` }
+    { emoji: "🎁", title: c => `Artesanía local de ${c}`, tag: c => `Recuerdos típicos de ${c}` },
+    { emoji: "👜", title: c => `Moda y diseño en ${c}`, tag: c => `Las tiendas que marcan tendencia en ${c}` },
+    { emoji: "🏺", title: c => `Mercadillos y antigüedades de ${c}`, tag: c => `Tesoros de segunda mano en ${c}` }
   ],
   tranquilo: [
     { emoji: "🌿", title: c => `Rincones tranquilos de ${c}`, tag: c => `Parques para desconectar en ${c}` },
-    { emoji: "🌅", title: c => `Atardeceres en ${c}`, tag: c => `Los mejores miradores de ${c}` }
+    { emoji: "🌅", title: c => `Atardeceres en ${c}`, tag: c => `Los mejores miradores de ${c}` },
+    { emoji: "🧘", title: c => `Desconexión en ${c}`, tag: c => `Planes tranquilos en familia en ${c}` },
+    { emoji: "🌳", title: c => `Naturaleza cerca de ${c}`, tag: c => `Jardines y espacios verdes de ${c}` }
   ]
 };
 
