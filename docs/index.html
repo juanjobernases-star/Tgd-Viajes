@@ -516,6 +516,16 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 .month-cell.tripday{background:rgba(0,122,255,0.12); color:var(--blue); font-weight:700; cursor:pointer;}
 .month-cell.tripday.selected{background:var(--blue); color:#fff;}
 
+.week-nav{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+.week-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:14px; width:100%;}
+.week-cell{display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 2px; border-radius:12px; cursor:pointer; min-width:0;}
+.week-cell .wc-dow{font-size:10px; color:var(--text2); font-weight:600;}
+.week-cell .wc-num{font-size:14px; color:var(--text3); font-weight:700; width:26px; height:26px; line-height:26px; border-radius:50%; text-align:center;}
+.week-cell .wc-dot{width:5px; height:5px; border-radius:50%; background:var(--blue); visibility:hidden;}
+.week-cell.has-items .wc-dot{visibility:visible;}
+.week-cell.selected .wc-num{background:var(--blue); color:#fff;}
+.week-cell.out-of-trip{opacity:0.35; cursor:default;}
+
 /* search section */
 .search-tabs{display:flex;gap:4px;margin-bottom:12px;background:rgba(120,95,74,0.08);border-radius:100px;padding:3px;}
 .stab{flex:1;padding:8px 0;border-radius:100px;font-size:13px;font-weight:700;color:var(--text2);transition:all .2s;}
@@ -1104,11 +1114,21 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
     <!-- CALENDARIO -->
     <section class="section hidden" id="sec-calendario">
       <div class="view-toggle">
-        <button id="view-cards-btn" class="active" type="button">Tarjetas</button>
+        <button id="view-cards-btn" class="active" type="button">Día</button>
+        <button id="view-week-btn" type="button">Semana</button>
         <button id="view-month-btn" type="button">Mes</button>
       </div>
       <div id="calendar-cards-view">
         <div class="hscroll" id="days-hscroll"></div>
+      </div>
+      <div id="calendar-week-view" class="hidden">
+        <div class="week-nav">
+          <button class="icon-btn" id="week-prev-btn" type="button">‹</button>
+          <div class="tiny" id="week-range-label" style="font-weight:700;"></div>
+          <button class="icon-btn" id="week-next-btn" type="button">›</button>
+        </div>
+        <div class="week-grid" id="week-grid"></div>
+        <div id="week-day-detail"></div>
       </div>
       <div id="calendar-month-view" class="hidden">
         <div class="card">
@@ -1645,6 +1665,46 @@ let geoPos = null;
 let geoError = null;
 let calendarView = "cards";
 let selectedMonthDay = null;
+let weekAnchorDate = null;
+let selectedWeekDay = null;
+
+/* Calendario ya no depende de que exista un TRIP estático (vuelo/tren a Milán):
+   si no hay datos precargados para la ciudad, generamos los días a partir de
+   las fechas de inicio/fin que el usuario guardó al crear el viaje, sea cual
+   sea el medio de transporte (coche, avión, tren...). */
+function getTripDays(){
+  if(TRIP && TRIP.days && TRIP.days.length) return TRIP.days;
+  return getGenericTripDays();
+}
+const WEEKDAY_NAMES = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+const MONTH_SHORT = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+function getGenericTripDays(){
+  const viaje = CURRENT_PROFILE && CURRENT_PROFILE.viaje;
+  const ini = viaje && viaje.fechaInicio;
+  if(!ini) return [];
+  const fin = viaje && viaje.fechaFin ? viaje.fechaFin : ini;
+  const start = new Date(ini+"T00:00:00");
+  const end = new Date(fin+"T00:00:00");
+  if(isNaN(start.getTime())) return [];
+  const days = [];
+  const cur = new Date(start);
+  let i = 1;
+  while(cur <= end && days.length < 60){
+    const dateStr = cur.getFullYear()+"-"+String(cur.getMonth()+1).padStart(2,'0')+"-"+String(cur.getDate()).padStart(2,'0');
+    days.push({
+      id: "d_"+dateStr,
+      date: dateStr,
+      title: "Día "+i,
+      daynum: cur.getDate()+" "+MONTH_SHORT[cur.getMonth()],
+      weekday: WEEKDAY_NAMES[cur.getDay()],
+      flag: "📅",
+      items: []
+    });
+    cur.setDate(cur.getDate()+1);
+    i++;
+  }
+  return days;
+}
 let selectedDocTraveler = "diego";
 let pendingDeleteAction = null;
 let addRouteContext = null;
@@ -1796,7 +1856,7 @@ let regDestino = { continente: null, pais: null, paisLabel: null, ciudades: [] }
 // documento). Sin esto, un deploy nuevo de world-data.js/engine.js podía
 // quedar invisible hasta 10 minutos para quien ya hubiera cargado la app
 // antes. Coleamos la query string a CACHE_VERSION (sw.js) en cada deploy.
-const ASSET_VERSION = 'v34';
+const ASSET_VERSION = 'v35';
 
 // Catálogo continente→país→ciudad + sugerencias del paso 5, recreado en
 // docs/data/world-data.js. Se carga en paralelo al arrancar; regGetPool()
@@ -3112,7 +3172,7 @@ document.querySelectorAll(".tab-btn").forEach(btn=>{
 });
 
 document.getElementById("logout-btn").addEventListener("click", logout);
-document.getElementById("new-trip-btn").addEventListener("click", ()=>toast("Próximamente"));
+document.getElementById("new-trip-btn").addEventListener("click", ()=>startOnboarding());
 
 /* ============ SHEETS / MODALS ============ */
 function openSheet(id){ document.getElementById(id).classList.add("open"); }
@@ -3860,20 +3920,31 @@ document.getElementById("add-route-confirm").addEventListener("click", ()=>{
 });
 
 /* ============ RENDER: CALENDARIO ============ */
-document.getElementById("view-cards-btn").addEventListener("click", ()=>{
-  calendarView = "cards";
-  document.getElementById("view-cards-btn").classList.add("active");
-  document.getElementById("view-month-btn").classList.remove("active");
-  document.getElementById("calendar-cards-view").classList.remove("hidden");
-  document.getElementById("calendar-month-view").classList.add("hidden");
+function setCalendarView(view){
+  calendarView = view;
+  document.getElementById("view-cards-btn").classList.toggle("active", view==="cards");
+  document.getElementById("view-week-btn").classList.toggle("active", view==="week");
+  document.getElementById("view-month-btn").classList.toggle("active", view==="month");
+  document.getElementById("calendar-cards-view").classList.toggle("hidden", view!=="cards");
+  document.getElementById("calendar-week-view").classList.toggle("hidden", view!=="week");
+  document.getElementById("calendar-month-view").classList.toggle("hidden", view!=="month");
+  if(view==="week") renderWeekGrid();
+  if(view==="month") renderMonthGrid();
+}
+document.getElementById("view-cards-btn").addEventListener("click", ()=>setCalendarView("cards"));
+document.getElementById("view-week-btn").addEventListener("click", ()=>setCalendarView("week"));
+document.getElementById("view-month-btn").addEventListener("click", ()=>setCalendarView("month"));
+document.getElementById("week-prev-btn").addEventListener("click", ()=>{
+  const d = new Date(weekAnchorDate+"T00:00:00");
+  d.setDate(d.getDate()-7);
+  weekAnchorDate = d.toISOString().slice(0,10);
+  renderWeekGrid();
 });
-document.getElementById("view-month-btn").addEventListener("click", ()=>{
-  calendarView = "month";
-  document.getElementById("view-month-btn").classList.add("active");
-  document.getElementById("view-cards-btn").classList.remove("active");
-  document.getElementById("calendar-month-view").classList.remove("hidden");
-  document.getElementById("calendar-cards-view").classList.add("hidden");
-  renderMonthGrid();
+document.getElementById("week-next-btn").addEventListener("click", ()=>{
+  const d = new Date(weekAnchorDate+"T00:00:00");
+  d.setDate(d.getDate()+7);
+  weekAnchorDate = d.toISOString().slice(0,10);
+  renderWeekGrid();
 });
 
 function renderItemRow(day, item){
@@ -3895,7 +3966,16 @@ function renderItemRow(day, item){
 
 function renderDaysHscroll(){
   const wrap = document.getElementById("days-hscroll");
-  wrap.innerHTML = TRIP.days.map(day=>{
+  const days = getTripDays();
+  if(!days.length){
+    wrap.innerHTML = `<div class="card" style="text-align:center;padding:24px;">
+      <div style="font-size:32px;margin-bottom:8px;">🗓️</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:6px;">Añade las fechas de tu viaje</div>
+      <div class="subtle">Toca "+ Viaje" arriba para indicar cuándo empieza y termina tu viaje, y podrás organizar tu calendario sea cual sea tu forma de llegar (avión, tren o coche).</div>
+    </div>`;
+    return;
+  }
+  wrap.innerHTML = days.map(day=>{
     const items = getDayItems(day);
     return `<div class="day-card">
       <div class="dhead">
@@ -3927,7 +4007,7 @@ function bindItemRowEvents(container){
   container.querySelectorAll(".item-row").forEach(row=>{
     const itemId = row.dataset.itemId;
     const dayId = row.dataset.dayId;
-    const day = TRIP.days.find(d=>d.id===dayId);
+    const day = getTripDays().find(d=>d.id===dayId);
     row.querySelector('[data-action="toggle-check"]').addEventListener("click", ()=>{
       toggleChecked(itemId);
       refreshCurrentCalendarView();
@@ -3955,7 +4035,7 @@ function bindItemRowEvents(container){
 function startEditItem(row, dayId, itemId){
   if(row.dataset.editing) return;
   row.dataset.editing = "1";
-  const day = TRIP.days.find(d=>d.id===dayId);
+  const day = getTripDays().find(d=>d.id===dayId);
   const items = getDayItems(day);
   const item = items.find(i=>i.id===itemId);
   const body = row.querySelector(".item-body");
@@ -3991,7 +4071,94 @@ function startEditItem(row, dayId, itemId){
 
 function refreshCurrentCalendarView(){
   renderDaysHscroll();
+  if(calendarView==="week") renderWeekGrid();
   if(calendarView==="month") renderMonthGrid();
+}
+
+function startOfWeek(dateStr){
+  const d = new Date(dateStr+"T00:00:00");
+  let dow = d.getDay(); // 0=Sun
+  dow = dow===0?6:dow-1; // Mon=0
+  d.setDate(d.getDate()-dow);
+  return d.toISOString().slice(0,10);
+}
+
+function renderWeekGrid(){
+  const wrap = document.getElementById("week-grid");
+  const days = getTripDays();
+  if(!days.length){
+    wrap.innerHTML = "";
+    document.getElementById("week-range-label").textContent = "";
+    document.getElementById("week-day-detail").innerHTML = `<div class="card" style="text-align:center;padding:24px;">
+      <div class="subtle">Añade las fechas de tu viaje para ver la semana.</div>
+    </div>`;
+    return;
+  }
+  if(!weekAnchorDate) weekAnchorDate = startOfWeek(days[0].date);
+  const monday = new Date(weekAnchorDate+"T00:00:00");
+  const dows = ["L","M","X","J","V","S","D"];
+  if(!selectedWeekDay) selectedWeekDay = days[0].date;
+
+  let html = "";
+  const cellDates = [];
+  for(let i=0;i<7;i++){
+    const d = new Date(monday);
+    d.setDate(d.getDate()+i);
+    const dateStr = d.toISOString().slice(0,10);
+    cellDates.push(dateStr);
+    const inTrip = days.some(dd=>dd.date===dateStr);
+    const hasItems = inTrip && getDayItems(days.find(dd=>dd.date===dateStr)).length>0;
+    const sel = selectedWeekDay===dateStr;
+    html += `<div class="week-cell ${inTrip?'':'out-of-trip'} ${hasItems?'has-items':''} ${sel?'selected':''}" data-date="${dateStr}">
+      <div class="wc-dow">${dows[i]}</div>
+      <div class="wc-num">${d.getDate()}</div>
+      <div class="wc-dot"></div>
+    </div>`;
+  }
+  wrap.innerHTML = html;
+
+  const first = new Date(cellDates[0]+"T00:00:00"), last = new Date(cellDates[6]+"T00:00:00");
+  document.getElementById("week-range-label").textContent =
+    `${first.getDate()} ${MONTH_SHORT[first.getMonth()]} – ${last.getDate()} ${MONTH_SHORT[last.getMonth()]}`;
+
+  wrap.querySelectorAll(".week-cell").forEach(cell=>{
+    if(cell.classList.contains("out-of-trip")) return;
+    cell.addEventListener("click", ()=>{
+      selectedWeekDay = cell.dataset.date;
+      renderWeekGrid();
+    });
+  });
+  renderWeekDayDetail();
+}
+
+function renderWeekDayDetail(){
+  const wrap = document.getElementById("week-day-detail");
+  const day = getTripDays().find(d=>d.date===selectedWeekDay);
+  if(!day){ wrap.innerHTML = ""; return; }
+  const items = getDayItems(day);
+  wrap.innerHTML = `<div class="day-card" style="min-width:0;">
+    <div class="dhead">
+      <div>
+        <div class="dtitle">${escapeHtml(day.title)}</div>
+        <div class="ddate">${escapeHtml(day.daynum)} ${escapeHtml(day.weekday)}</div>
+      </div>
+      <div class="flag-badge">${escapeHtml(day.flag)}</div>
+    </div>
+    <div class="items-list" data-day-items="${day.id}">
+      ${items.length ? items.map(it=>renderItemRow(day,it)).join("") : '<div class="subtle" style="padding:8px 0;">Sin planes todavía.</div>'}
+    </div>
+    <button class="btn btn-secondary btn-sm btn-block" style="margin-top:10px;" data-add-event="${day.id}">+ Añadir plan</button>
+  </div>`;
+  bindItemRowEvents(wrap);
+  wrap.querySelectorAll("[data-add-event]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      addEventDayId = btn.dataset.addEvent;
+      document.getElementById("new-event-title").value = "";
+      document.getElementById("new-event-time").value = "";
+      document.getElementById("new-event-note").value = "";
+      openSheet("add-event-overlay");
+    });
+  });
 }
 
 document.getElementById("add-event-cancel").addEventListener("click", ()=>closeSheet("add-event-overlay"));
@@ -4011,8 +4178,10 @@ document.getElementById("add-event-confirm").addEventListener("click", ()=>{
 function renderMonthGrid(){
   const wrap = document.getElementById("month-grid");
   const dows = ["L","M","X","J","V","S","D"];
-  const tripDates = TRIP.days.map(d=>d.date);
-  const first = new Date(TRIP.days[0].date+"T00:00:00");
+  const days = getTripDays();
+  if(!days.length){ wrap.innerHTML = ""; document.getElementById("month-day-detail").innerHTML = ""; return; }
+  const tripDates = days.map(d=>d.date);
+  const first = new Date(days[0].date+"T00:00:00");
   const year = first.getFullYear(), month = first.getMonth();
   const firstOfMonth = new Date(year, month, 1);
   let startDow = firstOfMonth.getDay(); // 0=Sun
@@ -4045,7 +4214,7 @@ function renderMonthGrid(){
 function renderMonthDayDetail(){
   const wrap = document.getElementById("month-day-detail");
   if(!selectedMonthDay){ wrap.innerHTML=""; return; }
-  const day = TRIP.days.find(d=>d.date===selectedMonthDay);
+  const day = getTripDays().find(d=>d.date===selectedMonthDay);
   if(!day){ wrap.innerHTML=""; return; }
   const items = getDayItems(day);
   var sorted = items.slice().sort(function(a,b){ return (a.time||'99:99').localeCompare(b.time||'99:99'); });
@@ -5199,7 +5368,7 @@ function textToQRCanvas(text){
 })();
 
 /* ============ SECTION DISPATCH ============ */
-const TRIP_DEPENDENT_SECTIONS = new Set(["calendario","guia","documentacion","frases","offline","clima"]);
+const TRIP_DEPENDENT_SECTIONS = new Set(["guia","documentacion","frases","offline","clima"]);
 
 function renderNoTripMessage(tab){
   const sec = document.getElementById("sec-"+tab);
@@ -5223,6 +5392,7 @@ function renderSection(tab){
     case "resumen": renderResumen(); break;
     case "calendario":
       renderDaysHscroll();
+      if(calendarView==="week") renderWeekGrid();
       if(calendarView==="month") renderMonthGrid();
       break;
     case "vuelo": renderVuelo(); break;
