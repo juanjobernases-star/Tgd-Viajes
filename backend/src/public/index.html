@@ -1673,7 +1673,9 @@ let selectedWeekDay = null;
    las fechas de inicio/fin que el usuario guardó al crear el viaje, sea cual
    sea el medio de transporte (coche, avión, tren...). */
 function getTripDays(){
-  if(TRIP && TRIP.days && TRIP.days.length) return TRIP.days;
+  // El calendario es siempre el de CADA usuario (sus propias fechas y planes),
+  // nunca la ficha de ejemplo de data/trips/*.json (esa es contenido de
+  // demostración para otras secciones, no el itinerario real de nadie).
   return getGenericTripDays();
 }
 const WEEKDAY_NAMES = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
@@ -1856,7 +1858,7 @@ let regDestino = { continente: null, pais: null, paisLabel: null, ciudades: [] }
 // documento). Sin esto, un deploy nuevo de world-data.js/engine.js podía
 // quedar invisible hasta 10 minutos para quien ya hubiera cargado la app
 // antes. Coleamos la query string a CACHE_VERSION (sw.js) en cada deploy.
-const ASSET_VERSION = 'v35';
+const ASSET_VERSION = 'v36';
 
 // Catálogo continente→país→ciudad + sugerencias del paso 5, recreado en
 // docs/data/world-data.js. Se carga en paralelo al arrancar; regGetPool()
