@@ -526,6 +526,10 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 .week-cell.selected .wc-num{background:var(--blue); color:#fff;}
 .week-cell.out-of-trip{opacity:0.35; cursor:default;}
 
+#sec-calendario{position:relative;}
+.fab-add{position:fixed; right:20px; bottom:88px; width:56px; height:56px; border-radius:50%; background:var(--accent); color:#fff; font-size:28px; line-height:1; box-shadow:0 4px 14px rgba(0,0,0,0.22); z-index:20;}
+.fab-add:active{transform:scale(0.94);}
+
 /* search section */
 .search-tabs{display:flex;gap:4px;margin-bottom:12px;background:rgba(120,95,74,0.08);border-radius:100px;padding:3px;}
 .stab{flex:1;padding:8px 0;border-radius:100px;font-size:13px;font-weight:700;color:var(--text2);transition:all .2s;}
@@ -1131,11 +1135,17 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
         <div id="week-day-detail"></div>
       </div>
       <div id="calendar-month-view" class="hidden">
+        <div class="week-nav">
+          <button class="icon-btn" id="month-prev-btn" type="button">‹</button>
+          <div class="tiny" id="month-range-label" style="font-weight:700;"></div>
+          <button class="icon-btn" id="month-next-btn" type="button">›</button>
+        </div>
         <div class="card">
           <div class="month-grid" id="month-grid"></div>
         </div>
         <div id="month-day-detail"></div>
       </div>
+      <button class="fab-add" id="calendar-fab-add" type="button" aria-label="Añadir plan">+</button>
     </section>
 
     <!-- VUELO -->
@@ -1558,6 +1568,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
     <div class="sheet">
       <div class="sheet-handle"></div>
       <div class="sheet-title">Añadir plan</div>
+      <div class="field" id="new-event-date-field"><label class="field-label">Fecha</label><input type="date" id="new-event-date"></div>
       <div class="field"><label class="field-label">Título</label><input type="text" id="new-event-title"></div>
       <div class="field"><label class="field-label">Hora</label><input type="time" id="new-event-time"></div>
       <div class="field"><label class="field-label">Nota (opcional)</label><input type="text" id="new-event-note"></div>
@@ -1665,6 +1676,7 @@ let geoPos = null;
 let geoError = null;
 let calendarView = "cards";
 let selectedMonthDay = null;
+let monthAnchorDate = null;
 let weekAnchorDate = null;
 let selectedWeekDay = null;
 
@@ -1680,32 +1692,47 @@ function getTripDays(){
 }
 const WEEKDAY_NAMES = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
 const MONTH_SHORT = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+function dateToDayObj(dateStr){
+  const d = new Date(dateStr+"T00:00:00");
+  const weekday = WEEKDAY_NAMES[d.getDay()];
+  return {
+    id: "d_"+dateStr,
+    date: dateStr,
+    title: weekday.charAt(0).toUpperCase()+weekday.slice(1),
+    daynum: d.getDate()+" "+MONTH_SHORT[d.getMonth()],
+    weekday: weekday,
+    flag: "📅",
+    items: []
+  };
+}
+function getExtraCalendarDates(){ return lsGet("calendarExtraDates_"+CURRENT_USER, []); }
+function addExtraCalendarDate(dateStr){
+  const arr = getExtraCalendarDates();
+  if(!arr.includes(dateStr)){ arr.push(dateStr); lsSet("calendarExtraDates_"+CURRENT_USER, arr); }
+}
+// El calendario funciona como el de cualquier móvil: los días del viaje (si hay
+// fechas guardadas) más cualquier fecha suelta donde el usuario haya añadido un
+// plan a mano desde el botón "+", sin depender de tener un viaje configurado.
 function getGenericTripDays(){
   const viaje = CURRENT_PROFILE && CURRENT_PROFILE.viaje;
   const ini = viaje && viaje.fechaInicio;
-  if(!ini) return [];
-  const fin = viaje && viaje.fechaFin ? viaje.fechaFin : ini;
-  const start = new Date(ini+"T00:00:00");
-  const end = new Date(fin+"T00:00:00");
-  if(isNaN(start.getTime())) return [];
-  const days = [];
-  const cur = new Date(start);
-  let i = 1;
-  while(cur <= end && days.length < 60){
-    const dateStr = cur.getFullYear()+"-"+String(cur.getMonth()+1).padStart(2,'0')+"-"+String(cur.getDate()).padStart(2,'0');
-    days.push({
-      id: "d_"+dateStr,
-      date: dateStr,
-      title: "Día "+i,
-      daynum: cur.getDate()+" "+MONTH_SHORT[cur.getMonth()],
-      weekday: WEEKDAY_NAMES[cur.getDay()],
-      flag: "📅",
-      items: []
-    });
-    cur.setDate(cur.getDate()+1);
-    i++;
+  const dateSet = new Set();
+  if(ini){
+    const fin = viaje && viaje.fechaFin ? viaje.fechaFin : ini;
+    const start = new Date(ini+"T00:00:00");
+    const end = new Date(fin+"T00:00:00");
+    if(!isNaN(start.getTime())){
+      const cur = new Date(start);
+      let guard = 0;
+      while(cur <= end && guard < 60){
+        dateSet.add(cur.getFullYear()+"-"+String(cur.getMonth()+1).padStart(2,'0')+"-"+String(cur.getDate()).padStart(2,'0'));
+        cur.setDate(cur.getDate()+1);
+        guard++;
+      }
+    }
   }
-  return days;
+  getExtraCalendarDates().forEach(d=>dateSet.add(d));
+  return Array.from(dateSet).sort().map(dateToDayObj);
 }
 let selectedDocTraveler = "diego";
 let pendingDeleteAction = null;
@@ -1858,7 +1885,7 @@ let regDestino = { continente: null, pais: null, paisLabel: null, ciudades: [] }
 // documento). Sin esto, un deploy nuevo de world-data.js/engine.js podía
 // quedar invisible hasta 10 minutos para quien ya hubiera cargado la app
 // antes. Coleamos la query string a CACHE_VERSION (sw.js) en cada deploy.
-const ASSET_VERSION = 'v36';
+const ASSET_VERSION = 'v37';
 
 // Catálogo continente→país→ciudad + sugerencias del paso 5, recreado en
 // docs/data/world-data.js. Se carga en paralelo al arrancar; regGetPool()
@@ -3937,17 +3964,49 @@ document.getElementById("view-cards-btn").addEventListener("click", ()=>setCalen
 document.getElementById("view-week-btn").addEventListener("click", ()=>setCalendarView("week"));
 document.getElementById("view-month-btn").addEventListener("click", ()=>setCalendarView("month"));
 document.getElementById("week-prev-btn").addEventListener("click", ()=>{
-  const d = new Date(weekAnchorDate+"T00:00:00");
+  const d = new Date((weekAnchorDate||startOfWeek(todayStr()))+"T00:00:00");
   d.setDate(d.getDate()-7);
-  weekAnchorDate = d.toISOString().slice(0,10);
+  weekAnchorDate = toLocalDateStr(d);
   renderWeekGrid();
 });
 document.getElementById("week-next-btn").addEventListener("click", ()=>{
-  const d = new Date(weekAnchorDate+"T00:00:00");
+  const d = new Date((weekAnchorDate||startOfWeek(todayStr()))+"T00:00:00");
   d.setDate(d.getDate()+7);
-  weekAnchorDate = d.toISOString().slice(0,10);
+  weekAnchorDate = toLocalDateStr(d);
   renderWeekGrid();
 });
+document.getElementById("month-prev-btn").addEventListener("click", ()=>{
+  const d = new Date((monthAnchorDate||todayStr())+"T00:00:00");
+  d.setMonth(d.getMonth()-1, 1);
+  monthAnchorDate = toLocalDateStr(d);
+  renderMonthGrid();
+});
+document.getElementById("month-next-btn").addEventListener("click", ()=>{
+  const d = new Date((monthAnchorDate||todayStr())+"T00:00:00");
+  d.setMonth(d.getMonth()+1, 1);
+  monthAnchorDate = toLocalDateStr(d);
+  renderMonthGrid();
+});
+document.getElementById("calendar-fab-add").addEventListener("click", ()=>openAddEventSheet(null));
+
+// dayId null => el usuario elige la fecha a mano (botón "+" flotante, como en
+// una app de calendario); dayId con valor => viene de una tarjeta de día ya
+// visible, la fecha queda fija y oculta.
+function openAddEventSheet(dayId){
+  addEventDayId = dayId;
+  const dateField = document.getElementById("new-event-date-field");
+  const dateInput = document.getElementById("new-event-date");
+  if(dayId){
+    dateField.classList.add("hidden");
+  } else {
+    dateField.classList.remove("hidden");
+    dateInput.value = selectedWeekDay || selectedMonthDay || todayStr();
+  }
+  document.getElementById("new-event-title").value = "";
+  document.getElementById("new-event-time").value = "";
+  document.getElementById("new-event-note").value = "";
+  openSheet("add-event-overlay");
+}
 
 function renderItemRow(day, item){
   const checked = isChecked(item.id);
@@ -3972,8 +4031,8 @@ function renderDaysHscroll(){
   if(!days.length){
     wrap.innerHTML = `<div class="card" style="text-align:center;padding:24px;">
       <div style="font-size:32px;margin-bottom:8px;">🗓️</div>
-      <div style="font-size:16px;font-weight:700;margin-bottom:6px;">Añade las fechas de tu viaje</div>
-      <div class="subtle">Toca "+ Viaje" arriba para indicar cuándo empieza y termina tu viaje, y podrás organizar tu calendario sea cual sea tu forma de llegar (avión, tren o coche).</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:6px;">Tu calendario está vacío</div>
+      <div class="subtle">Toca el botón "+" para añadir tu primer plan en cualquier fecha, sea cual sea tu forma de llegar (avión, tren o coche).</div>
     </div>`;
     return;
   }
@@ -3995,13 +4054,7 @@ function renderDaysHscroll(){
   }).join("");
   bindItemRowEvents(wrap);
   wrap.querySelectorAll("[data-add-event]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      addEventDayId = btn.dataset.addEvent;
-      document.getElementById("new-event-title").value = "";
-      document.getElementById("new-event-time").value = "";
-      document.getElementById("new-event-note").value = "";
-      openSheet("add-event-overlay");
-    });
+    btn.addEventListener("click", ()=>openAddEventSheet(btn.dataset.addEvent));
   });
 }
 
@@ -4082,36 +4135,33 @@ function startOfWeek(dateStr){
   let dow = d.getDay(); // 0=Sun
   dow = dow===0?6:dow-1; // Mon=0
   d.setDate(d.getDate()-dow);
-  return d.toISOString().slice(0,10);
+  return toLocalDateStr(d);
 }
+
+function toLocalDateStr(d){
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');
+}
+function todayStr(){ return toLocalDateStr(new Date()); }
 
 function renderWeekGrid(){
   const wrap = document.getElementById("week-grid");
   const days = getTripDays();
-  if(!days.length){
-    wrap.innerHTML = "";
-    document.getElementById("week-range-label").textContent = "";
-    document.getElementById("week-day-detail").innerHTML = `<div class="card" style="text-align:center;padding:24px;">
-      <div class="subtle">Añade las fechas de tu viaje para ver la semana.</div>
-    </div>`;
-    return;
-  }
-  if(!weekAnchorDate) weekAnchorDate = startOfWeek(days[0].date);
+  if(!weekAnchorDate) weekAnchorDate = startOfWeek(days.length ? days[0].date : todayStr());
+  if(!selectedWeekDay) selectedWeekDay = days.length ? days[0].date : todayStr();
   const monday = new Date(weekAnchorDate+"T00:00:00");
   const dows = ["L","M","X","J","V","S","D"];
-  if(!selectedWeekDay) selectedWeekDay = days[0].date;
 
   let html = "";
   const cellDates = [];
   for(let i=0;i<7;i++){
     const d = new Date(monday);
     d.setDate(d.getDate()+i);
-    const dateStr = d.toISOString().slice(0,10);
+    const dateStr = toLocalDateStr(d);
     cellDates.push(dateStr);
-    const inTrip = days.some(dd=>dd.date===dateStr);
-    const hasItems = inTrip && getDayItems(days.find(dd=>dd.date===dateStr)).length>0;
+    const dayObj = days.find(dd=>dd.date===dateStr);
+    const hasItems = !!dayObj && getDayItems(dayObj).length>0;
     const sel = selectedWeekDay===dateStr;
-    html += `<div class="week-cell ${inTrip?'':'out-of-trip'} ${hasItems?'has-items':''} ${sel?'selected':''}" data-date="${dateStr}">
+    html += `<div class="week-cell ${hasItems?'has-items':''} ${sel?'selected':''}" data-date="${dateStr}">
       <div class="wc-dow">${dows[i]}</div>
       <div class="wc-num">${d.getDate()}</div>
       <div class="wc-dot"></div>
@@ -4124,7 +4174,6 @@ function renderWeekGrid(){
     `${first.getDate()} ${MONTH_SHORT[first.getMonth()]} – ${last.getDate()} ${MONTH_SHORT[last.getMonth()]}`;
 
   wrap.querySelectorAll(".week-cell").forEach(cell=>{
-    if(cell.classList.contains("out-of-trip")) return;
     cell.addEventListener("click", ()=>{
       selectedWeekDay = cell.dataset.date;
       renderWeekGrid();
@@ -4135,8 +4184,8 @@ function renderWeekGrid(){
 
 function renderWeekDayDetail(){
   const wrap = document.getElementById("week-day-detail");
-  const day = getTripDays().find(d=>d.date===selectedWeekDay);
-  if(!day){ wrap.innerHTML = ""; return; }
+  if(!selectedWeekDay){ wrap.innerHTML = ""; return; }
+  const day = getTripDays().find(d=>d.date===selectedWeekDay) || dateToDayObj(selectedWeekDay);
   const items = getDayItems(day);
   wrap.innerHTML = `<div class="day-card" style="min-width:0;">
     <div class="dhead">
@@ -4153,13 +4202,7 @@ function renderWeekDayDetail(){
   </div>`;
   bindItemRowEvents(wrap);
   wrap.querySelectorAll("[data-add-event]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      addEventDayId = btn.dataset.addEvent;
-      document.getElementById("new-event-title").value = "";
-      document.getElementById("new-event-time").value = "";
-      document.getElementById("new-event-note").value = "";
-      openSheet("add-event-overlay");
-    });
+    btn.addEventListener("click", ()=>openAddEventSheet(btn.dataset.addEvent));
   });
 }
 
@@ -4169,22 +4212,36 @@ document.getElementById("add-event-confirm").addEventListener("click", ()=>{
   const time = document.getElementById("new-event-time").value;
   const note = document.getElementById("new-event-note").value.trim();
   if(!title){ toast("Escribe un título"); return; }
-  const extra = getExtraForDay(addEventDayId);
+  let dayId = addEventDayId;
+  if(!dayId){
+    const dateStr = document.getElementById("new-event-date").value;
+    if(!dateStr){ toast("Elige una fecha"); return; }
+    addExtraCalendarDate(dateStr);
+    dayId = "d_"+dateStr;
+    selectedWeekDay = dateStr;
+    selectedMonthDay = dateStr;
+  }
+  const extra = getExtraForDay(dayId);
   extra.push({id:uid(), time, desc:title, note});
-  setExtraForDay(addEventDayId, extra);
+  setExtraForDay(dayId, extra);
   closeSheet("add-event-overlay");
   refreshCurrentCalendarView();
   toast("Plan añadido");
 });
 
+const MONTH_LONG = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+
 function renderMonthGrid(){
   const wrap = document.getElementById("month-grid");
   const dows = ["L","M","X","J","V","S","D"];
   const days = getTripDays();
-  if(!days.length){ wrap.innerHTML = ""; document.getElementById("month-day-detail").innerHTML = ""; return; }
   const tripDates = days.map(d=>d.date);
-  const first = new Date(days[0].date+"T00:00:00");
+  if(!monthAnchorDate) monthAnchorDate = days.length ? days[0].date : todayStr();
+  if(!selectedMonthDay) selectedMonthDay = days.length ? days[0].date : todayStr();
+
+  const first = new Date(monthAnchorDate+"T00:00:00");
   const year = first.getFullYear(), month = first.getMonth();
+  document.getElementById("month-range-label").textContent = MONTH_LONG[month].charAt(0).toUpperCase()+MONTH_LONG[month].slice(1)+" "+year;
   const firstOfMonth = new Date(year, month, 1);
   let startDow = firstOfMonth.getDay(); // 0=Sun
   startDow = startDow===0?6:startDow-1; // convert to Mon=0
@@ -4199,25 +4256,19 @@ function renderMonthGrid(){
     html += `<div class="month-cell ${isTrip?'tripday':''} ${isSel?'selected':''}" data-date="${dateStr}">${d}</div>`;
   }
   wrap.innerHTML = html;
-  wrap.querySelectorAll(".month-cell.tripday").forEach(cell=>{
+  wrap.querySelectorAll(".month-cell[data-date]").forEach(cell=>{
     cell.addEventListener("click", ()=>{
       selectedMonthDay = cell.dataset.date;
       renderMonthGrid();
-      renderMonthDayDetail();
     });
   });
-  if(!selectedMonthDay && tripDates.length){
-    selectedMonthDay = tripDates[0];
-    renderMonthGrid();
-  }
   renderMonthDayDetail();
 }
 
 function renderMonthDayDetail(){
   const wrap = document.getElementById("month-day-detail");
   if(!selectedMonthDay){ wrap.innerHTML=""; return; }
-  const day = getTripDays().find(d=>d.date===selectedMonthDay);
-  if(!day){ wrap.innerHTML=""; return; }
+  const day = getTripDays().find(d=>d.date===selectedMonthDay) || dateToDayObj(selectedMonthDay);
   const items = getDayItems(day);
   var sorted = items.slice().sort(function(a,b){ return (a.time||'99:99').localeCompare(b.time||'99:99'); });
   var timelineHtml = sorted.map(function(it){
@@ -4245,13 +4296,7 @@ function renderMonthDayDetail(){
   </div>`;
   bindItemRowEvents(wrap);
   wrap.querySelectorAll("[data-add-event]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      addEventDayId = btn.dataset.addEvent;
-      document.getElementById("new-event-title").value = "";
-      document.getElementById("new-event-time").value = "";
-      document.getElementById("new-event-note").value = "";
-      openSheet("add-event-overlay");
-    });
+    btn.addEventListener("click", ()=>openAddEventSheet(btn.dataset.addEvent));
   });
 }
 
