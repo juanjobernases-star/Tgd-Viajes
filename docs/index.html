@@ -1777,6 +1777,55 @@ async function initCipher(passphrase){
   _cipherKey = new Uint8Array(bits);
 }
 
+/* ============ CREDENCIALES LOCALES (PBKDF2, 100.000 iteraciones) ============
+   Formato nuevo: cred_<usuario> = hash derivado, credSalt_<usuario> = sal aleatoria de 16 bytes.
+   Las cuentas creadas antes de este cambio solo tienen cred_<usuario> (SHA-256
+   simple de usuario+contraseña, sin sal): verifyLocalCredential detecta ese
+   caso por la ausencia de credSalt_ y, si la contraseña es correcta, migra la
+   cuenta a PBKDF2 en ese mismo inicio de sesión, de forma transparente. */
+function _bytesToHex(bytes){
+  return Array.from(bytes).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+}
+function _hexToBytes(hex){
+  var out = new Uint8Array(hex.length/2);
+  for(var i=0; i<out.length; i++) out[i] = parseInt(hex.substr(i*2,2), 16);
+  return out;
+}
+async function _derivePasswordHash(usuario, password, saltBytes){
+  var enc = new TextEncoder();
+  var km = await crypto.subtle.importKey('raw', enc.encode(usuario + ':' + password), 'PBKDF2', false, ['deriveBits']);
+  var bits = await crypto.subtle.deriveBits({name:'PBKDF2', salt:saltBytes, iterations:100000, hash:'SHA-256'}, km, 256);
+  return _bytesToHex(new Uint8Array(bits));
+}
+async function setLocalCredential(usuario, password){
+  var saltBytes = crypto.getRandomValues(new Uint8Array(16));
+  var hashHex = await _derivePasswordHash(usuario, password, saltBytes);
+  localStorage.setItem(LS_PREFIX+'cred_'+usuario, hashHex);
+  localStorage.setItem(LS_PREFIX+'credSalt_'+usuario, _bytesToHex(saltBytes));
+}
+function hasLocalCredential(usuario){
+  return !!localStorage.getItem(LS_PREFIX+'cred_'+usuario);
+}
+async function verifyLocalCredential(usuario, password){
+  var storedHash = localStorage.getItem(LS_PREFIX+'cred_'+usuario);
+  if(!storedHash) return { ok:false };
+  var storedSaltHex = localStorage.getItem(LS_PREFIX+'credSalt_'+usuario);
+  if(storedSaltHex){
+    var hashHex = await _derivePasswordHash(usuario, password, _hexToBytes(storedSaltHex));
+    return { ok: hashHex === storedHash };
+  }
+  // Cuenta antigua sin sal: verificar con el formato previo (SHA-256 simple)
+  // y, si coincide, migrar la credencial a PBKDF2 ahora mismo.
+  var enc = new TextEncoder();
+  var hb = await crypto.subtle.digest('SHA-256', enc.encode(usuario + ':' + password));
+  var legacyHex = _bytesToHex(new Uint8Array(hb));
+  if(legacyHex === storedHash){
+    await setLocalCredential(usuario, password);
+    return { ok:true, migrated:true };
+  }
+  return { ok:false };
+}
+
 function lsGet(key, fallback){
   try{
     var raw = localStorage.getItem(LS_PREFIX+key);
@@ -2213,38 +2262,7 @@ const MORE_SECTIONS = ["buscar","gastos","mapas","documentacion","equipaje","pre
 
   async function andzDeleteTrip(){
     if(CURRENT_PROFILE) CURRENT_PROFILE.viaje = {};
-
-    // Contenido del viaje guardado en claves globales de localStorage
-    // (no dependen del objeto viaje ni se limpian con CURRENT_PROFILE.viaje={}).
-    lsSet("customRoutes", []);
-    if(typeof setExpenses==="function") setExpenses([]);
-    if(typeof setDocsState==="function") setDocsState({});
-    if(typeof setPackingState==="function") setPackingState({});
-    if(typeof setItemOverrides==="function") setItemOverrides({});
-    if(typeof setRemoved==="function") setRemoved([]);
-    if(typeof setFlightsData==="function") setFlightsData({
-      outbound:{number:"",status:"",gate:"",delay:""},
-      returnF:{number:"",status:"",gate:"",delay:""}
-    });
-    lsSet("numbersUrl", "");
-
-    // Claves ligadas al usuario actual.
-    if(CURRENT_USER){
-      lsSet("calendarExtraDates_"+CURRENT_USER, []);
-      if(typeof setCheckins==="function") setCheckins({});
-      if(typeof setBudgetCeiling==="function") setBudgetCeiling(0);
-    }
-
-    // Planes sueltos añadidos a mano por día ("itineraryExtra_d_<fecha>"): puede
-    // haber tantas claves como fechas distintas se hayan usado, así que se
-    // recorre localStorage en vez de intentar reconstruir la lista de días.
-    try{
-      const prefix = LS_PREFIX + "itineraryExtra_d_";
-      Object.keys(localStorage)
-        .filter(k=>k.indexOf(prefix)===0)
-        .forEach(k=>localStorage.removeItem(k));
-    }catch(e){}
-
+    wipeTripContentData(CURRENT_USER);
     await saveViaje();
     switchTab("resumen");
     if(typeof refreshCurrentCalendarView==="function") refreshCurrentCalendarView();
@@ -3392,10 +3410,8 @@ function initAuthUI(){
     } catch {
       var localHash = localStorage.getItem(LS_PREFIX+'cred_'+usuario);
       if(localHash){
-        var enc2 = new TextEncoder();
-        var hb2 = await crypto.subtle.digest('SHA-256', enc2.encode(usuario + ':' + password));
-        var ha2 = Array.from(new Uint8Array(hb2)).map(b=>b.toString(16).padStart(2,'0')).join('');
-        if(ha2 === localHash){
+        var check = await verifyLocalCredential(usuario, password);
+        if(check.ok){
           err.textContent = "";
           var perfil = lsGet('perfil_'+usuario, { nombre: usuario, intereses: [] });
           await loginLocal(usuario, perfil);
@@ -3455,6 +3471,10 @@ function initAuthUI(){
       var perfilServer = Object.assign({ nombre, intereses }, r.data.perfil || {}, { viaje, avatarIcon });
       regDoneLogin = function(){ SKIP_TRIP_ONBOARDING=true; loginAs(r.data.usuario, perfilServer); };
     } catch {
+      if(hasLocalCredential(usuario)){
+        err.textContent = "Ese usuario ya existe en este dispositivo. Inicia sesión o usa «¿Olvidaste tu contraseña?».";
+        return;
+      }
       var perfil = { nombre, intereses, destino, avatarIcon, viaje };
       // Cada paso de guardado va en su propio try: en local-mode no hay red
       // de seguridad del servidor, así que si algo falla (p.ej. cuota de
@@ -3462,10 +3482,7 @@ function initAuthUI(){
       // dato suelto antes que dejar el registro a medias y que el usuario
       // acabe en el onboarding antiguo por un viaje sin onboardingDone.
       try {
-        var enc3 = new TextEncoder();
-        var hb3 = await crypto.subtle.digest('SHA-256', enc3.encode(usuario + ':' + password));
-        var ha3 = Array.from(new Uint8Array(hb3)).map(b=>b.toString(16).padStart(2,'0')).join('');
-        localStorage.setItem(LS_PREFIX+'cred_'+usuario, ha3);
+        await setLocalCredential(usuario, password);
       } catch(e){ console.error('guardar credencial local', e); }
       try { lsSet('perfil_'+usuario, perfil); } catch(e){ console.error('guardar perfil local', e); }
       try { lsSet('viaje_'+usuario, viaje); } catch(e){ console.error('guardar viaje local', e); }
@@ -3535,8 +3552,13 @@ function initAuthUI(){
       }
       msg.style.color="var(--accent,#E8703A)"; msg.textContent=r.data?.mensaje||"Revisa tu correo.";
     } catch {
-      pendingResetMode = 'local';
-      showResetConfirm();
+      // Sin servidor no hay forma de verificar que quien pide el reseteo es
+      // realmente el titular de la cuenta (no hay email ni pregunta de
+      // seguridad), así que aquí NO se permite cambiar la contraseña a
+      // ciegas: cualquiera con acceso al dispositivo podría secuestrar la
+      // cuenta de otra persona con solo saber su nombre de usuario.
+      msg.style.color="#D1567A";
+      msg.textContent="Sin servidor conectado no es posible verificar tu identidad para restablecer la contraseña de forma segura. Si la has olvidado, la única opción es eliminar la cuenta local (una vez dentro, en Más → Eliminar mi cuenta) y crear una nueva.";
     }
   });
 
@@ -3547,16 +3569,6 @@ function initAuthUI(){
     if(!pass || pass.length < 8){ msg.style.color="#D1567A"; msg.textContent="Mínimo 8 caracteres."; return; }
     if(pass !== pass2){ msg.style.color="#D1567A"; msg.textContent="Las contraseñas no coinciden."; return; }
     msg.style.color="var(--accent,#E8703A)"; msg.textContent="Cambiando...";
-    if(pendingResetMode === 'local'){
-      var enc = new TextEncoder();
-      var hb = await crypto.subtle.digest('SHA-256', enc.encode(pendingResetUsuario + ':' + pass));
-      var ha = Array.from(new Uint8Array(hb)).map(b=>b.toString(16).padStart(2,'0')).join('');
-      localStorage.setItem(LS_PREFIX+'cred_'+pendingResetUsuario, ha);
-      pendingResetMode = null; pendingResetUsuario = null;
-      msg.style.color="var(--accent,#E8703A)"; msg.textContent="Contraseña guardada. Ya puedes iniciar sesión.";
-      setTimeout(showLogin, 2000);
-      return;
-    }
     var token = pendingResetToken || new URLSearchParams(location.search).get("reset");
     if(!token){ msg.style.color="#D1567A"; msg.textContent="Enlace inválido."; return; }
     try {
@@ -3774,10 +3786,10 @@ document.getElementById("more-sheet-overlay").addEventListener("click", e=>{
 
 document.getElementById("more-delete-account").addEventListener("click", ()=>{
   closeSheet("more-sheet-overlay");
-  confirmDelete("¿Eliminar tu cuenta?", "Se borrarán todos tus datos de este dispositivo. Esta acción no se puede deshacer.", async ()=>{
+  confirmDelete("¿Eliminar tu cuenta?", "Se borrarán todos tus datos de este dispositivo: credenciales, perfil, vuelos, hotel, excursiones, viajeros, gastos, documentos, equipaje, rutas propias y planes del calendario. Esta acción no se puede deshacer.", async ()=>{
     if(CURRENT_USER){
-      var keys=Object.keys(localStorage).filter(k=>k.indexOf(LS_PREFIX+'cred_'+CURRENT_USER)===0||k.indexOf(LS_PREFIX+'perfil_'+CURRENT_USER)===0||k.indexOf(LS_PREFIX+'viaje_'+CURRENT_USER)===0||k.indexOf(LS_PREFIX+'checkins_'+CURRENT_USER)===0);
-      keys.forEach(k=>localStorage.removeItem(k));
+      wipeTripContentData(CURRENT_USER);
+      wipeAccountIdentityData(CURRENT_USER);
       try{await apiFetch('/api/cuenta',{method:'DELETE'});}catch{}
     }
     toast("Cuenta eliminada");
@@ -5271,6 +5283,53 @@ function renderDocumentacion(){
 /* ============ RENDER: EQUIPAJE ============ */
 function getPackingState(){ return lsGet("packing", {}); }
 function setPackingState(o){ lsSet("packing", o); }
+
+/* ============ BORRADO DE DATOS: CONTENIDO DEL VIAJE vs IDENTIDAD DE LA CUENTA ============
+   Separados a propósito: "Eliminar viaje" (menú ⋯) solo debe borrar el
+   contenido (vuelos, hotel, gastos...), NUNCA las credenciales — si no, el
+   usuario se quedaría sin poder volver a entrar. "Eliminar mi cuenta" (menú
+   Más) sí borra ambas cosas. Así ambos puntos de borrado comparten la misma
+   lista de claves de contenido y no pueden desincronizarse. */
+function wipeTripContentData(usuario){
+  // Claves globales del contenido del viaje (no dependen del usuario).
+  lsSet("customRoutes", []);
+  setExpenses([]);
+  setDocsState({});
+  setPackingState({});
+  setItemOverrides({});
+  setRemoved([]);
+  setFlightsData({
+    outbound:{number:"",status:"",gate:"",delay:""},
+    returnF:{number:"",status:"",gate:"",delay:""}
+  });
+  lsSet("numbersUrl", "");
+  // Claves de contenido del viaje ligadas al usuario actual.
+  if(usuario){
+    lsSet("calendarExtraDates_"+usuario, []);
+    setCheckins({});
+    setBudgetCeiling(0);
+  }
+  // Planes sueltos por día ("itineraryExtra_d_<fecha>"): tantas claves como
+  // fechas distintas se hayan usado, así que se recorre localStorage.
+  try{
+    var prefix = LS_PREFIX + "itineraryExtra_d_";
+    Object.keys(localStorage)
+      .filter(function(k){ return k.indexOf(prefix)===0; })
+      .forEach(function(k){ localStorage.removeItem(k); });
+  }catch(e){}
+}
+
+function wipeAccountIdentityData(usuario){
+  if(!usuario) return;
+  var accountPrefixes = [
+    LS_PREFIX+'cred_'+usuario, LS_PREFIX+'credSalt_'+usuario,
+    LS_PREFIX+'perfil_'+usuario, LS_PREFIX+'viaje_'+usuario,
+    LS_PREFIX+'prefs_'+usuario,
+  ];
+  Object.keys(localStorage)
+    .filter(function(k){ return accountPrefixes.some(function(p){ return k.indexOf(p)===0; }); })
+    .forEach(function(k){ localStorage.removeItem(k); });
+}
 
 function renderEquipaje(){
   if(!TRIP){ renderNoTripMessage("equipaje"); return; }
