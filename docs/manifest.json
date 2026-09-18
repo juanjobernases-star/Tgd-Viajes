@@ -4,8 +4,8 @@
   "description": "Tu viaje en familia, en un solo sitio",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#EAF6F1",
-  "theme_color": "#2F6F65",
+  "background_color": "#FFF3E8",
+  "theme_color": "#E8703A",
   "icons": [
     {
       "src": "assets/icons/app-icon-64.png",

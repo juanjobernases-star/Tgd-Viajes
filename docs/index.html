@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="assets/icons/app-icon-64.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#2F6F65">
+<meta name="theme-color" content="#E8703A">
 <title>Andanzas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,13 +17,13 @@
 <noscript><link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
-  --bg:#EAF6F1; --card:#FFF7EC; --card-shadow:0 3px 0 rgba(196,150,110,0.16);
-  --text:#3E5449; --text2:#6B5642; --text3:rgba(120,95,74,0.3);
-  --accent:#2F6F65; --accent-tint:rgba(127,184,176,0.24);
-  --cta:#7FB8B0; --cta-text:#1F3F39;
+  --bg:#FFF3E8; --card:#FFFFFF; --card-shadow:0 3px 0 rgba(196,150,110,0.16);
+  --text:#2A2018; --text2:#6B5642; --text3:rgba(120,95,74,0.3);
+  --accent:#E8703A; --accent-tint:rgba(255,179,71,0.24);
+  --cta:#FFB347; --cta-text:#5A2E10;
   --green:#3E9C6B; --red:#D1567A; --orange:#C77A2E;
-  --purple:#AF52DE; --teal:#30B0C7; --blue:#2F6F65;
-  --blue-hover:#1F5850;
+  --purple:#AF52DE; --teal:#30B0C7; --blue:#E8703A;
+  --blue-hover:#7A3B12;
   --border:rgba(120,95,74,0.12);
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -55,7 +55,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;}
   flex-direction:column;
 }
 @media (min-width:500px){
-  #frame-wrap{ background:#CDEEE2; padding:24px 0; align-items:center; height:100vh; }
+  #frame-wrap{ background:#FFEFDC; padding:24px 0; align-items:center; height:100vh; }
   #app-frame{ width:430px; height:932px; max-height:calc(100vh - 48px); border-radius:44px; box-shadow:0 30px 80px rgba(0,0,0,0.25); border:8px solid rgba(120,95,74,0.12); }
 }
 
@@ -71,13 +71,13 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;}
 }
 #app-header .hdr-left{display:flex;align-items:center;gap:8px;min-width:0;}
 .hdr-subtitle{font-size:13px;font-weight:600;letter-spacing:0.2px;color:#6B5642;margin-bottom:2px;}
-.hdr-icon{width:38px;height:38px;border-radius:50%;background:#CDEEE2;display:flex;align-items:center;justify-content:center;flex:none;}
+.hdr-icon{width:38px;height:38px;border-radius:50%;background:#FFEFDC;display:flex;align-items:center;justify-content:center;flex:none;}
 .hdr-icon img{width:30px;height:30px;object-fit:contain;}
 .hdr-icon:empty{display:none;}
 .hdr-btn-ghost{background:rgba(120,95,74,0.08) !important;color:#6B5642 !important;}
-#app-header .hdr-title{font-size:30px;font-weight:800;letter-spacing:0.2px;color:#3E5449;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#app-header button.hdr-btn{background:rgba(127,184,176,0.24);color:#2F6F65;padding:6px 12px;border-radius:100px;font-size:12.5px;font-weight:600;white-space:nowrap;}
-#app-header button.back-btn{font-size:22px;color:#2F6F65;padding:0 4px 0 0;line-height:1;}
+#app-header .hdr-title{font-size:30px;font-weight:800;letter-spacing:0.2px;color:#2A2018;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#app-header button.hdr-btn{background:rgba(255,179,71,0.24);color:#E8703A;padding:6px 12px;border-radius:100px;font-size:12.5px;font-weight:600;white-space:nowrap;}
+#app-header button.back-btn{font-size:22px;color:#E8703A;padding:0 4px 0 0;line-height:1;}
 
 /* ===== Scroll area ===== */
 #app-body{
@@ -113,7 +113,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;}
 .tab-icon{width:24px;height:24px;object-fit:contain;}
 #tabbar button .ico img{opacity:0.4;}
 #tabbar button.active .ico img{opacity:1;}
-#tabbar button.active{color:#2F6F65;}
+#tabbar button.active{color:#E8703A;}
 
 /* ===== Cards ===== */
 .card{
@@ -128,8 +128,8 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;}
 /* banners */
 .banner{
   border-radius:16px; padding:18px; margin-bottom:14px; color:#fff;
-  background:linear-gradient(135deg,#4FA79A,#2F6F65);
-  box-shadow:0 4px 14px rgba(0,122,255,0.25);
+  background:linear-gradient(135deg,#4FA79A,#E8703A);
+  box-shadow:0 4px 14px rgba(232,112,58,0.25);
 }
 .banner .lbl{font-size:11px; text-transform:uppercase; letter-spacing:0.04em; opacity:0.85; font-weight:600;}
 .banner .main{font-size:18px; font-weight:700; margin-top:4px;}
@@ -143,13 +143,13 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;}
 .andz-shortcut{flex:0 0 auto; width:64px; text-align:center; font-size:11px; color:var(--text2); background:none; border:none;}
 .andz-shortcut-icon{width:52px; height:52px; border-radius:16px; background:rgba(47,111,101,.1);
   display:flex; align-items:center; justify-content:center; font-size:22px; margin:0 auto 4px;}
-.andz-personalizar-btn{width:100%; padding:10px; border:none; background:none; color:var(--accent,#2F6F65);
+.andz-personalizar-btn{width:100%; padding:10px; border:none; background:none; color:var(--accent,#E8703A);
   font-weight:600; text-align:center; margin:6px 0 10px;}
 .andz-edit-row{display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #eee;}
 .andz-edit-row .label{flex:1;}
 .andz-remove-btn{color:#e0483e; border:none; background:none; font-size:18px;}
-.andz-order-btns button{border:none; background:none; color:var(--accent,#2F6F65); font-size:16px; padding:2px 6px;}
-.andz-add-link{color:var(--accent,#2F6F65); border:none; background:none; font-weight:600; padding:8px 0;}
+.andz-order-btns button{border:none; background:none; color:var(--accent,#E8703A); font-size:16px; padding:2px 6px;}
+.andz-add-link{color:var(--accent,#E8703A); border:none; background:none; font-weight:600; padding:8px 0;}
 
 /* facts grid */
 .facts-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;}
@@ -173,7 +173,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;}
 }
 .btn-primary{background:var(--cta); color:var(--cta-text);}
 .btn-primary:active{background:#6AA89F;}
-.btn-secondary{background:rgba(127,184,176,0.22); color:#2F6F65;}
+.btn-secondary{background:rgba(255,179,71,0.22); color:#E8703A;}
 .btn-ghost{background:rgba(120,120,128,0.12); color:var(--text);}
 input,select,textarea{border-radius:14px; border:1px solid rgba(120,95,74,0.15); background:#fff;}
 .btn-danger{background:rgba(255,59,48,0.1); color:var(--red);}
@@ -203,7 +203,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 /* ===== Auth ===== */
 #auth-screen{
   position:absolute; top:0;right:0;bottom:0;left:0; z-index:100;
-  background:linear-gradient(160deg, #FBF7EE 0%, #EAF6F1 45%, #F5EBDC 100%);
+  background:linear-gradient(160deg, #FBF7EE 0%, #FFF3E8 45%, #F5EBDC 100%);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   padding:calc(env(safe-area-inset-top,0px) + 24px) 24px calc(env(safe-area-inset-bottom,0px) + 24px);
   overflow-y:auto;
@@ -212,15 +212,15 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 .auth-logo{text-align:center; margin-bottom:12px;}
 .auth-logo .logo-circle{
   width:96px;height:96px;border-radius:50%;
-  background:linear-gradient(135deg,#CDEEE2,#FFE3CC);
+  background:linear-gradient(135deg,#FFEFDC,#FFE3CC);
   box-shadow:0 8px 22px rgba(255,138,101,0.22), 0 0 0 6px rgba(255,255,255,0.55);
   margin:0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden;
 }
 .auth-logo img{width:76px;height:76px;object-fit:contain;}
 .auth-title{
   font-size:24px; font-weight:800; text-align:center; margin-bottom:4px;
-  color:#3E5449;
-  background:linear-gradient(100deg, #3E5449 45%, #E8703A 100%);
+  color:#2A2018;
+  background:linear-gradient(100deg, #2A2018 45%, #E8703A 100%);
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
 }
 .auth-sub{font-size:14px; color:var(--text2); text-align:center; margin-bottom:24px;}
@@ -262,7 +262,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 /* ===== Onboarding wizard (luminoso, con encanto) ===== */
 #onboarding-screen{
   position:absolute; top:0;right:0;bottom:0;left:0; z-index:110;
-  background:linear-gradient(160deg, #FBF7EE 0%, #EAF6F1 45%, #F5EBDC 100%);
+  background:linear-gradient(160deg, #FBF7EE 0%, #FFF3E8 45%, #F5EBDC 100%);
   display:flex; flex-direction:column;
   overflow:hidden;
   padding:calc(env(safe-area-inset-top,0px) + 20px) 0 calc(env(safe-area-inset-bottom,0px) + 20px);
@@ -371,7 +371,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 .ob-title{
   font-size:32px; font-weight:800; line-height:1.14; margin-bottom:10px; letter-spacing:-.01em;
   color:var(--text);
-  background:linear-gradient(100deg, #3E5449 40%, #E8703A 100%);
+  background:linear-gradient(100deg, #2A2018 40%, #E8703A 100%);
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
 }
 .ob-sub{font-size:15px; color:var(--text2); margin-bottom:22px; line-height:1.5;}
@@ -505,7 +505,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 .day-card .dhead{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;}
 .day-card .dtitle{font-size:16px; font-weight:700;}
 .day-card .ddate{font-size:12px; color:var(--text2);}
-.flag-badge{background:rgba(127,184,176,0.24); color:#2F6F65; font-size:11px; font-weight:600; padding:3px 8px; border-radius:100px;}
+.flag-badge{background:rgba(255,179,71,0.24); color:#E8703A; font-size:11px; font-weight:600; padding:3px 8px; border-radius:100px;}
 .item-row{padding:10px 0; border-bottom:1px solid var(--border); display:flex; gap:10px; align-items:flex-start;}
 .item-row:last-child{border-bottom:none;}
 .item-check{
@@ -514,7 +514,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 }
 .item-check.checked{background:#3E9C6B; border-color:#3E9C6B;}
 .item-body{flex:1; min-width:0;}
-.item-time{font-size:11px; color:#2F6F65; font-weight:700;}
+.item-time{font-size:11px; color:#E8703A; font-weight:700;}
 .item-desc{font-size:14px; font-weight:500; margin-top:1px;}
 .item-desc.checked-text{text-decoration:line-through; color:var(--text2);}
 .item-note{font-size:12px; color:var(--text2); margin-top:2px;}
@@ -529,7 +529,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 .month-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:16px;}
 .month-grid .dow{font-size:10px; color:var(--text2); text-align:center; font-weight:600; padding-bottom:4px;}
 .month-cell{aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:10px; font-size:13px; color:var(--text3);}
-.month-cell.tripday{background:rgba(0,122,255,0.12); color:var(--blue); font-weight:700; cursor:pointer;}
+.month-cell.tripday{background:rgba(232,112,58,0.12); color:var(--blue); font-weight:700; cursor:pointer;}
 .month-cell.tripday.selected{background:var(--blue); color:#fff;}
 
 .week-nav{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
@@ -609,20 +609,20 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 .pill-row{display:flex; gap:8px; overflow-x:auto; margin-bottom:14px; padding-bottom:2px;}
 .pill-row::-webkit-scrollbar{display:none;}
 .pill-btn{padding:8px 16px; border-radius:100px; background:rgba(120,120,128,0.12); color:var(--text); font-size:13px; font-weight:600; white-space:nowrap; flex-shrink:0;}
-.pill-btn.active{background:#2F6F65; color:#fff;}
+.pill-btn.active{background:#E8703A; color:#fff;}
 
 /* security */
 .risk-card{display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);}
 .risk-card:last-child{border-bottom:none;}
 .level-badge{font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px;}
 .level-high{background:rgba(255,59,48,0.12); color:var(--red);}
-.level-mid{background:rgba(127,184,176,0.24); color:#2F6F65;}
+.level-mid{background:rgba(255,179,71,0.24); color:#E8703A;}
 .do-item,.dont-item{display:flex; gap:8px; padding:8px 0; font-size:14px; align-items:flex-start;}
 .do-item .ico{color:var(--green); font-weight:700;}
 .dont-item .ico{color:var(--red); font-weight:700;}
 .contact-row{display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);}
 .contact-row:last-child{border-bottom:none;}
-.contact-num{font-size:20px; font-weight:700; color:#2F6F65;}
+.contact-num{font-size:20px; font-weight:700; color:#E8703A;}
 
 /* weather */
 .weather-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px;}
@@ -651,7 +651,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 }
 .sheet-overlay.open{opacity:1; pointer-events:auto;}
 .sheet{
-  background:#EAF6F1; width:100%; border-radius:24px 24px 0 0; padding:8px 16px calc(env(safe-area-inset-bottom,0px) + 20px);
+  background:#FFF3E8; width:100%; border-radius:24px 24px 0 0; padding:8px 16px calc(env(safe-area-inset-bottom,0px) + 20px);
   max-height:80%; overflow-y:auto; transform:translateY(100%); transition:transform .25s ease;
 }
 .sheet-overlay.open .sheet{transform:translateY(0);}
@@ -666,7 +666,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 .andz-cat-chip{display:flex; align-items:center; gap:6px; padding:7px 12px; border-radius:20px;
   border:1px solid #e2e2e2; background:#fff; font-size:13px; color:var(--text,#222); cursor:pointer;}
 .andz-cat-chip .ic{font-size:15px;}
-.andz-cat-chip.selected{background:rgba(47,111,101,.12); border-color:var(--accent,#2F6F65); font-weight:600;}
+.andz-cat-chip.selected{background:rgba(47,111,101,.12); border-color:var(--accent,#E8703A); font-weight:600;}
 .andz-cat-empty{font-size:13px; color:var(--text2); padding:6px 2px;}
 
 .sheet-title{font-size:17px; font-weight:700; margin-bottom:14px; text-align:center;}
@@ -699,7 +699,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
 .warn-box{background:rgba(255,149,0,0.1); color:#8a5300; border-radius:12px; padding:10px 12px; font-size:12px; margin-top:10px;}
-.notice-box{background:rgba(0,122,255,0.08); color:#004a99; border-radius:12px; padding:12px; font-size:12px; margin-bottom:14px; line-height:1.5;}
+.notice-box{background:rgba(232,112,58,0.08); color:#004a99; border-radius:12px; padding:12px; font-size:12px; margin-bottom:14px; line-height:1.5;}
 .empty-note{color:var(--text3); font-size:13px; text-align:center; padding:20px 0;}
 </style>
 </head>
@@ -709,7 +709,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 <div id="frame-wrap">
 <div id="app-frame">
 
-  <noscript><div style="padding:40px;text-align:center;font-size:18px;color:#3E5449;">Activa JavaScript para usar Andanzas.</div></noscript>
+  <noscript><div style="padding:40px;text-align:center;font-size:18px;color:#2A2018;">Activa JavaScript para usar Andanzas.</div></noscript>
   <!-- AUTH SCREEN -->
   <div id="auth-screen">
     <div class="auth-logo">
@@ -749,7 +749,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       </details>
       <button type="submit" class="btn btn-primary btn-block">Entrar</button>
       <div style="text-align:center;margin-top:10px;">
-        <a href="#" id="forgot-password-link" style="font-size:13px;color:var(--accent,#2F6F65);">¿Olvidaste tu contraseña?</a>
+        <a href="#" id="forgot-password-link" style="font-size:13px;color:var(--accent,#E8703A);">¿Olvidaste tu contraseña?</a>
       </div>
     </form>
 
@@ -762,7 +762,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       <button type="button" id="reset-send-btn" class="btn btn-primary btn-block">Cambiar contraseña</button>
       <div id="reset-msg" style="text-align:center;margin-top:10px;font-size:13px;"></div>
       <div style="text-align:center;margin-top:10px;">
-        <a href="#" id="reset-back-link" style="font-size:13px;color:var(--accent,#2F6F65);">Volver al login</a>
+        <a href="#" id="reset-back-link" style="font-size:13px;color:var(--accent,#E8703A);">Volver al login</a>
       </div>
     </div>
 
@@ -791,18 +791,18 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 
       <!-- STEP 1: Welcome -->
       <div id="reg-step-1" class="reg-step" style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:18px;">
-        <div style="width:96px;height:96px;border-radius:32px;background:#7FB8B0;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 0 rgba(47,111,101,0.25);animation:popIn .55s cubic-bezier(.34,1.56,.64,1);">
+        <div style="width:96px;height:96px;border-radius:32px;background:#FFB347;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 0 rgba(47,111,101,0.25);animation:popIn .55s cubic-bezier(.34,1.56,.64,1);">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"></path><path d="M4 7h9a4 4 0 0 1 4 4v1"></path><path d="m16 21 4-4-4-4"></path><path d="M20 17h-9a4 4 0 0 1-4-4v-1"></path></svg>
         </div>
         <h1 style="font-size:28px;font-weight:800;color:#2A2018;margin:0;line-height:1.2;">Tu próxima aventura<br>empieza aquí</h1>
-        <button type="button" id="reg-next-1" style="border:none;background:#2F6F65;color:#fff;font-family:inherit;font-weight:700;font-size:16px;padding:15px 36px;border-radius:100px;cursor:pointer;box-shadow:0 4px 0 rgba(31,88,80,0.5);margin-top:6px;">Comenzar</button>
-        <div style="font-size:13px;color:#5A4A38;opacity:0.7;">¿Ya tienes cuenta? <a href="#" id="reg-go-login" style="color:#2F6F65;font-weight:600;">Entrar</a></div>
+        <button type="button" id="reg-next-1" style="border:none;background:#E8703A;color:#fff;font-family:inherit;font-weight:700;font-size:16px;padding:15px 36px;border-radius:100px;cursor:pointer;box-shadow:0 4px 0 rgba(31,88,80,0.5);margin-top:6px;">Comenzar</button>
+        <div style="font-size:13px;color:#5A4A38;opacity:0.7;">¿Ya tienes cuenta? <a href="#" id="reg-go-login" style="color:#E8703A;font-weight:600;">Entrar</a></div>
       </div>
 
       <!-- STEP 2: Account (card style) -->
       <div id="reg-step-2" class="reg-step hidden">
         <div style="background:linear-gradient(160deg,#F9F1E7,#F5EBE0);border-radius:28px;padding:30px 24px;box-shadow:0 5px 0 rgba(196,150,110,0.2),0 14px 30px rgba(120,95,74,0.1);display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden;">
-          <div style="position:absolute;top:-30px;right:-30px;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,rgba(127,184,176,0.25),rgba(127,184,176,0));"></div>
+          <div style="position:absolute;top:-30px;right:-30px;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,rgba(255,179,71,0.25),rgba(255,179,71,0));"></div>
           <img src="data:image/png;base64,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" alt="" style="width:48px;height:48px;border-radius:16px;box-shadow:0 4px 0 rgba(47,111,101,0.25);animation:popIn .5s cubic-bezier(.34,1.56,.64,1);object-fit:cover;">
           <div>
             <div style="font-size:22px;font-weight:800;color:#2A2018;">Crea tu cuenta</div>
@@ -823,12 +823,12 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
             </div>
           </div>
           <label style="display:flex;align-items:flex-start;gap:8px;margin-top:2px;cursor:pointer;">
-            <input type="checkbox" id="reg-terms" style="margin-top:2px;width:16px;height:16px;flex-shrink:0;accent-color:#2F6F65;">
-            <span style="font-size:12px;line-height:1.4;color:#6B5642;">Acepto los <a href="#" id="terms-link-reg" style="color:#2F6F65;font-weight:700;text-decoration:underline;">Términos de uso</a> y he leído la <a href="#" id="privacy-link-reg" style="color:#2F6F65;font-weight:700;text-decoration:underline;">Política de privacidad</a>.</span>
+            <input type="checkbox" id="reg-terms" style="margin-top:2px;width:16px;height:16px;flex-shrink:0;accent-color:#E8703A;">
+            <span style="font-size:12px;line-height:1.4;color:#6B5642;">Acepto los <a href="#" id="terms-link-reg" style="color:#E8703A;font-weight:700;text-decoration:underline;">Términos de uso</a> y he leído la <a href="#" id="privacy-link-reg" style="color:#E8703A;font-weight:700;text-decoration:underline;">Política de privacidad</a>.</span>
           </label>
           <div style="display:flex;gap:10px;margin-top:4px;">
             <button type="button" id="reg-back-2" style="border:none;background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:14px;padding:13px 18px;border-radius:100px;cursor:pointer;">Atrás</button>
-            <button type="button" id="reg-next-2" style="flex:1;border:none;background:linear-gradient(135deg,#2F6F65,#3F8478);color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Continuar</button>
+            <button type="button" id="reg-next-2" style="flex:1;border:none;background:linear-gradient(135deg,#E8703A,#3F8478);color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Continuar</button>
           </div>
         </div>
       </div>
@@ -864,7 +864,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
           </div>
           <div style="display:flex;gap:10px;margin-top:4px;">
             <button type="button" id="reg-back-3" style="border:none;background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:14px;padding:13px 18px;border-radius:100px;cursor:pointer;">Atrás</button>
-            <button type="button" id="reg-next-3" style="flex:1;border:none;background:#2F6F65;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Continuar</button>
+            <button type="button" id="reg-next-3" style="flex:1;border:none;background:#E8703A;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Continuar</button>
           </div>
         </div>
       </div>
@@ -882,12 +882,12 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
             <div id="reg-ciudades" style="display:flex;flex-direction:column;gap:10px;"></div>
             <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
               <input type="text" id="reg-ciudad-custom" placeholder="Otra ciudad" style="flex:1;padding:10px 14px;font-size:14px;border:1.5px solid rgba(120,95,74,0.14);border-radius:14px;background:#fff;font-family:inherit;">
-              <button type="button" id="reg-ciudad-add" style="border:none;background:#2F6F65;color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;box-shadow:0 2px 0 rgba(31,88,80,0.4);">+</button>
+              <button type="button" id="reg-ciudad-add" style="border:none;background:#E8703A;color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;box-shadow:0 2px 0 rgba(31,88,80,0.4);">+</button>
             </div>
           </div>
           <div style="display:flex;gap:10px;">
             <button type="button" id="reg-back-4" style="border:none;background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:14px;padding:13px 18px;border-radius:100px;cursor:pointer;">Atrás</button>
-            <button type="button" id="reg-next-4" style="flex:1;border:none;background:#2F6F65;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Continuar</button>
+            <button type="button" id="reg-next-4" style="flex:1;border:none;background:#E8703A;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Continuar</button>
           </div>
         </div>
       </div>
@@ -903,14 +903,14 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
             <div style="background:#F5EBE0;border-radius:18px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
               <span style="font-size:14.5px;font-weight:700;color:#2A2018;">¿Ya tienes el vuelo?</span>
               <div style="display:flex;gap:6px;">
-                <button type="button" class="reg-toggle" data-field="flight" data-val="yes" style="border:2px solid #2F6F65;background:transparent;color:#2F6F65;font-family:inherit;font-weight:700;font-size:13px;padding:7px 16px;border-radius:100px;cursor:pointer;">Sí</button>
+                <button type="button" class="reg-toggle" data-field="flight" data-val="yes" style="border:2px solid #E8703A;background:transparent;color:#E8703A;font-family:inherit;font-weight:700;font-size:13px;padding:7px 16px;border-radius:100px;cursor:pointer;">Sí</button>
                 <button type="button" class="reg-toggle" data-field="flight" data-val="no" style="border:2px solid rgba(120,95,74,0.2);background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:13px;padding:7px 16px;border-radius:100px;cursor:pointer;">No aún</button>
               </div>
             </div>
             <div style="background:#F5EBE0;border-radius:18px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
               <span style="font-size:14.5px;font-weight:700;color:#2A2018;">¿Ya tienes el hotel?</span>
               <div style="display:flex;gap:6px;">
-                <button type="button" class="reg-toggle" data-field="hotel" data-val="yes" style="border:2px solid #2F6F65;background:transparent;color:#2F6F65;font-family:inherit;font-weight:700;font-size:13px;padding:7px 16px;border-radius:100px;cursor:pointer;">Sí</button>
+                <button type="button" class="reg-toggle" data-field="hotel" data-val="yes" style="border:2px solid #E8703A;background:transparent;color:#E8703A;font-family:inherit;font-weight:700;font-size:13px;padding:7px 16px;border-radius:100px;cursor:pointer;">Sí</button>
                 <button type="button" class="reg-toggle" data-field="hotel" data-val="no" style="border:2px solid rgba(120,95,74,0.2);background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:13px;padding:7px 16px;border-radius:100px;cursor:pointer;">No aún</button>
               </div>
             </div>
@@ -927,7 +927,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
           </div>
           <div style="display:flex;gap:10px;">
             <button type="button" id="reg-back-5" style="border:none;background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:14px;padding:13px 18px;border-radius:100px;cursor:pointer;">Atrás</button>
-            <button type="button" id="reg-next-5" style="flex:1;border:none;background:#2F6F65;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Continuar</button>
+            <button type="button" id="reg-next-5" style="flex:1;border:none;background:#E8703A;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Continuar</button>
           </div>
         </div>
       </div>
@@ -963,7 +963,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
           </div>
           <div style="display:flex;gap:10px;margin-top:4px;">
             <button type="button" id="reg-back-6" style="border:none;background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:14px;padding:13px 18px;border-radius:100px;cursor:pointer;">Atrás</button>
-            <button type="button" id="reg-next-6" style="flex:1;border:none;background:#2F6F65;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Continuar</button>
+            <button type="button" id="reg-next-6" style="flex:1;border:none;background:#E8703A;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Continuar</button>
           </div>
         </div>
       </div>
@@ -981,7 +981,7 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
           </div>
           <div style="display:flex;gap:10px;">
             <button type="button" id="reg-back-7" style="border:none;background:transparent;color:#6B5642;font-family:inherit;font-weight:700;font-size:14px;padding:13px 18px;border-radius:100px;cursor:pointer;">Atrás</button>
-            <button type="submit" style="flex:1;border:none;background:#2F6F65;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Crear cuenta</button>
+            <button type="submit" style="flex:1;border:none;background:#E8703A;color:#fff;font-family:inherit;font-weight:700;font-size:15px;padding:13px 0;border-radius:100px;cursor:pointer;box-shadow:0 3px 0 rgba(31,88,80,0.5);">Crear cuenta</button>
           </div>
         </div>
       </div>
@@ -990,14 +990,14 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       <div id="reg-step-8" class="reg-step hidden">
         <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:16px;padding-top:40px;">
           <div style="position:relative;width:88px;height:88px;">
-            <div style="width:88px;height:88px;border-radius:50%;background:#2F6F65;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 0 rgba(31,88,80,0.3);animation:popIn .55s cubic-bezier(.34,1.56,.64,1);">
+            <div style="width:88px;height:88px;border-radius:50%;background:#E8703A;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 0 rgba(31,88,80,0.3);animation:popIn .55s cubic-bezier(.34,1.56,.64,1);">
               <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:24;animation:checkDraw .4s .3s ease forwards;"><path d="M20 6 9 17l-5-5"></path></svg>
             </div>
             <div id="reg-confetti"></div>
           </div>
           <h2 style="font-size:26px;font-weight:800;color:#2A2018;margin:0;">¡Ya estás dentro!</h2>
           <p id="reg-done-msg" style="font-size:15px;color:#5A4A38;opacity:0.85;margin:0;max-width:32ch;"></p>
-          <button type="button" id="reg-go-app" style="border:none;background:#2F6F65;color:#fff;font-family:inherit;font-weight:700;font-size:16px;padding:15px 36px;border-radius:100px;cursor:pointer;box-shadow:0 4px 0 rgba(31,88,80,0.5);margin-top:6px;">Ir a la app</button>
+          <button type="button" id="reg-go-app" style="border:none;background:#E8703A;color:#fff;font-family:inherit;font-weight:700;font-size:16px;padding:15px 36px;border-radius:100px;cursor:pointer;box-shadow:0 4px 0 rgba(31,88,80,0.5);margin-top:6px;">Ir a la app</button>
         </div>
       </div>
     </form>
@@ -1888,9 +1888,9 @@ const SECTION_META = {
   frases: {label:"Frases", letter:"F", color:"#FF2D55", icon:"assets/icons/phrases.png"},
   offline: {label:"Offline", letter:"O", color:"#8E8E93", icon:"assets/icons/offline.png"},
   seguridad: {label:"Seguridad", letter:"S", color:"#D1567A", icon:"assets/icons/security.png"},
-  buscar: {label:"Buscar", letter:"B", color:"#2F6F65", icon:"assets/icons/ticket.png"},
+  buscar: {label:"Buscar", letter:"B", color:"#E8703A", icon:"assets/icons/ticket.png"},
   vpn: {label:"VPN Viaje", letter:"V", color:"#5856D6", icon:"assets/icons/security.png"},
-  itinerario: {label:"Itinerario", emoji:"🗺️", color:"#2F6F65"}
+  itinerario: {label:"Itinerario", emoji:"🗺️", color:"#E8703A"}
 };
 const MAIN_TABS = ["resumen","calendario","itinerario","vuelo","guia"];
 const MORE_SECTIONS = ["buscar","gastos","mapas","documentacion","equipaje","presupuesto","clima","frases","offline","seguridad","vpn"];
@@ -3006,7 +3006,7 @@ function renderCiudades(){
   const allCities = [...new Set([...paisData.ciudades, ...regDestino.ciudades])];
   wrap.innerHTML = allCities.map(c=>{
     const sel = regDestino.ciudades.includes(c);
-    return destinoPillHTML(`data-ciudad="${escapeHtml(c)}"`, cityIcon(c), escapeHtml(c)) .replace('background:#fff;', sel ? 'background:#EAF6F1;border:2px solid #2F6F65;' : 'background:#fff;');
+    return destinoPillHTML(`data-ciudad="${escapeHtml(c)}"`, cityIcon(c), escapeHtml(c)) .replace('background:#fff;', sel ? 'background:#FFF3E8;border:2px solid #E8703A;' : 'background:#fff;');
   }).join("");
   wrap.querySelectorAll("button").forEach(btn=>{
     btn.addEventListener("click", ()=>{
@@ -3079,10 +3079,10 @@ function initAuthUI(){
   document.querySelectorAll("#reg-interests .ob-tile").forEach(function(t){
     t.addEventListener("click", function(){
       var on=t.classList.toggle("selected");
-      t.style.borderColor=on?'#2F6F65':'rgba(120,95,74,0.15)';
+      t.style.borderColor=on?'#E8703A':'rgba(120,95,74,0.15)';
       t.style.background=on?'#EAF4F2':'#fff';
       t.style.boxShadow=on?'0 3px 0 rgba(47,111,101,0.25)':'0 2px 0 rgba(196,150,110,0.12)';
-      t.querySelector('span:last-child').style.color=on?'#1F5850':'#5A4A38';
+      t.querySelector('span:last-child').style.color=on?'#7A3B12':'#5A4A38';
     });
   });
 
@@ -3105,8 +3105,8 @@ function initAuthUI(){
       var d=document.createElement('div');
       var active=i===n;
       d.style.cssText='height:8px;border-radius:100px;transition:all .3s;'
-        +(active?'width:24px;background:#2F6F65;box-shadow:0 0 0 0 rgba(47,111,101,0.35);animation:dotPulse 1.6s ease-in-out infinite;'
-                :'width:8px;background:'+(i<n?'#2F6F65':'rgba(47,111,101,0.2)')+';');
+        +(active?'width:24px;background:#E8703A;box-shadow:0 0 0 0 rgba(47,111,101,0.35);animation:dotPulse 1.6s ease-in-out infinite;'
+                :'width:8px;background:'+(i<n?'#E8703A':'rgba(47,111,101,0.2)')+';');
       dots.appendChild(d);
     }
     document.getElementById('auth-error').textContent='';
@@ -3155,9 +3155,9 @@ function initAuthUI(){
       regLogistics[f]=regLogistics[f]===v?null:v;
       document.querySelectorAll('.reg-toggle[data-field="'+f+'"]').forEach(function(b){
         var on=b.dataset.val===regLogistics[f];
-        b.style.background=on?'#2F6F65':'transparent';
-        b.style.color=on?'#fff':(b.dataset.val==='yes'?'#2F6F65':'#6B5642');
-        b.style.borderColor=on?'#2F6F65':(b.dataset.val==='yes'?'#2F6F65':'rgba(120,95,74,0.2)');
+        b.style.background=on?'#E8703A':'transparent';
+        b.style.color=on?'#fff':(b.dataset.val==='yes'?'#E8703A':'#6B5642');
+        b.style.borderColor=on?'#E8703A':(b.dataset.val==='yes'?'#E8703A':'rgba(120,95,74,0.2)');
       });
     });
   });
@@ -3171,7 +3171,7 @@ function initAuthUI(){
   function regSegmentedHTML(list, selected, multi){
     return list.map(function(o){
       var on = multi ? selected.indexOf(o.id)>=0 : selected===o.id;
-      return '<button type="button" class="reg-seg" data-val="'+o.id+'" style="flex:'+(multi?'none':'1')+';border:2px solid '+(on?'#2F6F65':'rgba(120,95,74,0.2)')+';background:'+(on?'#EAF4F2':'#fff')+';color:'+(on?'#1F5850':'#6B5642')+';font-family:inherit;font-weight:700;font-size:12.5px;padding:9px '+(multi?'14px':'4px')+';border-radius:100px;cursor:pointer;">'+o.label+'</button>';
+      return '<button type="button" class="reg-seg" data-val="'+o.id+'" style="flex:'+(multi?'none':'1')+';border:2px solid '+(on?'#E8703A':'rgba(120,95,74,0.2)')+';background:'+(on?'#EAF4F2':'#fff')+';color:'+(on?'#7A3B12':'#6B5642')+';font-family:inherit;font-weight:700;font-size:12.5px;padding:9px '+(multi?'14px':'4px')+';border-radius:100px;cursor:pointer;">'+o.label+'</button>';
     }).join('');
   }
   function regBuildItinPrefs(){
@@ -3239,7 +3239,7 @@ function initAuthUI(){
       card.style.cssText='position:absolute;top:0;width:150px;height:140px;background:#fff;border-radius:18px;padding:14px 12px;box-shadow:'+shadow+';display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;justify-content:center;cursor:pointer;transform:'+tx+';z-index:'+zI+';opacity:'+op+';transition:transform .3s ease,opacity .3s ease;';
       if(isFront) card.className='ob-card-front';
       var saved=regSavedSugs.indexOf(sg.title)>=0;
-      card.innerHTML=(isFront?'<button type="button" class="reg-sug-save" data-title="'+sg.title+'" style="position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:none;background:'+(saved?'#2F6F65':'rgba(120,95,74,0.08)')+';display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="'+(saved?'#fff':'none')+'" stroke="'+(saved?'#fff':'#6B5642')+'" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"></path></svg></button>':'')
+      card.innerHTML=(isFront?'<button type="button" class="reg-sug-save" data-title="'+sg.title+'" style="position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:none;background:'+(saved?'#E8703A':'rgba(120,95,74,0.08)')+';display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="'+(saved?'#fff':'none')+'" stroke="'+(saved?'#fff':'#6B5642')+'" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"></path></svg></button>':'')
         +'<div style="width:44px;height:44px;border-radius:14px;background:'+sg.bg+';display:flex;align-items:center;justify-content:center;font-size:22px;">'+sg.emoji+'</div>'
         +'<div style="font-size:12.5px;font-weight:700;color:#2A2018;line-height:1.25;">'+sg.title+'</div>'
         +'<div style="font-size:11px;color:#6B5642;opacity:0.8;">'+sg.tag+'</div>';
@@ -3265,7 +3265,7 @@ function initAuthUI(){
     for(var i=0;i<pool.length;i++){
       var dot=document.createElement('div');
       var active=i===regSugIndex%pool.length;
-      dot.style.cssText='height:6px;border-radius:100px;transition:all .2s;'+(active?'width:14px;background:#2F6F65;':'width:6px;background:rgba(47,111,101,0.2);');
+      dot.style.cssText='height:6px;border-radius:100px;transition:all .2s;'+(active?'width:14px;background:#E8703A;':'width:6px;background:rgba(47,111,101,0.2);');
       dotsEl.appendChild(dot);
     }
   }
@@ -3276,7 +3276,7 @@ function initAuthUI(){
     if(!regSavedSugs.length){wrap.classList.add('hidden');return;}
     wrap.classList.remove('hidden');
     chips.innerHTML=regSavedSugs.map(function(t){
-      return '<span style="display:inline-flex;align-items:center;gap:6px;border:1.5px solid #2F6F65;border-radius:100px;padding:5px 6px 5px 12px;font-size:12px;font-weight:700;color:#1F5850;background:#EAF4F2;">'+t+'<button type="button" class="reg-saved-rm" data-title="'+t+'" style="width:18px;height:18px;border-radius:50%;border:none;background:#2F6F65;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;line-height:1;padding:0;">×</button></span>';
+      return '<span style="display:inline-flex;align-items:center;gap:6px;border:1.5px solid #E8703A;border-radius:100px;padding:5px 6px 5px 12px;font-size:12px;font-weight:700;color:#7A3B12;background:#EAF4F2;">'+t+'<button type="button" class="reg-saved-rm" data-title="'+t+'" style="width:18px;height:18px;border-radius:50%;border:none;background:#E8703A;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;line-height:1;padding:0;">×</button></span>';
     }).join('');
     chips.querySelectorAll('.reg-saved-rm').forEach(function(btn){
       btn.addEventListener('click',function(){
@@ -3296,7 +3296,7 @@ function initAuthUI(){
   }
 
   /* --- Done step (confetti + message) --- */
-  var CONFETTI_COLORS=['#7FB8B0','#F5D9A8','#A6472F','#2F6F65','#C77B2E','#3E6E92'];
+  var CONFETTI_COLORS=['#FFB347','#F5D9A8','#A6472F','#E8703A','#C77B2E','#3E6E92'];
   function regShowDone(){
     var nombre=document.getElementById('reg-name').value.trim();
     var destino=regDestino.ciudades[0]||regDestino.paisLabel||'tu destino';
@@ -3340,7 +3340,7 @@ function initAuthUI(){
     var picker=document.getElementById('reg-avatar-picker');
     picker.innerHTML=REG_AVATAR_URIS.map(function(uri,i){
       var sel=regSelectedAvatar===i;
-      return '<button type="button" data-av="'+i+'" style="width:46px;height:46px;border-radius:50%;border:'+(sel?'3px solid #2F6F65':'3px solid transparent')+';padding:0;background:#fff;cursor:pointer;box-shadow:0 2px 0 rgba(196,150,110,0.15);transition:border-color .15s;overflow:hidden;"><img src="'+uri+'" alt="" style="width:100%;height:100%;object-fit:cover;"></button>';
+      return '<button type="button" data-av="'+i+'" style="width:46px;height:46px;border-radius:50%;border:'+(sel?'3px solid #E8703A':'3px solid transparent')+';padding:0;background:#fff;cursor:pointer;box-shadow:0 2px 0 rgba(196,150,110,0.15);transition:border-color .15s;overflow:hidden;"><img src="'+uri+'" alt="" style="width:100%;height:100%;object-fit:cover;"></button>';
     }).join('');
     picker.querySelectorAll('button').forEach(function(btn){
       btn.addEventListener('click',function(){
@@ -3360,7 +3360,7 @@ function initAuthUI(){
       avatar.textContent=initial;
       avatar.style.background=PALETTE_AVATAR[nombre.length%PALETTE_AVATAR.length];
     }
-    var chips=intereses.map(l=>'<span style="border:1.5px solid #2F6F65;border-radius:100px;padding:6px 12px;font-size:12px;font-weight:700;color:#2F6F65;background:#fff;display:inline-block;">'+l+'</span>').join(' ');
+    var chips=intereses.map(l=>'<span style="border:1.5px solid #E8703A;border-radius:100px;padding:6px 12px;font-size:12px;font-weight:700;color:#E8703A;background:#fff;display:inline-block;">'+l+'</span>').join(' ');
     document.getElementById('reg-summary').innerHTML=
       '<div style="font-size:20px;font-weight:800;color:#2A2018;">'+nombre+'</div>'
       +'<div style="font-size:13px;color:#6B5642;margin:4px 0 10px;">@'+usuario+'</div>'
@@ -3520,7 +3520,7 @@ function initAuthUI(){
     if(!usuario){ msg.style.color="#D1567A"; msg.textContent="Introduce tu usuario."; return; }
     var serverUrl = (document.getElementById('login-server-url').value||'').trim().replace(/\/+$/,'');
     if(serverUrl){ API_BASE = serverUrl; localStorage.setItem('andanzas_api_url', serverUrl); }
-    msg.style.color="var(--accent,#2F6F65)"; msg.textContent="Verificando...";
+    msg.style.color="var(--accent,#E8703A)"; msg.textContent="Verificando...";
     pendingResetUsuario = usuario;
     try {
       var hr3 = await apiFetch('/api/salud');
@@ -3533,7 +3533,7 @@ function initAuthUI(){
         showResetConfirm();
         return;
       }
-      msg.style.color="var(--accent,#2F6F65)"; msg.textContent=r.data?.mensaje||"Revisa tu correo.";
+      msg.style.color="var(--accent,#E8703A)"; msg.textContent=r.data?.mensaje||"Revisa tu correo.";
     } catch {
       pendingResetMode = 'local';
       showResetConfirm();
@@ -3546,14 +3546,14 @@ function initAuthUI(){
     const msg = document.getElementById("reset-confirm-msg");
     if(!pass || pass.length < 8){ msg.style.color="#D1567A"; msg.textContent="Mínimo 8 caracteres."; return; }
     if(pass !== pass2){ msg.style.color="#D1567A"; msg.textContent="Las contraseñas no coinciden."; return; }
-    msg.style.color="var(--accent,#2F6F65)"; msg.textContent="Cambiando...";
+    msg.style.color="var(--accent,#E8703A)"; msg.textContent="Cambiando...";
     if(pendingResetMode === 'local'){
       var enc = new TextEncoder();
       var hb = await crypto.subtle.digest('SHA-256', enc.encode(pendingResetUsuario + ':' + pass));
       var ha = Array.from(new Uint8Array(hb)).map(b=>b.toString(16).padStart(2,'0')).join('');
       localStorage.setItem(LS_PREFIX+'cred_'+pendingResetUsuario, ha);
       pendingResetMode = null; pendingResetUsuario = null;
-      msg.style.color="var(--accent,#2F6F65)"; msg.textContent="Contraseña guardada. Ya puedes iniciar sesión.";
+      msg.style.color="var(--accent,#E8703A)"; msg.textContent="Contraseña guardada. Ya puedes iniciar sesión.";
       setTimeout(showLogin, 2000);
       return;
     }
@@ -3563,7 +3563,7 @@ function initAuthUI(){
       const r = await apiFetch('/api/reset-password/confirmar', { method:'POST', body:JSON.stringify({token, password:pass}) });
       if(!r.ok){ msg.style.color="#D1567A"; msg.textContent=r.data?.error||"Error"; return; }
       pendingResetToken = null; pendingResetMode = null; pendingResetUsuario = null;
-      msg.style.color="var(--accent,#2F6F65)"; msg.textContent=r.data?.mensaje||"Contraseña cambiada.";
+      msg.style.color="var(--accent,#E8703A)"; msg.textContent=r.data?.mensaje||"Contraseña cambiada.";
       setTimeout(()=>{ history.replaceState(null,"",location.pathname); showLogin(); }, 2000);
     } catch { msg.style.color="#D1567A"; msg.textContent="No se puede conectar con el servidor."; }
   });
@@ -3790,9 +3790,9 @@ function renderMoreSheet(){
   wrap.innerHTML = MORE_SECTIONS.map(key=>{
     const m = SECTION_META[key];
     const iconHtml = m.icon
-      ? `<div class="more-icon" style="background:#EAF6F1;"><img src="${m.icon}" alt="" style="width:22px;height:22px;object-fit:contain;"></div>`
+      ? `<div class="more-icon" style="background:#FFF3E8;"><img src="${m.icon}" alt="" style="width:22px;height:22px;object-fit:contain;"></div>`
       : (m.emoji
-        ? `<div class="more-icon" style="background:#EAF6F1;font-size:19px;display:flex;align-items:center;justify-content:center;">${m.emoji}</div>`
+        ? `<div class="more-icon" style="background:#FFF3E8;font-size:19px;display:flex;align-items:center;justify-content:center;">${m.emoji}</div>`
         : `<div class="more-icon" style="background:${m.color}">${m.letter}</div>`);
     return `<div class="more-item" data-goto="${key}">
       ${iconHtml}
@@ -4136,7 +4136,7 @@ function renderTravelerForm(){
     <div class="field"><label class="field-label">Inicial (max 3)</label><input type="text" id="tf-inicial" value="${escapeHtml(t.inicial)}" maxlength="3" placeholder="JJ"></div>
     <div class="field"><label class="field-label">Color</label>
       <div style="display:flex;gap:6px;flex-wrap:wrap;" id="tf-color-pills">
-        ${TRAVELER_COLORS.map(c=>`<button class="tf-color-pill" data-color="${c}" style="width:32px;height:32px;border-radius:50%;background:${c};border:3px solid ${c===t.color?'#3E5449':'transparent'};cursor:pointer;" type="button"></button>`).join('')}
+        ${TRAVELER_COLORS.map(c=>`<button class="tf-color-pill" data-color="${c}" style="width:32px;height:32px;border-radius:50%;background:${c};border:3px solid ${c===t.color?'#2A2018':'transparent'};cursor:pointer;" type="button"></button>`).join('')}
       </div>
     </div>
     <div style="display:flex;gap:8px;margin-top:8px;">
@@ -4155,7 +4155,7 @@ function renderTravelerForm(){
 
   container.querySelectorAll(".tf-color-pill").forEach(b=>b.addEventListener("click",()=>{
     selectedColor = b.dataset.color;
-    container.querySelectorAll(".tf-color-pill").forEach(x=>x.style.borderColor = x.dataset.color===selectedColor?'#3E5449':'transparent');
+    container.querySelectorAll(".tf-color-pill").forEach(x=>x.style.borderColor = x.dataset.color===selectedColor?'#2A2018':'transparent');
   }));
 
   document.getElementById("save-trav-btn").addEventListener("click", async ()=>{
@@ -6098,7 +6098,7 @@ function itinRenderPrefsScreen(el){
 
   var catsHtml = cats.map(function(c){
     var sel = itinState.selectedCats.indexOf(c.id) >= 0;
-    return '<button type="button" class="itin-cat-tile" data-cat="' + c.id + '" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:20px;border:2px solid ' + (sel ? '#2F6F65' : 'rgba(47,111,101,0.15)') + ';background:' + (sel ? '#EAF6F1' : '#fff') + ';cursor:pointer;transition:all .15s;">'
+    return '<button type="button" class="itin-cat-tile" data-cat="' + c.id + '" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:20px;border:2px solid ' + (sel ? '#E8703A' : 'rgba(47,111,101,0.15)') + ';background:' + (sel ? '#FFF3E8' : '#fff') + ';cursor:pointer;transition:all .15s;">'
       + '<span style="font-size:26px;">' + c.emoji + '</span>'
       + '<span style="font-size:12px;font-weight:700;color:#2A2018;text-align:center;">' + c.label + '</span>'
       + '</button>';
@@ -6109,7 +6109,7 @@ function itinRenderPrefsScreen(el){
     + '<div style="font-size:17px;font-weight:800;margin-bottom:4px;">🗺️ Itinerario inteligente</div>'
     + '<div class="subtle" style="margin-bottom:14px;">Elige qué te apetece ver y generamos un plan día a día cerca de tu hotel.</div>'
     + (noCatalog
-      ? '<div style="background:#FFF7EC;border-radius:16px;padding:14px;font-size:13px;color:#6B5642;display:flex;gap:10px;align-items:flex-start;"><span style="font-size:20px;">🌱</span><div>Todavía no tenemos un catálogo de lugares para tu destino. Puedes seguir añadiendo sitios a mano desde "+ Añadir sitio" una vez tengas un itinerario, o probar con otro destino como Milán.</div></div>'
+      ? '<div style="background:#FFFFFF;border-radius:16px;padding:14px;font-size:13px;color:#6B5642;display:flex;gap:10px;align-items:flex-start;"><span style="font-size:20px;">🌱</span><div>Todavía no tenemos un catálogo de lugares para tu destino. Puedes seguir añadiendo sitios a mano desde "+ Añadir sitio" una vez tengas un itinerario, o probar con otro destino como Milán.</div></div>'
       : '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">' + catsHtml + '</div>'
       + '<div class="field" style="margin-bottom:14px;"><label class="field-label">Días de itinerario</label><input type="number" id="itin-num-days" min="1" max="14" value="' + itinState.numDays + '" style="width:100%;"></div>'
       + '<button type="button" id="itin-generate-btn" class="btn btn-primary" style="width:100%;">Generar mi itinerario</button>')
@@ -6160,7 +6160,7 @@ function itinRenderTimelineScreen(el){
   }
   var dayTabs = itin.dias.map(function(d){
     var active = d.dia === itinState.activeDay;
-    return '<button type="button" class="itin-day-tab" data-day="' + d.dia + '" style="flex:0 0 auto;padding:8px 16px;border-radius:100px;border:none;font-weight:700;font-size:13px;cursor:pointer;background:' + (active ? '#2F6F65' : '#EAF6F1') + ';color:' + (active ? '#fff' : '#2F6F65') + ';">Día ' + d.dia + '</button>';
+    return '<button type="button" class="itin-day-tab" data-day="' + d.dia + '" style="flex:0 0 auto;padding:8px 16px;border-radius:100px;border:none;font-weight:700;font-size:13px;cursor:pointer;background:' + (active ? '#E8703A' : '#FFF3E8') + ';color:' + (active ? '#fff' : '#E8703A') + ';">Día ' + d.dia + '</button>';
   }).join('');
 
   var day = itin.dias.find(function(d){ return d.dia === itinState.activeDay; }) || itin.dias[0];
@@ -6174,7 +6174,7 @@ function itinRenderTimelineScreen(el){
     var emoji = poi ? poi.icono : '🍽️';
     var meta = poi ? (categoryLabelSafe(itinState.mod, poi.categoria) + (poi.duracion_min ? ' · ' + poi.duracion_min + ' min' : '')) : 'Comida';
     var isDone = !!doneSet[i];
-    var borderColor = b.origen === 'usuario' ? '#C77A2E' : '#7FB8B0';
+    var borderColor = b.origen === 'usuario' ? '#C77A2E' : '#FFB347';
     return '<div class="itin-stop" data-idx="' + i + '" style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-left:4px solid ' + borderColor + ';background:#fff;border-radius:14px;margin-bottom:10px;box-shadow:0 2px 0 rgba(196,150,110,0.1);">'
       + '<div style="font-size:12px;font-weight:800;color:#6B5642;min-width:42px;">' + (b.hora || '') + '</div>'
       + '<div style="font-size:22px;">' + emoji + '</div>'
@@ -6240,8 +6240,8 @@ function itinRenderAddScreen(el){
     + '<div class="field" style="flex:1;"><label class="field-label">Hora</label><input type="time" id="itin-add-hour" value="' + itinState.addHour + '" style="width:100%;"></div>'
     + '</div>'
     + '<div style="display:flex;gap:8px;margin-bottom:12px;">'
-    + '<button type="button" class="itin-src-toggle" data-src="destino" style="flex:1;padding:9px;border-radius:100px;border:none;font-weight:700;font-size:13px;cursor:pointer;background:' + (itinState.addCatalogChoice === 'destino' ? '#2F6F65' : '#EAF6F1') + ';color:' + (itinState.addCatalogChoice === 'destino' ? '#fff' : '#2F6F65') + ';">📍 ' + (poiCityKey() === 'milan' ? 'Milán' : 'Destino') + '</button>'
-    + '<button type="button" class="itin-src-toggle" data-src="alpes" style="flex:1;padding:9px;border-radius:100px;border:none;font-weight:700;font-size:13px;cursor:pointer;background:' + (itinState.addCatalogChoice === 'alpes' ? '#2F6F65' : '#EAF6F1') + ';color:' + (itinState.addCatalogChoice === 'alpes' ? '#fff' : '#2F6F65') + ';">🏔️ Alpes</button>'
+    + '<button type="button" class="itin-src-toggle" data-src="destino" style="flex:1;padding:9px;border-radius:100px;border:none;font-weight:700;font-size:13px;cursor:pointer;background:' + (itinState.addCatalogChoice === 'destino' ? '#E8703A' : '#FFF3E8') + ';color:' + (itinState.addCatalogChoice === 'destino' ? '#fff' : '#E8703A') + ';">📍 ' + (poiCityKey() === 'milan' ? 'Milán' : 'Destino') + '</button>'
+    + '<button type="button" class="itin-src-toggle" data-src="alpes" style="flex:1;padding:9px;border-radius:100px;border:none;font-weight:700;font-size:13px;cursor:pointer;background:' + (itinState.addCatalogChoice === 'alpes' ? '#E8703A' : '#FFF3E8') + ';color:' + (itinState.addCatalogChoice === 'alpes' ? '#fff' : '#E8703A') + ';">🏔️ Alpes</button>'
     + '</div>'
     + '<div class="field" style="margin-bottom:10px;"><input type="text" id="itin-add-search" placeholder="Buscar un lugar…" value="' + escapeHtml(itinState.addQuery) + '" style="width:100%;"></div>'
     + '<div id="itin-add-results" style="margin-bottom:16px;"></div>'
