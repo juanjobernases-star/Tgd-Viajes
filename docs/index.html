@@ -135,6 +135,22 @@ button{cursor:pointer;border:none;background:none;font-family:inherit;}
 .banner .main{font-size:18px; font-weight:700; margin-top:4px;}
 .banner .sub{font-size:13px; opacity:0.9; margin-top:3px;}
 
+/* botón compacto de opciones del viaje (evita que la cabecera se desborde en pantallas estrechas) */
+#trip-options-btn.hdr-btn{padding:6px 10px; font-size:16px; line-height:1; min-width:0;}
+
+/* atajos + personalizar (bloque Andanzas) */
+.andz-shortcuts-row{display:flex; gap:14px; overflow-x:auto; padding:2px 2px 12px; margin-bottom:4px;}
+.andz-shortcut{flex:0 0 auto; width:64px; text-align:center; font-size:11px; color:var(--text2); background:none; border:none;}
+.andz-shortcut-icon{width:52px; height:52px; border-radius:16px; background:rgba(47,111,101,.1);
+  display:flex; align-items:center; justify-content:center; font-size:22px; margin:0 auto 4px;}
+.andz-personalizar-btn{width:100%; padding:10px; border:none; background:none; color:var(--accent,#2F6F65);
+  font-weight:600; text-align:center; margin:6px 0 10px;}
+.andz-edit-row{display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #eee;}
+.andz-edit-row .label{flex:1;}
+.andz-remove-btn{color:#e0483e; border:none; background:none; font-size:18px;}
+.andz-order-btns button{border:none; background:none; color:var(--accent,#2F6F65); font-size:16px; padding:2px 6px;}
+.andz-add-link{color:var(--accent,#2F6F65); border:none; background:none; font-weight:600; padding:8px 0;}
+
 /* facts grid */
 .facts-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;}
 .fact-card{background:var(--card); border-radius:22px; padding:14px; box-shadow:var(--card-shadow);}
@@ -640,6 +656,19 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 }
 .sheet-overlay.open .sheet{transform:translateY(0);}
 .sheet-handle{width:36px; height:5px; background:rgba(120,95,74,0.25); border-radius:3px; margin:6px auto 14px;}
+/* selector de categoría de actividad (buscador tipo pantallazos) */
+.andz-cat-search{width:100%; padding:10px 12px; border-radius:12px; border:1px solid #ddd;
+  font-size:14px; margin-bottom:10px; box-sizing:border-box;}
+.andz-cat-groups{max-height:190px; overflow-y:auto; margin-bottom:8px; border-bottom:1px solid #eee; padding-bottom:6px;}
+.andz-cat-group-title{font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--text2);
+  font-weight:700; margin:8px 0 6px;}
+.andz-cat-grid{display:flex; flex-wrap:wrap; gap:8px;}
+.andz-cat-chip{display:flex; align-items:center; gap:6px; padding:7px 12px; border-radius:20px;
+  border:1px solid #e2e2e2; background:#fff; font-size:13px; color:var(--text,#222); cursor:pointer;}
+.andz-cat-chip .ic{font-size:15px;}
+.andz-cat-chip.selected{background:rgba(47,111,101,.12); border-color:var(--accent,#2F6F65); font-weight:600;}
+.andz-cat-empty{font-size:13px; color:var(--text2); padding:6px 2px;}
+
 .sheet-title{font-size:17px; font-weight:700; margin-bottom:14px; text-align:center;}
 .sheet-actions{display:flex; gap:10px; margin-top:16px;}
 .sheet-actions .btn{flex:1;}
@@ -1077,7 +1106,8 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       </div>
     </div>
     <div id="hdr-icon" class="hdr-icon"></div>
-    <div style="display:flex; gap:6px; align-items:center;">
+    <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+      <button class="hdr-btn hdr-btn-ghost" id="trip-options-btn" type="button" title="Opciones del viaje">⋯</button>
       <button class="hdr-btn" id="new-trip-btn" type="button">+ Viaje</button>
       <button class="hdr-btn hdr-btn-ghost" id="logout-btn" type="button">Cerrar sesión</button>
     </div>
@@ -1088,32 +1118,65 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
 
     <!-- RESUMEN -->
     <section class="section" id="sec-resumen">
+      <div class="andz-shortcuts-row" id="andzShortcuts"></div>
       <div id="next-plan-banner"></div>
       <div class="facts-grid" id="facts-grid"></div>
       <div class="travelers-row" id="travelers-row"></div>
 
-      <h3 style="margin:0 0 8px;">Vuelos</h3>
-      <div id="flight-summary-cards"></div>
+      <div class="andz-widget" data-widget="flights">
+        <h3 style="margin:0 0 8px;">Vuelos</h3>
+        <div id="flight-summary-cards"></div>
+      </div>
 
-      <h3 style="margin:16px 0 8px;">Alojamiento</h3>
-      <div id="hotel-card"></div>
+      <div class="andz-widget" data-widget="hotel">
+        <h3 style="margin:16px 0 8px;">Alojamiento</h3>
+        <div id="hotel-card"></div>
+      </div>
 
-      <h3 style="margin:16px 0 8px;">Excursiones</h3>
-      <div id="excursion-cards"></div>
+      <div class="andz-widget" data-widget="excursions">
+        <h3 style="margin:16px 0 8px;">Excursiones</h3>
+        <div id="excursion-cards"></div>
+      </div>
 
-      <h3 style="margin:16px 0 8px;">Estado de reservas</h3>
-      <div class="card" id="reservations-card"></div>
+      <div class="andz-widget" data-widget="reservations">
+        <h3 style="margin:16px 0 8px;">Estado de reservas</h3>
+        <div class="card" id="reservations-card"></div>
+      </div>
 
-      <h3 style="margin:16px 0 8px;">Cómo llegar</h3>
-      <div id="routes-list"></div>
-      <div class="tiny" style="margin:6px 0 14px;">Consejo: guarda los mapas offline antes de salir de casa por si falla la cobertura.</div>
+      <div class="andz-widget" data-widget="routes">
+        <h3 style="margin:16px 0 8px;">Cómo llegar</h3>
+        <div id="routes-list"></div>
+        <div class="tiny" style="margin:6px 0 14px;">Consejo: guarda los mapas offline antes de salir de casa por si falla la cobertura.</div>
 
-      <h3 style="margin:0 0 8px; display:flex; justify-content:space-between; align-items:center;">
-        Rutas propias
-        <button class="btn btn-secondary btn-sm" id="add-route-btn" type="button">+ Añadir</button>
-      </h3>
-      <div id="custom-routes-list"></div>
+        <h3 style="margin:0 0 8px; display:flex; justify-content:space-between; align-items:center;">
+          Rutas propias
+          <button class="btn btn-secondary btn-sm" id="add-route-btn" type="button">+ Añadir</button>
+        </h3>
+        <div id="custom-routes-list"></div>
+      </div>
+
+      <button class="andz-personalizar-btn" id="andzPersonalizarBtn" type="button">⚙️ Personalizar vista</button>
     </section>
+
+    <!-- Modal: personalizar atajos y widgets del Resumen -->
+    <div class="sheet-overlay" id="andz-personalizar-overlay">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title" style="display:flex; justify-content:space-between; align-items:center; text-align:left;">
+          Personalizar vista general
+          <button id="andzModalClose" type="button" style="border:none;background:none;font-size:20px;">✕</button>
+        </div>
+        <h4 style="margin:0 0 4px;">Atajos</h4>
+        <div id="andzShortcutsEdit"></div>
+        <button id="andzAddShortcut" class="andz-add-link" type="button">+ Añadir nuevo atajo</button>
+        <h4 style="margin:14px 0 4px;">Widgets</h4>
+        <div id="andzWidgetsEdit"></div>
+        <div class="sheet-actions">
+          <button class="btn btn-ghost" id="andzCancelBtn" type="button">Cancelar</button>
+          <button class="btn btn-primary" id="andzSaveBtn" type="button">Guardar</button>
+        </div>
+      </div>
+    </div>
 
     <!-- CALENDARIO -->
     <section class="section hidden" id="sec-calendario">
@@ -1568,6 +1631,11 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
     <div class="sheet">
       <div class="sheet-handle"></div>
       <div class="sheet-title">Añadir plan</div>
+
+      <label class="field-label">Tipo de actividad</label>
+      <input type="text" class="andz-cat-search" id="andzCatSearch" placeholder="Buscar actividades y lugares">
+      <div class="andz-cat-groups" id="andzCatGroups"></div>
+
       <div class="field" id="new-event-date-field"><label class="field-label">Fecha</label><input type="date" id="new-event-date"></div>
       <div class="field"><label class="field-label">Título</label><input type="text" id="new-event-title"></div>
       <div class="field"><label class="field-label">Hora</label><input type="time" id="new-event-time"></div>
@@ -1590,6 +1658,71 @@ label.field-label{font-size:12px; color:var(--text2); font-weight:600; margin-bo
       <div class="sheet-actions">
         <button class="btn btn-ghost" id="add-route-cancel" type="button">Cancelar</button>
         <button class="btn btn-primary" id="add-route-confirm" type="button">Añadir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRIP OPTIONS SHEET (menú ⋯ del viaje) -->
+  <div class="sheet-overlay" id="trip-options-overlay">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Opciones del viaje</div>
+      <div class="more-item" id="trip-opt-share">
+        <div class="more-icon" style="background:rgba(47,111,101,0.12);">📤</div>
+        <div class="more-label">Compartir viaje</div>
+        <div class="more-chevron">›</div>
+      </div>
+      <div class="more-item" id="trip-opt-travelers">
+        <div class="more-icon" style="background:rgba(62,110,146,0.12);">🧑‍🤝‍🧑</div>
+        <div class="more-label">Gestionar participantes</div>
+        <div class="more-chevron">›</div>
+      </div>
+      <div class="more-item" id="trip-opt-name">
+        <div class="more-icon" style="background:rgba(199,122,46,0.12);">✏️</div>
+        <div class="more-label">Editar nombre / destino</div>
+        <div class="more-chevron">›</div>
+      </div>
+      <div class="more-item" id="trip-opt-dates">
+        <div class="more-icon" style="background:rgba(175,82,222,0.12);">🗓️</div>
+        <div class="more-label">Cambiar fechas</div>
+        <div class="more-chevron">›</div>
+      </div>
+      <div class="more-item" id="trip-opt-export">
+        <div class="more-icon" style="background:rgba(48,176,199,0.12);">💾</div>
+        <div class="more-label">Exportar viaje (copia de seguridad)</div>
+        <div class="more-chevron">›</div>
+      </div>
+      <div class="more-item" id="trip-opt-delete" style="color:#D1567A;margin-top:8px;">
+        <div class="more-icon" style="background:rgba(209,86,122,0.12);">🗑️</div>
+        <div class="more-label">Eliminar viaje</div>
+        <div class="more-chevron">›</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT TRIP NAME SHEET -->
+  <div class="sheet-overlay" id="edit-trip-name-overlay">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Editar nombre / destino</div>
+      <div class="field"><label class="field-label">Ciudad / destino principal</label><input type="text" id="edit-trip-name-input" placeholder="Ej. Milán"></div>
+      <div class="sheet-actions">
+        <button class="btn btn-ghost" id="edit-trip-name-cancel" type="button">Cancelar</button>
+        <button class="btn btn-primary" id="edit-trip-name-confirm" type="button">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT TRIP DATES SHEET -->
+  <div class="sheet-overlay" id="edit-trip-dates-overlay">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Cambiar fechas</div>
+      <div class="field"><label class="field-label">Fecha de inicio</label><input type="date" id="edit-trip-date-start"></div>
+      <div class="field"><label class="field-label">Fecha de fin</label><input type="date" id="edit-trip-date-end"></div>
+      <div class="sheet-actions">
+        <button class="btn btn-ghost" id="edit-trip-dates-cancel" type="button">Cancelar</button>
+        <button class="btn btn-primary" id="edit-trip-dates-confirm" type="button">Guardar</button>
       </div>
     </div>
   </div>
@@ -1761,6 +1894,433 @@ const SECTION_META = {
 };
 const MAIN_TABS = ["resumen","calendario","itinerario","vuelo","guia"];
 const MORE_SECTIONS = ["buscar","gastos","mapas","documentacion","equipaje","presupuesto","clima","frases","offline","seguridad","vpn"];
+
+/* ============ RESUMEN PERSONALIZABLE (atajos + widgets) ============ */
+(function(){
+  const ANDZ_KEY = "andanzas_resumen_config_v1";
+
+  // Atajos disponibles: se apoyan en las pestañas/secciones reales de la app.
+  const ANDZ_SHORTCUTS_ALL = [
+    {id:"vuelo",         label:"Vuelos",         icon:"✈️"},
+    {id:"guia",          label:"Guía",           icon:"🧭"},
+    {id:"itinerario",    label:"Itinerario",     icon:"🗺️"},
+    {id:"calendario",    label:"Calendario",     icon:"🗓️"},
+    {id:"gastos",        label:"Gastos",         icon:"💶"},
+    {id:"documentacion", label:"Documentos",     icon:"📄"},
+    {id:"mapas",         label:"Mapas",          icon:"📍"},
+    {id:"presupuesto",   label:"Presupuesto",    icon:"💰"},
+    {id:"equipaje",      label:"Equipaje",       icon:"🎒"},
+    {id:"clima",         label:"Clima",          icon:"☀️"},
+    {id:"seguridad",     label:"Seguridad",      icon:"🛡️"},
+    {id:"vpn",           label:"VPN Viaje",      icon:"🔐"},
+    {id:"frases",        label:"Frases",         icon:"💬"},
+    {id:"buscar",        label:"Buscar",         icon:"🔎"},
+  ];
+  // Widgets disponibles: cada uno referencia el wrapper real ya existente en el Resumen.
+  const ANDZ_WIDGETS_ALL = [
+    {id:"flights",      label:"Vuelos"},
+    {id:"hotel",        label:"Alojamiento"},
+    {id:"excursions",   label:"Excursiones"},
+    {id:"reservations", label:"Estado de reservas"},
+    {id:"routes",       label:"Cómo llegar / Rutas propias"},
+  ];
+
+  function andzDefaultConfig(){
+    return {
+      shortcuts: ["vuelo","guia","itinerario","gastos","documentacion"],
+      widgets: ANDZ_WIDGETS_ALL.map(w => ({id:w.id, visible:true})),
+    };
+  }
+  function andzLoadConfig(){
+    try{
+      const raw = localStorage.getItem(ANDZ_KEY);
+      if(!raw) return andzDefaultConfig();
+      const cfg = JSON.parse(raw);
+      const def = andzDefaultConfig();
+      // Asegura que widgets nuevos (añadidos en futuras versiones) aparezcan.
+      const ids = new Set((cfg.widgets||[]).map(w=>w.id));
+      def.widgets.forEach(w=>{ if(!ids.has(w.id)) cfg.widgets.push(w); });
+      return { ...def, ...cfg };
+    }catch(e){ return andzDefaultConfig(); }
+  }
+  function andzSaveConfig(cfg){ localStorage.setItem(ANDZ_KEY, JSON.stringify(cfg)); }
+
+  let andzCfg = andzLoadConfig();
+
+  function andzShortcutDef(id){ return ANDZ_SHORTCUTS_ALL.find(s=>s.id===id); }
+  function andzWidgetDef(id){ return ANDZ_WIDGETS_ALL.find(w=>w.id===id); }
+
+  // Reordena y muestra/oculta los widgets del Resumen (bloques con data-widget en el HTML).
+  window.applyAndzResumenLayout = function applyAndzResumenLayout(){
+    const shortcutsEl = document.getElementById("andzShortcuts");
+    if(shortcutsEl){
+      shortcutsEl.innerHTML = andzCfg.shortcuts.map(id=>{
+        const s = andzShortcutDef(id); if(!s) return "";
+        return `<button class="andz-shortcut" type="button" data-id="${s.id}">
+                  <div class="andz-shortcut-icon">${s.icon}</div>${escapeHtml(s.label)}</button>`;
+      }).join("");
+      shortcutsEl.querySelectorAll(".andz-shortcut").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const tab = btn.dataset.id;
+          if(MORE_SECTIONS.includes(tab)){ switchTab(tab); }
+          else { switchTab(tab); }
+        });
+      });
+    }
+
+    const sec = document.getElementById("sec-resumen");
+    const btnBar = document.getElementById("andzPersonalizarBtn");
+    if(sec && btnBar){
+      andzCfg.widgets.forEach(w=>{
+        const el = sec.querySelector(`.andz-widget[data-widget="${w.id}"]`);
+        if(!el) return;
+        el.style.display = w.visible ? "" : "none";
+        sec.insertBefore(el, btnBar); // reordena según cfg.widgets
+      });
+    }
+  };
+
+  function andzRenderShortcutsEdit(){
+    const el = document.getElementById("andzShortcutsEdit");
+    el.innerHTML = andzCfg.shortcuts.map(id=>{
+      const s = andzShortcutDef(id); if(!s) return "";
+      return `<div class="andz-edit-row" data-id="${s.id}">
+                <span>${s.icon}</span><span class="label">${escapeHtml(s.label)}</span>
+                <button class="andz-remove-btn" type="button" data-remove="${s.id}">−</button></div>`;
+    }).join("");
+    el.querySelectorAll("[data-remove]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        andzCfg.shortcuts = andzCfg.shortcuts.filter(id=>id!==btn.dataset.remove);
+        andzRenderShortcutsEdit();
+      });
+    });
+  }
+
+  function andzRenderWidgetsEdit(){
+    const el = document.getElementById("andzWidgetsEdit");
+    el.innerHTML = andzCfg.widgets.map((w,i)=>{
+      const def = andzWidgetDef(w.id); if(!def) return "";
+      return `<div class="andz-edit-row" data-id="${w.id}">
+                <span class="label">${escapeHtml(def.label)}</span>
+                <label style="display:flex;align-items:center;gap:4px;">
+                  <input type="checkbox" ${w.visible?"checked":""} data-visible="${w.id}"></label>
+                <span class="andz-order-btns">
+                  <button type="button" data-up="${i}" ${i===0?"disabled":""}>▲</button>
+                  <button type="button" data-down="${i}" ${i===andzCfg.widgets.length-1?"disabled":""}>▼</button>
+                </span></div>`;
+    }).join("");
+    el.querySelectorAll("[data-visible]").forEach(cb=>{
+      cb.addEventListener("change", ()=>{
+        const w = andzCfg.widgets.find(w=>w.id===cb.dataset.visible);
+        w.visible = cb.checked;
+      });
+    });
+    el.querySelectorAll("[data-up]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const i = +btn.dataset.up;
+        [andzCfg.widgets[i-1], andzCfg.widgets[i]] = [andzCfg.widgets[i], andzCfg.widgets[i-1]];
+        andzRenderWidgetsEdit();
+      });
+    });
+    el.querySelectorAll("[data-down]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const i = +btn.dataset.down;
+        [andzCfg.widgets[i+1], andzCfg.widgets[i]] = [andzCfg.widgets[i], andzCfg.widgets[i+1]];
+        andzRenderWidgetsEdit();
+      });
+    });
+  }
+
+  function andzOpenModal(){
+    andzRenderShortcutsEdit();
+    andzRenderWidgetsEdit();
+    openSheet("andz-personalizar-overlay");
+  }
+  function andzCloseModal(){
+    closeSheet("andz-personalizar-overlay");
+  }
+
+  document.addEventListener("DOMContentLoaded", ()=>{
+    const openBtn = document.getElementById("andzPersonalizarBtn");
+    if(!openBtn) return; // seguridad por si el DOM aún no tiene el bloque
+    openBtn.addEventListener("click", andzOpenModal);
+    document.getElementById("andzModalClose").addEventListener("click", andzCloseModal);
+    document.getElementById("andzCancelBtn").addEventListener("click", ()=>{
+      andzCfg = andzLoadConfig();
+      andzCloseModal();
+    });
+    document.getElementById("andzAddShortcut").addEventListener("click", ()=>{
+      const missing = ANDZ_SHORTCUTS_ALL.filter(s=>!andzCfg.shortcuts.includes(s.id));
+      if(!missing.length){ toast("Ya tienes todos los atajos añadidos."); return; }
+      andzCfg.shortcuts.push(missing[0].id);
+      andzRenderShortcutsEdit();
+    });
+    document.getElementById("andzSaveBtn").addEventListener("click", ()=>{
+      andzSaveConfig(andzCfg);
+      applyAndzResumenLayout();
+      andzCloseModal();
+      toast("Vista personalizada");
+    });
+  });
+})();
+
+/* ============ BUSCADOR DE ACTIVIDAD POR CATEGORÍA (sheet "Añadir plan") ============ */
+(function(){
+  const ANDZ_CAT_GROUPS = [
+    {title:"Comida y bebida", items:[
+      {icon:"🍸", label:"Bar y fiesta"},
+      {icon:"🍷", label:"Bodega"},
+      {icon:"☕", label:"Cafetería"},
+      {icon:"🍺", label:"Cervecería"},
+      {icon:"🥐", label:"Panadería"},
+      {icon:"🍕", label:"Pizza"},
+      {icon:"🍽️", label:"Restaurante"},
+    ]},
+    {title:"Arte y ocio", items:[
+      {icon:"🎬", label:"Cine"},
+      {icon:"🎵", label:"Concierto"},
+      {icon:"🎫", label:"Evento"},
+      {icon:"🏛️", label:"Museo"},
+    ]},
+    {title:"Naturaleza y aire libre", items:[
+      {icon:"🏔️", label:"Mirador / naturaleza"},
+      {icon:"🏖️", label:"Playa"},
+      {icon:"🚶", label:"Ruta a pie"},
+      {icon:"⚽", label:"Deporte"},
+    ]},
+    {title:"Compras y otros", items:[
+      {icon:"🛍️", label:"Compras"},
+      {icon:"🏨", label:"Alojamiento"},
+      {icon:"🚌", label:"Transporte"},
+      {icon:"📌", label:"Otro"},
+    ]},
+  ];
+
+  let andzSelectedCat = null; // {icon,label}
+
+  function andzNormalize(s){
+    return String(s||"").toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+
+  function andzRenderCatGroups(filterText){
+    const wrap = document.getElementById("andzCatGroups");
+    if(!wrap) return;
+    const f = andzNormalize(filterText||"");
+    let html = "";
+    ANDZ_CAT_GROUPS.forEach(group=>{
+      const items = f ? group.items.filter(it=>andzNormalize(it.label).includes(f)) : group.items;
+      if(!items.length) return;
+      html += `<div class="andz-cat-group-title">${escapeHtml(group.title)}</div>
+        <div class="andz-cat-grid">` +
+        items.map(it=>{
+          const sel = andzSelectedCat && andzSelectedCat.label===it.label && andzSelectedCat.icon===it.icon;
+          return `<button type="button" class="andz-cat-chip${sel?" selected":""}"
+                    data-icon="${it.icon}" data-label="${escapeHtml(it.label)}">
+                    <span class="ic">${it.icon}</span>${escapeHtml(it.label)}</button>`;
+        }).join("") + `</div>`;
+    });
+    wrap.innerHTML = html || `<div class="andz-cat-empty">Sin resultados. Puedes escribir tu propio título abajo.</div>`;
+
+    wrap.querySelectorAll(".andz-cat-chip").forEach(chip=>{
+      chip.addEventListener("click", ()=>{
+        const icon = chip.dataset.icon, label = chip.dataset.label;
+        const titleInput = document.getElementById("new-event-title");
+        if(andzSelectedCat && andzSelectedCat.icon===icon && andzSelectedCat.label===label){
+          // deseleccionar
+          andzSelectedCat = null;
+        } else {
+          andzSelectedCat = {icon, label};
+          if(!titleInput.value.trim()) titleInput.value = label;
+        }
+        andzRenderCatGroups(document.getElementById("andzCatSearch").value);
+      });
+    });
+  }
+
+  window.andzResetCategoryPicker = function andzResetCategoryPicker(){
+    andzSelectedCat = null;
+    const search = document.getElementById("andzCatSearch");
+    if(search) search.value = "";
+    andzRenderCatGroups("");
+  };
+
+  window.andzGetSelectedCategoryIcon = function andzGetSelectedCategoryIcon(){
+    return andzSelectedCat ? andzSelectedCat.icon : "";
+  };
+
+  document.addEventListener("DOMContentLoaded", ()=>{
+    const search = document.getElementById("andzCatSearch");
+    if(!search) return; // seguridad por si el DOM aún no tiene el bloque
+    search.addEventListener("input", ()=> andzRenderCatGroups(search.value));
+    andzRenderCatGroups("");
+  });
+})();
+
+/* ============ MENÚ ⋯ DEL VIAJE (nombre, fechas, compartir, exportar, eliminar) ============ */
+(function(){
+  function tripCityName(){
+    return (CURRENT_PROFILE && CURRENT_PROFILE.destino && CURRENT_PROFILE.destino.ciudades && CURRENT_PROFILE.destino.ciudades[0]) || "";
+  }
+
+  function buildShareText(){
+    const v = ensureViaje();
+    const city = tripCityName() || "Mi viaje";
+    let txt = `✈️ ${city}`;
+    if(v.fechaInicio) txt += `\n${formatFechaCorta(v.fechaInicio)}${v.fechaFin ? " → "+formatFechaCorta(v.fechaFin) : ""}`;
+    if(v.hotel && v.hotel.nombre) txt += `\n🏨 ${v.hotel.nombre}`;
+    txt += `\n\nOrganizado con Andanzas`;
+    return txt;
+  }
+
+  async function andzShareTrip(){
+    const text = buildShareText();
+    if(navigator.share){
+      try{ await navigator.share({title:"Andanzas", text}); }catch(e){ /* usuario canceló */ }
+    } else if(navigator.clipboard){
+      try{ await navigator.clipboard.writeText(text); toast("Resumen del viaje copiado"); }
+      catch(e){ toast("No se pudo copiar el resumen"); }
+    } else {
+      toast("Compartir no está disponible en este navegador");
+    }
+  }
+
+  function andzExportTrip(){
+    const data = {
+      exportadoEl: new Date().toISOString(),
+      destino: CURRENT_PROFILE ? CURRENT_PROFILE.destino : null,
+      viaje: ensureViaje(),
+      customRoutes: lsGet("customRoutes", []),
+      gastos: typeof getExpenses==="function" ? getExpenses() : [],
+      documentos: typeof getDocsState==="function" ? getDocsState() : {},
+      equipaje: typeof getPackingState==="function" ? getPackingState() : {},
+      vueloEstado: typeof getFlightsData==="function" ? getFlightsData() : null,
+      presupuesto: typeof getBudgetCeiling==="function" ? getBudgetCeiling() : 0,
+      itinerarioAjustes: {
+        overrides: typeof getItemOverrides==="function" ? getItemOverrides() : {},
+        eliminados: typeof getRemoved==="function" ? getRemoved() : [],
+      },
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const slug = (tripCityName()||"viaje").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-");
+    a.href = url; a.download = `andanzas-${slug||"viaje"}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+    toast("Copia de seguridad descargada");
+  }
+
+  async function andzDeleteTrip(){
+    if(CURRENT_PROFILE) CURRENT_PROFILE.viaje = {};
+
+    // Contenido del viaje guardado en claves globales de localStorage
+    // (no dependen del objeto viaje ni se limpian con CURRENT_PROFILE.viaje={}).
+    lsSet("customRoutes", []);
+    if(typeof setExpenses==="function") setExpenses([]);
+    if(typeof setDocsState==="function") setDocsState({});
+    if(typeof setPackingState==="function") setPackingState({});
+    if(typeof setItemOverrides==="function") setItemOverrides({});
+    if(typeof setRemoved==="function") setRemoved([]);
+    if(typeof setFlightsData==="function") setFlightsData({
+      outbound:{number:"",status:"",gate:"",delay:""},
+      returnF:{number:"",status:"",gate:"",delay:""}
+    });
+    lsSet("numbersUrl", "");
+
+    // Claves ligadas al usuario actual.
+    if(CURRENT_USER){
+      lsSet("calendarExtraDates_"+CURRENT_USER, []);
+      if(typeof setCheckins==="function") setCheckins({});
+      if(typeof setBudgetCeiling==="function") setBudgetCeiling(0);
+    }
+
+    // Planes sueltos añadidos a mano por día ("itineraryExtra_d_<fecha>"): puede
+    // haber tantas claves como fechas distintas se hayan usado, así que se
+    // recorre localStorage en vez de intentar reconstruir la lista de días.
+    try{
+      const prefix = LS_PREFIX + "itineraryExtra_d_";
+      Object.keys(localStorage)
+        .filter(k=>k.indexOf(prefix)===0)
+        .forEach(k=>localStorage.removeItem(k));
+    }catch(e){}
+
+    await saveViaje();
+    switchTab("resumen");
+    if(typeof refreshCurrentCalendarView==="function") refreshCurrentCalendarView();
+    toast("Viaje eliminado");
+  }
+
+  document.addEventListener("DOMContentLoaded", ()=>{
+    const openBtn = document.getElementById("trip-options-btn");
+    if(!openBtn) return; // seguridad por si el DOM aún no tiene el bloque
+    openBtn.addEventListener("click", ()=> openSheet("trip-options-overlay"));
+    document.getElementById("trip-options-overlay").addEventListener("click", e=>{
+      if(e.target.id==="trip-options-overlay") closeSheet("trip-options-overlay");
+    });
+
+    document.getElementById("trip-opt-share").addEventListener("click", ()=>{
+      closeSheet("trip-options-overlay");
+      andzShareTrip();
+    });
+
+    document.getElementById("trip-opt-travelers").addEventListener("click", ()=>{
+      closeSheet("trip-options-overlay");
+      switchTab("resumen");
+      const el = document.getElementById("travelers-row");
+      if(el) el.scrollIntoView({behavior:"smooth", block:"center"});
+    });
+
+    document.getElementById("trip-opt-name").addEventListener("click", ()=>{
+      closeSheet("trip-options-overlay");
+      document.getElementById("edit-trip-name-input").value = tripCityName();
+      openSheet("edit-trip-name-overlay");
+    });
+    document.getElementById("edit-trip-name-cancel").addEventListener("click", ()=> closeSheet("edit-trip-name-overlay"));
+    document.getElementById("edit-trip-name-confirm").addEventListener("click", async ()=>{
+      const val = document.getElementById("edit-trip-name-input").value.trim();
+      if(!val){ toast("Escribe un nombre"); return; }
+      if(!CURRENT_PROFILE.destino) CURRENT_PROFILE.destino = {continente:"", pais:"", ciudades:[]};
+      CURRENT_PROFILE.destino.ciudades = [val];
+      await saveViaje();
+      closeSheet("edit-trip-name-overlay");
+      switchTab(currentTab || "resumen");
+      toast("Nombre actualizado");
+    });
+
+    document.getElementById("trip-opt-dates").addEventListener("click", ()=>{
+      closeSheet("trip-options-overlay");
+      const v = ensureViaje();
+      document.getElementById("edit-trip-date-start").value = v.fechaInicio || "";
+      document.getElementById("edit-trip-date-end").value = v.fechaFin || "";
+      openSheet("edit-trip-dates-overlay");
+    });
+    document.getElementById("edit-trip-dates-cancel").addEventListener("click", ()=> closeSheet("edit-trip-dates-overlay"));
+    document.getElementById("edit-trip-dates-confirm").addEventListener("click", async ()=>{
+      const ini = document.getElementById("edit-trip-date-start").value;
+      const fin = document.getElementById("edit-trip-date-end").value;
+      if(!ini){ toast("Elige al menos la fecha de inicio"); return; }
+      const v = ensureViaje();
+      v.fechaInicio = ini;
+      v.fechaFin = fin || ini;
+      await saveViaje();
+      closeSheet("edit-trip-dates-overlay");
+      switchTab(currentTab || "resumen");
+      refreshCurrentCalendarView();
+      toast("Fechas actualizadas");
+    });
+
+    document.getElementById("trip-opt-export").addEventListener("click", ()=>{
+      closeSheet("trip-options-overlay");
+      andzExportTrip();
+    });
+
+    document.getElementById("trip-opt-delete").addEventListener("click", ()=>{
+      closeSheet("trip-options-overlay");
+      confirmDelete("¿Eliminar viaje?", "Se borrarán vuelos, hotel, excursiones, viajeros, fechas, rutas propias, gastos, documentos, equipaje y planes del calendario. Esta acción no se puede deshacer.", andzDeleteTrip);
+    });
+  });
+})();
 
 /* ============ UTILS ============ */
 function toast(msg){
@@ -3181,6 +3741,7 @@ function switchTab(tab, opts){
   backBtn.classList.toggle("hidden", secondaryStack.length===0);
 
   renderSection(tab);
+  if(tab==="resumen" && typeof applyAndzResumenLayout==="function") applyAndzResumenLayout();
 }
 
 document.getElementById("back-btn").addEventListener("click", ()=>{
@@ -4005,6 +4566,7 @@ function openAddEventSheet(dayId){
   document.getElementById("new-event-title").value = "";
   document.getElementById("new-event-time").value = "";
   document.getElementById("new-event-note").value = "";
+  if(typeof andzResetCategoryPicker==="function") andzResetCategoryPicker();
   openSheet("add-event-overlay");
 }
 
@@ -4221,8 +4783,10 @@ document.getElementById("add-event-confirm").addEventListener("click", ()=>{
     selectedWeekDay = dateStr;
     selectedMonthDay = dateStr;
   }
+  const catIcon = (typeof andzGetSelectedCategoryIcon==="function") ? andzGetSelectedCategoryIcon() : "";
+  const desc = catIcon ? (catIcon+" "+title) : title;
   const extra = getExtraForDay(dayId);
-  extra.push({id:uid(), time, desc:title, note});
+  extra.push({id:uid(), time, desc, note});
   setExtraForDay(dayId, extra);
   closeSheet("add-event-overlay");
   refreshCurrentCalendarView();
